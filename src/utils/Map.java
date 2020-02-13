@@ -16,6 +16,7 @@ public class Map {
 									//In real run, real map is not known in advanced
 	
 	private MapCell[][] mapCells;
+	private int exploredPercent; // have exploredPercent and count so we don't waste time 
 	
 	//Singleton strategy pattern
 	public static Map getExploredMapInstance() {
@@ -58,6 +59,12 @@ public class Map {
 				mapCells[i][j] = new MapCell();
 			}
 		}
+		this.exploredPercent = 0; 
+	}
+	
+	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 100 
+		this.getCell(x, y).setExploredStatus(true);
+		this.exploredPercent += 1/300; 
 	}
 	
 	public MapCell getCell(int x, int y) {
@@ -123,6 +130,10 @@ public class Map {
 				e.printStackTrace();
 			}
 		else System.out.println("File already existed");
+	}
+	
+	public int getExploredPercent() {
+		return this.exploredPercent; 
 	}
 	
 	public static void main(String[] args) {
