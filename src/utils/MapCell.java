@@ -1,14 +1,12 @@
 package utils;
 
 public class MapCell {
-	private Boolean isExplored;
-	private Boolean isObstacle;
-	private Boolean isVirtualWall;
+	private boolean isExplored;
+	private boolean isObstacle;
+	private boolean isVirtualWall;
 	
 	public MapCell() {
-		isExplored = false;
-		isObstacle = null;
-		isVirtualWall = null;
+		
 	}
 	
 	public boolean isExplored() {

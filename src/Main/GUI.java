@@ -44,7 +44,6 @@ public class GUI extends JFrame implements ActionListener{
 	private JTextField[] exploreTextFields, ffpTextFields;
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
-	private double currentCoverageRate;
 	private Orientation currentOrientation;
 
 	/**
@@ -445,6 +444,7 @@ public class GUI extends JFrame implements ActionListener{
 								}
 							}
 							currentOrientation = Orientation.UP;
+							mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
 						} else {
 							for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 								for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
@@ -532,12 +532,12 @@ public class GUI extends JFrame implements ActionListener{
 		}
 	}
 	
-	private void updateRobotAction(String action) {
-		switch(action) {
-			case "L":
-				
-		}
-	}
+//	private void updateRobotAction(String action) {
+//		switch(action) {
+//			case "L":
+//				for (int i=robotP)
+//		}
+//	}
 	
 
 	public void refreshExploreInput() {
