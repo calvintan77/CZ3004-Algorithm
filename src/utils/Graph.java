@@ -46,12 +46,22 @@ public class Graph {
         this.waypointVert = waypointVert;
     }
 
+    /**
+     * Finds the shortest path from the start to the end in the graph going through the waypoint.
+     * Tries entering the waypoint Vertically and Horizontally to find the minimum path between the two.
+     * @return ShortestPath object containing path length and a List of nodes as path.
+     */
     public ShortestPath GetShortestPath(){
         ShortestPath pathWPHoriz = GetShortestPathThroughWaypoint(waypointHoriz);
         ShortestPath pathWPVert = GetShortestPathThroughWaypoint(waypointVert);
         return pathWPHoriz.weight < pathWPVert.weight? pathWPHoriz: pathWPVert;
     }
 
+    /**
+     * Finds teh shortest path through a waypoint by breaking it into two A* searches and combining them
+     * @param waypoint - Waypoint node to path through
+     * @return ShortestPath object containing the combined path and path length.
+     */
     public ShortestPath GetShortestPathThroughWaypoint(GraphNode waypoint){
         try {
             ShortestPath toWaypoint = AStarSearch(start, waypoint);
@@ -64,6 +74,14 @@ public class Graph {
             return null;
         }
     }
+
+    /**
+     * Heuristic search to find the shortest path
+     * @param source - Source node
+     * @param destination - Destination node
+     * @return ShortestPath object containing path length and List of nodes as path
+     * @throws Exception - unable to find path from source to destination
+     */
     private ShortestPath AStarSearch(GraphNode source, GraphNode destination) throws Exception {
         PriorityQueue<AStarNode> toExplore = new PriorityQueue<>(10,
                 Comparator.comparingDouble(AStarNode::getWeight));
@@ -97,6 +115,12 @@ public class Graph {
         throw new Exception();
     }
 
+    /**
+     * Backtracks a Hashmap of explored nodes to find the shortest path
+     * @param explored - Hashmap of explored nodes
+     * @param destination - Destination node
+     * @return ShortestPath object containing path length as well as a List of nodes representing the path
+     */
     private ShortestPath BackTrack(HashMap<GraphNode, AStarNode> explored, GraphNode destination) {
         AStarNode curr = explored.get(destination);
         List<GraphNode> result = new LinkedList<>();

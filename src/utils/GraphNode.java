@@ -73,11 +73,6 @@ public class GraphNode {
         return true;
     }
 
-
-    public Float getNeighbourWeight(GraphNode graphNode){
-        return neighbours.get(graphNode);
-    }
-
     /**
      * Gets the list of neighbours
      * @return Pairs of Nodes and the weights to traverse to them
