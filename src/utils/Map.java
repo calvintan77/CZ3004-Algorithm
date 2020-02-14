@@ -1,5 +1,6 @@
 package utils;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,10 +8,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.math.BigInteger;
 
+import javax.swing.JButton;
+
 import Constants.MapConstants;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "C:\\Users\\USER\\Desktop\\newMap.txt";
+	private static final String MAP_FILE_PATH = "D:\\CZ3004-MULTIDISCIPLINARY PROJECT\\MDP 2020 Sem2\\src\\Sample arena 5.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
@@ -26,27 +29,11 @@ public class Map {
 	
 	public static Map getRealMapInstance() {
 		if (realMap == null) {
-			realMap = new Map();
 			/*
 			 * Code to load real Map
 			 */
-			File mapFile = new File(MAP_FILE_PATH);
-			try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
-				String hexStringMapDescriptor1 = mapFileReader.readLine();
-				String hexStringMapDescriptor2 = mapFileReader.readLine();
-				String binaryStringMapDescriptor2 = convertHexToBinaryString(hexStringMapDescriptor2);
-				int stringIndex = 0;
-				for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-					for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-						if (binaryStringMapDescriptor2.charAt(stringIndex) == '0') {
-							realMap.getCell(i, j).setObstacleStatus(false);
-						} else realMap.getCell(i, j).setObstacleStatus(true);
-						stringIndex++;
-					}
-				}
-			} catch (Exception e){
-				e.printStackTrace();
-			}
+			realMap = loadMapFromFile(MAP_FILE_PATH);
+			
 		}
 		return realMap;
 	}
@@ -95,8 +82,8 @@ public class Map {
 		StringBuilder binaryStringMapDescriptor1 = new StringBuilder();
 		StringBuilder binaryStringMapDescriptor2 = new StringBuilder();
 		binaryStringMapDescriptor1.append("11");
-		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 				if (map.getCell(i, j).isExplored()) {
 					binaryStringMapDescriptor1.append("1");
 					if (map.getCell(i, j).isObstacle())
@@ -107,11 +94,7 @@ public class Map {
 		}
 		binaryStringMapDescriptor1.append("11");
 		String hexStringMapDescriptor1 = convertBinaryToHexString(binaryStringMapDescriptor1.toString());
-		if (binaryStringMapDescriptor2.length() % 8 != 0) {
-			for (int i=0; i < 8-(binaryStringMapDescriptor2.length() % 8); i++) {
-				binaryStringMapDescriptor2.append("1");
-			}
-		}
+		
 		String hexStringMapDescriptor2 = convertBinaryToHexString(binaryStringMapDescriptor2.toString());
 		File mapFile = new File(savePath);
 		if (!mapFile.exists())
@@ -123,6 +106,42 @@ public class Map {
 				e.printStackTrace();
 			}
 		else System.out.println("File already existed");
+	}
+	
+	public void loadMap(JButton[][] mapGrids) {
+		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
+			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
+				if (mapGrids[x][y].getBackground() == Color.RED) {
+					mapCells[x][y].setObstacleStatus(true);
+				} else {
+					mapCells[x][y].setObstacleStatus(false);
+				}
+			}
+		}
+		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
+	}
+	
+	public static Map loadMapFromFile(String filePath) {
+		Map resultMap = new Map();
+		File mapFile = new File(filePath);
+		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
+			String hexStringMapDescriptor1 = mapFileReader.readLine();
+			String hexStringMapDescriptor2 = mapFileReader.readLine();
+			String binaryStringMapDescriptor2 = convertHexToBinaryString(hexStringMapDescriptor2);
+			int stringIndex = 0;
+			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+				for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+					resultMap.getCell(i, j).setExploredStatus(true);
+					if (binaryStringMapDescriptor2.charAt(stringIndex) == '0') {
+						resultMap.getCell(i, j).setObstacleStatus(false);
+					} else resultMap.getCell(i, j).setObstacleStatus(true);
+					stringIndex++;
+				}
+			}
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+		return resultMap;
 	}
 	
 	public static void main(String[] args) {
