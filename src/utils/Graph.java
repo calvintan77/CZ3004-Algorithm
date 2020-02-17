@@ -4,7 +4,6 @@ import Algorithms.AStarAlgo;
 import Constants.MapConstants;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 
 public class Graph {
@@ -59,7 +58,7 @@ public class Graph {
     }
 
     /**
-     * Finds teh shortest path through a waypoint by breaking it into two A* searches and combining them
+     * Finds the shortest path through a waypoint by breaking it into two A* searches and combining them
      * @param waypoint - Waypoint node to path through
      * @return ShortestPath object containing the combined path and path length.
      */
@@ -77,7 +76,8 @@ public class Graph {
     }
 
     /**
-     * Processes a map of the arena into a node representation
+     * Processes a map of the arena into a node representation. Multiple ending points and both starting orientations
+     * are represented via a starting node and final node that are arbitrary and connect to the viable locations via 0 weight edges.
      * @param map - Map of arena
      * @param waypointX - X coord of waypoint
      * @param waypointY - Y coord of waypoint
@@ -94,40 +94,50 @@ public class Graph {
 
                 // Create nodes
                 GraphNode horizGraphNode = new GraphNode(i, j, true);
-                GraphNode vertGraphNode = new GraphNode(i,j, false);
+                GraphNode vertGraphNode = new GraphNode(i, j, false);
                 horizGraphNode.addNeighbour(vertGraphNode, TURNING_WEIGHT);
                 vertGraphNode.addNeighbour(horizGraphNode, TURNING_WEIGHT);
 
                 // Horizontal Neighbour
-                if(i > 0 && !horizGraphNode.isNeighbour(graph[i-1][j][0])){
+                if(i > 0 && graph[i-1][j][0] != null && !horizGraphNode.isNeighbour(graph[i-1][j][0])){
                     horizGraphNode.addNeighbour(graph[i-1][j][0], FORWARD_WEIGHT);
                     graph[i-1][j][0].addNeighbour(horizGraphNode, FORWARD_WEIGHT);
                 }
                 graph[i][j][0] = horizGraphNode;
 
                 // Vertical Neighbour
-                if(j > 0 && !vertGraphNode.isNeighbour(graph[i][j-1][1])){
+                if(j > 0 && graph[i][j-1][1] != null && !vertGraphNode.isNeighbour(graph[i][j-1][1])){
                     vertGraphNode.addNeighbour(graph[i][j-1][1], FORWARD_WEIGHT);
                     graph[i][j-1][1].addNeighbour(vertGraphNode, FORWARD_WEIGHT);
                 }
-                graph[i][j][0] = vertGraphNode;
+                graph[i][j][1] = vertGraphNode;
             }
         }
         //Format Start Zone
-        GraphNode start = new GraphNode(0,0, true);
+        GraphNode start = new GraphNode(0,0, true, true);
         graph[1][1][0].addNeighbour(start, 0f);
         graph[1][1][1].addNeighbour(start, 0f);
+        start.addNeighbour( graph[1][1][0], 0f);
+        start.addNeighbour( graph[1][1][1], 0f);
 
         //Format End Zone
-        GraphNode end = new GraphNode(19,19, true);
+        GraphNode end = new GraphNode(14,19, true, true);
         graph[12][17][0].addNeighbour(end, 0f);
         graph[12][17][1].addNeighbour(end, 0f);
+        end.addNeighbour( graph[12][17][0], 0f);
+        end.addNeighbour( graph[12][17][1], 0f);
         graph[13][17][0].addNeighbour(end, 0f);
         graph[13][17][1].addNeighbour(end, 0f);
+        end.addNeighbour( graph[13][17][0], 0f);
+        end.addNeighbour( graph[13][17][1], 0f);
         graph[12][18][0].addNeighbour(end, 0f);
         graph[12][18][1].addNeighbour(end, 0f);
+        end.addNeighbour( graph[12][18][0], 0f);
+        end.addNeighbour( graph[12][18][1], 0f);
         graph[13][18][0].addNeighbour(end, 0f);
         graph[13][18][1].addNeighbour(end, 0f);
+        end.addNeighbour( graph[13][18][0], 0f);
+        end.addNeighbour( graph[13][18][1], 0f);
 
         return Arrays.asList(start, end, graph[waypointX][waypointY][0], graph[waypointX][waypointY][1]);
     }

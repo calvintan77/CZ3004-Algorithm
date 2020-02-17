@@ -18,6 +18,8 @@ public class GraphNode {
      * Orientation of the node (True = Horizontal, False = Vertical)
      */
     private boolean isHorizontal;
+
+    private boolean isPeriphery = false;
     /**
      * List of neighbours and the weights to get to them.
      */
@@ -34,6 +36,21 @@ public class GraphNode {
         this.y = y;
         this.isHorizontal = isHorizontal;
         neighbours = new HashMap<>();
+    }
+
+    /**
+     * Constructor for node
+     * @param x - x coordinate
+     * @param y - y coordinate
+     * @param isHorizontal - orientation
+     * @param isPeriphery - if it is start or end node
+     */
+    public GraphNode(int x, int y, boolean isHorizontal, boolean isPeriphery){
+        this.x = x;
+        this.y = y;
+        this.isHorizontal = isHorizontal;
+        neighbours = new HashMap<>();
+        this.isPeriphery = isPeriphery;
     }
 
     /**
@@ -67,8 +84,16 @@ public class GraphNode {
      * @return True if successful
      */
     public boolean addNeighbour(GraphNode graphNode, Float weight){
-        if(graphNode.x == this.x && graphNode.y == this.y && graphNode.isHorizontal == this.isHorizontal) return false;
-        if(getEuclideanDistanceTo(graphNode) != 1) return false;
+        if(!isPeriphery && !graphNode.isPeriphery) {
+            if (graphNode.x == this.x && graphNode.y == this.y) {
+                if (graphNode.isHorizontal == this.isHorizontal) {
+                    return false;
+                }
+            }
+            else if (getEuclideanDistanceTo(graphNode) != 1) {
+                return false;
+            }
+        }
         neighbours.put(graphNode, weight);
         return true;
     }

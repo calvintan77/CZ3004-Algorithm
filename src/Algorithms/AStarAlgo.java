@@ -44,6 +44,7 @@ public class AStarAlgo {
                 }
             }
         }
+
         throw new Exception();
     }
 
