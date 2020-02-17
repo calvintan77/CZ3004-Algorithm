@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Constants.MapConstants;
+import Main.GUI;
 import utils.Map;
 import utils.Orientation;
+import utils.RobotCommand;
 
 public class Robot {
 	private static Robot robot;
@@ -216,5 +218,30 @@ public class Robot {
 		return String.join(",", sensorValues);
 	}
 	
+	public void doCommand(String cmd) {
+		switch(cmd) {
+			case RobotCommand.MOVE_FORWARD:
+				moveForward();
+				break;
+			case RobotCommand.TURN_RIGHT:
+				turnRight();
+				break;
+			case RobotCommand.TURN_LEFT:
+				turnLeft();
+				break;
+		}
+	}
+	
+	public void moveForward() {
+		GUI.getInstance().updateRobotUI(RobotCommand.MOVE_FORWARD);
+	}
+	
+	public void turnRight() {
+		GUI.getInstance().updateRobotUI(RobotCommand.TURN_RIGHT);
+	}
+	
+	public void turnLeft() {
+		GUI.getInstance().updateRobotUI(RobotCommand.TURN_LEFT);
+	}
 	
 }

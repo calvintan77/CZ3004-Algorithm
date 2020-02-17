@@ -30,13 +30,14 @@ import Constants.MapConstants;
 import Simulator.Robot;
 import utils.Map;
 import utils.Orientation;
+import utils.RobotCommand;
 
 
 public class GUI extends JFrame implements ActionListener{
-	
-	private static final boolean REAL_RUN = false;
-	private static final String EXPLORE_PANEL = "Explore arena";
-	private static final String FFP_PANEL = "Find fastest path";
+	private static GUI gui;
+
+	private static final String EXPLORATION = "Explore maze";
+	private static final String FASTEST_PATH = "Find fastest path";
 	
 	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
@@ -45,6 +46,14 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
+	private static int exploreTimeLimit;
+	
+	public static GUI getInstance() {
+		if (gui == null) {
+			gui = new GUI();
+		}
+		return gui;
+	}
 
 	/**
 	 * Create the simulator.
@@ -68,7 +77,6 @@ public class GUI extends JFrame implements ActionListener{
 	public void setFfpBtnEnabled(boolean value) {
 		ffpButton.setEnabled(value);
 	}
-	
 	
 	public JPanel getContentPane() {
 		return displayedPane;
@@ -100,7 +108,7 @@ public class GUI extends JFrame implements ActionListener{
 				int realY = 19-x;
 				mapGrids[realX][realY] = new JButton();
 				
-				if (REAL_RUN) {
+				if (RobotController.REAL_RUN) {
 					mapGrids[realX][realY].setEnabled(false);
 					mapGrids[realX][realY].setBackground(Color.GRAY);
 				} else {
@@ -123,14 +131,14 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 		
-		if (!REAL_RUN) {
+		if (!RobotController.REAL_RUN) {
 			loadMap();
 		}
 		
 		mapPane.add(map);
 		JButton loadMap = new JButton("Load");
 		
-		if (REAL_RUN) {
+		if (RobotController.REAL_RUN) {
 			loadMap.setEnabled(false);
 		} else {
 			loadMap.setActionCommand("LoadMap");
@@ -139,7 +147,7 @@ public class GUI extends JFrame implements ActionListener{
 		
 		JButton clearMap = new JButton("Clear");
 		
-		if (REAL_RUN) {
+		if (RobotController.REAL_RUN) {
 			clearMap.setEnabled(false);
 		} else {
 			clearMap.setActionCommand("ClearMap");
@@ -157,7 +165,7 @@ public class GUI extends JFrame implements ActionListener{
 		// Add control switch (combo box).
 		settingPane = new JPanel(new BorderLayout());
 		settingPane.setBorder(new EmptyBorder(50, 20, 50, 20));
-		String comboBoxItems[] = { EXPLORE_PANEL, FFP_PANEL };
+		String comboBoxItems[] = { EXPLORATION, FASTEST_PATH };
 		JComboBox cbCtrlSwitch = new JComboBox(comboBoxItems);
 		cbCtrlSwitch.setFont(new Font("Tahoma", Font.BOLD, 16));
 		cbCtrlSwitch.setEditable(false);
@@ -170,7 +178,7 @@ public class GUI extends JFrame implements ActionListener{
 		exploreTextFields = new JTextField[4];
 		exploreButton = new JButton("Explore");
 		
-		if (REAL_RUN) {
+		if (RobotController.REAL_RUN) {
 			exploreButton.setEnabled(false);
 		} else {
 			exploreButton.setActionCommand("ExploreMaze");
@@ -183,7 +191,7 @@ public class GUI extends JFrame implements ActionListener{
 		exploreCtrlLabels[3] = new JLabel("Time limit (sec): ");
 		for (int i = 0; i < 4; i++) {
 			exploreTextFields[i] = new JTextField(10);
-			if (REAL_RUN) {
+			if (RobotController.REAL_RUN) {
 				exploreTextFields[i].setEditable(false);
 			}
 		}
@@ -199,30 +207,30 @@ public class GUI extends JFrame implements ActionListener{
 		exploreInputPane.add(exploreCtrlLabels[3]);
 		exploreInputPane.add(exploreTextFields[3]);
 		
-		if (!REAL_RUN) {
+		if (!RobotController.REAL_RUN) {
 			exploreTextFields[0].setEditable(false);
 			exploreCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[0].setText("1,1");
 			exploreTextFields[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[0].getDocument().addDocumentListener(new InitialPositionListener());
+			exploreTextFields[0].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[0].getDocument().putProperty("name", "Robot Initial Position");
 			
 			exploreCtrlLabels[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[1].setText("10");
 			exploreTextFields[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[1].getDocument().addDocumentListener(new InitialPositionListener());
+			exploreTextFields[1].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[1].getDocument().putProperty("name", "Robot Explore Speed");
 			
 			exploreCtrlLabels[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[2].setText("100");
 			exploreTextFields[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[2].getDocument().addDocumentListener(new InitialPositionListener());
+			exploreTextFields[2].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[2].getDocument().putProperty("name", "Target Coverage");
 			
 			exploreCtrlLabels[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[3].setText("360");
 			exploreTextFields[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[3].getDocument().addDocumentListener(new InitialPositionListener());
+			exploreTextFields[3].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[3].getDocument().putProperty("name", "Exploration time limit");
 		}
 		
@@ -239,7 +247,7 @@ public class GUI extends JFrame implements ActionListener{
 		ffpTextFields = new JTextField[2];
 		ffpButton = new JButton("Find fatest path");
 		
-		if (REAL_RUN) {
+		if (RobotController.REAL_RUN) {
 			ffpButton.setEnabled(false);
 		} else {
 			ffpButton.setActionCommand("FindFastestPath");
@@ -251,7 +259,7 @@ public class GUI extends JFrame implements ActionListener{
 		ffpCtrlLabels[1] = new JLabel("Time limit (sec): ");
 		for (int i = 0; i < 2; i++) {
 			ffpTextFields[i] = new JTextField(10);
-			if (REAL_RUN) {
+			if (RobotController.REAL_RUN) {
 				ffpTextFields[i].setEditable(false);
 			}
 		}
@@ -262,7 +270,7 @@ public class GUI extends JFrame implements ActionListener{
 		ffpInputPane.add(ffpCtrlLabels[1]);
 		ffpInputPane.add(ffpTextFields[1]);
 		
-		if (!REAL_RUN) {
+		if (!RobotController.REAL_RUN) {
 			ffpCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[0].setEditable(false);
@@ -270,7 +278,7 @@ public class GUI extends JFrame implements ActionListener{
 			ffpTextFields[1].setText("120");
 			ffpCtrlLabels[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			ffpTextFields[1].getDocument().addDocumentListener(new InitialPositionListener());
+			ffpTextFields[1].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			ffpTextFields[1].getDocument().putProperty("name", "Robot FFP Time Limit");
 		}
 
@@ -284,8 +292,8 @@ public class GUI extends JFrame implements ActionListener{
 
 		// Add card panel to switch between explore and shortest path panels.
 		JPanel cardPane = new JPanel(new CardLayout());
-		cardPane.add(exploreCtrlPane, EXPLORE_PANEL);
-		cardPane.add(ffpCtrlPane, FFP_PANEL);
+		cardPane.add(exploreCtrlPane, EXPLORATION);
+		cardPane.add(ffpCtrlPane, FASTEST_PATH);
 		cardPane.setPreferredSize(new Dimension(280, 300));
 		settingPane.add(cardPane, BorderLayout.CENTER);
 
@@ -413,7 +421,7 @@ public class GUI extends JFrame implements ActionListener{
 	/*
 	 * Add a document listener class to dynamically show robot position.
 	 */
-	class InitialPositionListener implements DocumentListener {
+	class InitialRobotAttibuteListener implements DocumentListener {
 		public void insertUpdate(DocumentEvent e) {
 			update(e);
 		}
@@ -495,7 +503,7 @@ public class GUI extends JFrame implements ActionListener{
 				try {
 					String timeLimit = doc.getText(0, doc.getLength());
 					if (timeLimit.matches("[0-9]+")) {
-//						_controller.setExploreTimeLimit(Integer.parseInt(timeLimit));
+						GUI.exploreTimeLimit = Integer.parseInt(timeLimit);
 						timer.setText("Time left (sec): " + timeLimit);
 					} else {
 						status.setText("time limit for exploring not set");
@@ -532,12 +540,125 @@ public class GUI extends JFrame implements ActionListener{
 		}
 	}
 	
-//	private void updateRobotAction(String action) {
-//		switch(action) {
-//			case "L":
-//				for (int i=robotP)
-//		}
-//	}
+	public void updateRobotUI(String robotAction) {
+		switch(robotAction) {
+			case RobotCommand.TURN_LEFT:
+				turnRobotLeft(currentOrientation);
+				break;
+			case RobotCommand.TURN_RIGHT:
+				turnRobotRight(currentOrientation);
+				break;
+			case RobotCommand.MOVE_FORWARD:
+				moveRobotForward(currentOrientation);
+				break;
+		}
+	}
+	
+	private void turnRobotLeft(Orientation orientation) {
+		currentOrientation = Orientation.getCounterClockwise(orientation);
+		switch(orientation) {
+			case UP:
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+			case LEFT:
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				break;
+			case DOWN:
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+			case RIGHT:
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				break;
+		}
+	}
+	
+	private void turnRobotRight(Orientation orientation) {
+		currentOrientation = Orientation.getCounterClockwise(orientation);
+		switch(orientation) {
+			case UP:
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+			case LEFT:
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				break;
+			case DOWN:
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+			case RIGHT:
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.CYAN);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				break;
+		}
+	}
+	
+	private void moveRobotForward(Orientation orientation) {
+		currentOrientation = Orientation.getCounterClockwise(orientation);
+		switch(orientation) {
+			case UP:
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+					}
+				}
+				robotPosition[1] += 1;
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(Color.CYAN);
+					}
+				}
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				break;
+			case LEFT:
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+					}
+				}
+				robotPosition[0] -= 1;
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(Color.CYAN);
+					}
+				}
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+			case DOWN:
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+					}
+				}
+				robotPosition[1] -= 1;
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(Color.CYAN);
+					}
+				}
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				break;
+			case RIGHT:
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+					}
+				}
+				robotPosition[0] += 1;
+				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
+					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
+						mazeGrids[i][j].setBackground(Color.CYAN);
+					}
+				}
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				break;
+		}
+	}
 	
 
 	public void refreshExploreInput() {
@@ -611,7 +732,7 @@ public class GUI extends JFrame implements ActionListener{
 	}
 	
 	public static void main(String[] args) {
-		GUI myGUI = new GUI();
+		GUI myGUI = GUI.getInstance();
 		myGUI.setVisible(true);
 		myGUI.refreshExploreInput();
 	}

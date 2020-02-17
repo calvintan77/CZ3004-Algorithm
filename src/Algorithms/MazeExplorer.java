@@ -3,9 +3,16 @@ package Algorithms;
 import utils.Map;
 
 public class MazeExplorer {
+	private static MazeExplorer mazeExplorer;
 	private Map map; 
 	private int timeLimit; 
 	
+	public static MazeExplorer getInstance() {
+		if (mazeExplorer == null) {
+			mazeExplorer = new MazeExplorer();
+		}
+		return mazeExplorer;
+	}
 	
 	// explore given Map within time limit; assumes known endpoint, constant orientation 
 	public boolean exploreMaze(Map map, int timeLimit, int x, int y) {
