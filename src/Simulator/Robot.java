@@ -218,30 +218,8 @@ public class Robot {
 		return String.join(",", sensorValues);
 	}
 	
-	public void doCommand(String cmd) {
-		switch(cmd) {
-			case RobotCommand.MOVE_FORWARD:
-				moveForward();
-				break;
-			case RobotCommand.TURN_RIGHT:
-				turnRight();
-				break;
-			case RobotCommand.TURN_LEFT:
-				turnLeft();
-				break;
-		}
-	}
-	
-	public void moveForward() {
-		GUI.getInstance().updateRobotUI(RobotCommand.MOVE_FORWARD);
-	}
-	
-	public void turnRight() {
-		GUI.getInstance().updateRobotUI(RobotCommand.TURN_RIGHT);
-	}
-	
-	public void turnLeft() {
-		GUI.getInstance().updateRobotUI(RobotCommand.TURN_LEFT);
+	public void doCommand(RobotCommand cmd){
+		GUI.getInstance().updateRobotUI(cmd);
 	}
 	
 }
