@@ -51,7 +51,7 @@ public class Map {
 	
 	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 100 
 		this.getCell(x, y).setExploredStatus(true);
-		this.exploredPercent += 1/300; 
+		this.exploredPercent += 1; 
 	}
 	
 	public MapCell getCell(int x, int y) {
@@ -152,8 +152,16 @@ public class Map {
 		return resultMap;
 	}
 	
-	public int getExploredPercent() {
-		return this.exploredPercent; 
+	public double getExploredPercent() {
+		return (double) this.exploredPercent / 300.0 * 100.0; 
+	}
+	
+	public void updateExploredPercentage() {
+		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (mapCells[i][j].isExplored())
+			}
+		}
 	}
 	
 	public static void main(String[] args) {

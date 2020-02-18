@@ -46,7 +46,7 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
-	private static int exploreTimeLimit;
+	public static int exploreTimeLimit;
 	
 	public static GUI getInstance() {
 		if (gui == null) {

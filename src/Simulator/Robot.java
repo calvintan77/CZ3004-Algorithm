@@ -5,6 +5,8 @@ import java.util.List;
 
 import Constants.MapConstants;
 import Main.GUI;
+import Main.RobotController;
+import main.RobotSystem;
 import utils.Map;
 import utils.Orientation;
 import utils.RobotCommand;
@@ -233,6 +235,14 @@ public class Robot {
 	}
 	
 	public void moveForward() {
+		if (!RobotController.REAL_RUN) {
+			int oneStepTime = 1000 / speed;
+			try {
+				Thread.sleep(oneStepTime);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		GUI.getInstance().updateRobotUI(RobotCommand.MOVE_FORWARD);
 	}
 	
