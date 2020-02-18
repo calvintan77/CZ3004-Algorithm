@@ -11,4 +11,8 @@ public enum Orientation {
 	public static Orientation getCounterClockwise(Orientation curDirection) {
         return values()[(curDirection.ordinal() + 1) % values().length];
     }
+
+    public boolean isAligned(boolean isHorizontal){
+        return (isHorizontal == (this == RIGHT || this == LEFT));
+    }
 }

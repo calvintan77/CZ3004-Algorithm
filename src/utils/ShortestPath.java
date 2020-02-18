@@ -25,8 +25,8 @@ public class ShortestPath{
 
     public List<RobotCommand> generateInstructions(){
         List<RobotCommand> result = new LinkedList<>();
-        RobotOrientation currOrientation = isStartingOrientationHorizontal()?
-                RobotOrientation.RIGHT : RobotOrientation.UP;
+        Orientation currOrientation = isStartingOrientationHorizontal()?
+                Orientation.RIGHT : Orientation.UP;
         for(int i = 0; i < path.size(); i++){
             GraphNode curr = path.get(i);
             if(curr.isVirtual()) continue;
@@ -38,37 +38,37 @@ public class ShortestPath{
                     case UP:
                         if (next.getX() > curr.getX()) {
                             result.add(RobotCommand.TURN_RIGHT);
-                            currOrientation = RobotOrientation.RIGHT;
+                            currOrientation = Orientation.RIGHT;
                         } else {
                             result.add(RobotCommand.TURN_LEFT);
-                            currOrientation = RobotOrientation.LEFT;
+                            currOrientation = Orientation.LEFT;
                         }
                         break;
                     case DOWN:
                         if (next.getX() < curr.getX()) {
                             result.add(RobotCommand.TURN_RIGHT);
-                            currOrientation = RobotOrientation.LEFT;
+                            currOrientation = Orientation.LEFT;
                         } else {
                             result.add(RobotCommand.TURN_LEFT);
-                            currOrientation = RobotOrientation.RIGHT;
+                            currOrientation = Orientation.RIGHT;
                         }
                         break;
                     case LEFT:
                         if (next.getY() > curr.getY()) {
                             result.add(RobotCommand.TURN_RIGHT);
-                            currOrientation = RobotOrientation.UP;
+                            currOrientation = Orientation.UP;
                         } else {
                             result.add(RobotCommand.TURN_LEFT);
-                            currOrientation = RobotOrientation.DOWN;
+                            currOrientation = Orientation.DOWN;
                         }
                         break;
                     case RIGHT:
                         if (next.getY() < curr.getY()) {
                             result.add(RobotCommand.TURN_RIGHT);
-                            currOrientation = RobotOrientation.DOWN;
+                            currOrientation = Orientation.DOWN;
                         } else {
                             result.add(RobotCommand.TURN_LEFT);
-                            currOrientation = RobotOrientation.UP;
+                            currOrientation = Orientation.UP;
                         }
                         break;
                 }
