@@ -156,14 +156,15 @@ public class Map {
 		return (double) this.exploredPercent / 300.0 * 100.0; 
 	}
 	
-//	public void updateExploredPercentage() {
-//		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-//			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-//				if (mapCells[i][j].isExplored())
-//					
-//			}
-//		}
-//	}
+	public void updateExploredPercentage() {
+		exploredPercent = 0;
+		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (mapCells[i][j].isExplored())
+					exploredPercent++;
+			}
+		}
+	}
 	
 	public static void main(String[] args) {
 		File mapFile = new File(MAP_FILE_PATH);

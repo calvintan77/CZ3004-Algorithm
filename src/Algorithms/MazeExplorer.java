@@ -49,6 +49,7 @@ public class MazeExplorer {
 		return found; 
 	}
 }
+
 //public class MazeExplorer {
 //	private static MazeExplorer mazeExplorer;
 //	private Map map; 
@@ -56,6 +57,8 @@ public class MazeExplorer {
 //	private int[] robotPosition;
 //	private Orientation robotOrientation;
 //	private boolean reachGoalZone;
+//	private int targetExplorePercent;
+//	
 //	private int timeLeft; 
 //	
 //	public static MazeExplorer getInstance() {
@@ -65,9 +68,11 @@ public class MazeExplorer {
 //		return mazeExplorer;
 //	}
 //	
-//	public void init(Map map, int timeLimit, double targetExplorePercent, Orientation orientation, int x, int y) {
+//	public void init(Map map, int timeLimit, int targetExplorePercent, Orientation orientation, int x, int y) {
 //		this.map = map;
 //		this.timeLeft = timeLimit;
+//		this.targetExplorePercent = targetExplorePercent;
+//		this.robotOrientation = orientation;
 //		robotPosition[0] = x;
 //		robotPosition[1] = y;
 //	}
@@ -77,7 +82,7 @@ public class MazeExplorer {
 //	}
 //
 //	
-//	public void exploreMaze(Map map, int timeLimit, double targetExplorePercent, Orientation orientation, int x, int y) {
+//	public void exploreMaze(Map map, int timeLimit, int targetExplorePercent, Orientation orientation, int x, int y) {
 //		init(map, timeLimit, targetExplorePercent, orientation, x, y);
 //		while (timeLeft > 0 && map.getExploredPercent() < targetExplorePercent) {
 //			String[] sensorValues = robot.getSensorValues(robotPosition, robotOrientation).split(",");
