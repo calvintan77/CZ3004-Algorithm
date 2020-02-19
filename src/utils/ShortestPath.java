@@ -82,6 +82,10 @@ public class ShortestPath{
         return path.get(1).isHorizontal();
     }
 
+    public boolean isEndingOrientationHorizontal(){
+        return path.get(path.size()-1).isHorizontal();
+    }
+
     public Orientation getStartingOrientation(){
         // Unfortunate neutral case
         if(path.size() == 1) return isStartingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
@@ -89,6 +93,16 @@ public class ShortestPath{
             return path.get(1).getX() > path.get(0).getX() ? Orientation.RIGHT : Orientation.LEFT;
         }else{
             return path.get(1).getY() > path.get(0).getY() ? Orientation.UP : Orientation.DOWN;
+        }
+    }
+
+    public Orientation getEndingOrientation(){
+        // Unfortunate neutral case
+        if(path.size() == 1) return isEndingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
+        if(isEndingOrientationHorizontal()){
+            return path.get(path.size()-1).getX() > path.get(path.size()-2).getX() ? Orientation.RIGHT : Orientation.LEFT;
+        }else{
+            return path.get(path.size()-1).getY() > path.get(path.size()-2).getY() ? Orientation.UP : Orientation.DOWN;
         }
     }
 }
