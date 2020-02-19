@@ -66,9 +66,20 @@ public class Graph {
         try {
             ShortestPath toWaypoint = AStarAlgo.AStarSearch(start, waypoint);
             ShortestPath fromWaypoint =AStarAlgo.AStarSearch(waypoint, end);
-            List<GraphNode> path = toWaypoint.getPath();
-            path.addAll(fromWaypoint.getPath().subList(1, fromWaypoint.getPath().size()));
-            return new ShortestPath(toWaypoint.getWeight() + fromWaypoint.getWeight(), path);
+            List<GraphNode> path1 = toWaypoint.getPath();
+            List<GraphNode> path2 = fromWaypoint.getPath();
+            if(!path1.get(path1.size()-2).equals(path2.get(1))) {
+                path1.addAll(path2.subList(1, fromWaypoint.getPath().size()));
+                return new ShortestPath(toWaypoint.getWeight() + fromWaypoint.getWeight(), path1);
+            }else{
+                java.util.Map.Entry<GraphNode, Float> turningPoint = waypoint.getNeighbours().stream().filter(node ->
+                        node.getKey().getX()==waypoint.getX()
+                        && node.getKey().getY() == waypoint.getY()
+                        && node.getKey().isHorizontal() != waypoint.isHorizontal()).findFirst().get();
+                path1.add(turningPoint.getKey());
+                path1.addAll(path2);
+                return new ShortestPath(toWaypoint.getWeight() + fromWaypoint.getWeight() + 2 * turningPoint.getValue(), path1);
+            }
         }catch(Exception e){
             //TODO Handle Gracefully
             return null;
