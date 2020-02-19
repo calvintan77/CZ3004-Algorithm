@@ -81,7 +81,7 @@ public class MazeExplorer {
 		
 		// initial calibration
 		robot.setPosition(1, 1);
-		robot.setOrientation(3); // facing right 
+		robot.setOrientation(Orientation.RIGHT); // facing right 
 		// TODO: change to do/while so initial check passes
 		do { 
 			// check sensor values; update cells 
