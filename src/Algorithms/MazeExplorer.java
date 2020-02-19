@@ -82,8 +82,8 @@ public class MazeExplorer {
 		// initial calibration
 		robot.setPosition(1, 1);
 		robot.setOrientation(3); // facing right 
-		
-		while (System.nanoTime() - startTime < tLimit && robot.getPosition()[0] != 1 && robot.getPosition()[1] != 1) { 
+		// TODO: change to do/while so initial check passes
+		do { 
 			// check sensor values; update cells 
 			String toUpdate = robot.getSensorValues(robot.getPosition(), robot.getOrientation()); // toUpdate is a string
 			map.updateFromSensor(toUpdate);
@@ -93,6 +93,7 @@ public class MazeExplorer {
 			// this does not actually work
 			robot.doCommand(RobotCommand.valueOf(o.toString()));
 		}
+		while (System.nanoTime() - startTime < tLimit && robot.getPosition()[0] != 1 && robot.getPosition()[1] != 1); 
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
 		while (map.getExploredPercent() < 100 && System.nanoTime() - startTime < tLimit) { 

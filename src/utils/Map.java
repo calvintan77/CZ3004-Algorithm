@@ -199,25 +199,25 @@ public class Map {
 		switch (m.x) {
 		case 0: {// left most row 
 			MapCell right = this.getCell(m.x+1, m.y);
-			if (!right.isObstacle() && !right.isVirtualWall()) {
+			if (!right.isObstacle() && !right.isVirtualWall() && !right.isExplored()) {
 				map.put("right", right);
 				}
 			break;
 			}
 		case MapConstants.MAP_WIDTH: { // right most row 
 			MapCell left = this.getCell(m.x-1, m.y);
-			if (!left.isObstacle() && !left.isVirtualWall()) {
+			if (!left.isObstacle() && !left.isVirtualWall() && !left.isExplored()) {
 				map.put("left", left);
 				}			
 			break;
 			}
 		default: {
 			MapCell right = this.getCell(m.x+1, m.y);
-			if (!right.isObstacle() && !right.isVirtualWall()) {
+			if (!right.isObstacle() && !right.isVirtualWall() && !right.isExplored()) {
 				map.put("right", right);
 				}
 			MapCell left = this.getCell(m.x-1, m.y);
-			if (!left.isObstacle() && !left.isVirtualWall()) {
+			if (!left.isObstacle() && !left.isVirtualWall() && !left.isExplored()) {
 				map.put("left", left);
 				}			
 			break;
@@ -227,14 +227,14 @@ public class Map {
 		switch (m.y) {
 		case 0: {// bottom most row 
 			MapCell up = this.getCell(m.x, m.y+1);
-			if (!up.isObstacle() && !up.isVirtualWall()) {
+			if (!up.isObstacle() && !up.isVirtualWall() && !up.isExplored()) {
 				map.put("up", up);
 				}
 			break;
 			}
 		case MapConstants.MAP_HEIGHT: { // top most row 
 			MapCell down = this.getCell(m.x, m.y-1);
-			if (!down.isObstacle() && !down.isVirtualWall()) {
+			if (!down.isObstacle() && !down.isVirtualWall() && !down.isExplored()) {
 				map.put("down", down);
 				}			
 			break;
