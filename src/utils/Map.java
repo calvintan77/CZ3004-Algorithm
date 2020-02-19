@@ -126,7 +126,7 @@ public class Map {
 				}
 			}
 		}
-		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
+//		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
 	}
 	
 	public static Map loadMapFromFile(String filePath) {

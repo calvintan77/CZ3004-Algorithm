@@ -6,13 +6,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
+import Constants.MapConstants;
 import Simulator.Robot;
+import utils.Graph;
+import utils.GraphNode;
+import utils.Map;
+import utils.MapCell;
+import utils.RobotCommand;
+import utils.ShortestPath;
 
 
 
@@ -198,5 +206,44 @@ public class RobotController {
 				exploringTimer.stop();
 			}
 		}
+	}
+	
+	public static void main(String[] args) {
+		GUI myGui = GUI.getInstance();
+		myGui.setVisible(true);
+		myGui.refreshExploreInput();
+		Scanner sc = new Scanner(System.in);
+		String key = null;
+		Robot myRobot = Robot.getInstance();
+        Map map = Map.getRealMapInstance();
+        for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+        	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+        		MapCell cell = map.getCell(i, j);
+        		if (!cell.isObstacle()) {
+        			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
+        				cell.setVirtualWall(true);
+        			} else {
+        				for (int p=i-1; p<=i+1; p++) {
+        					for (int q=j-1; q<=j+1; q++)
+        						if (map.getCell(p, q).isObstacle())
+        							cell.setVirtualWall(true);
+        				}
+        			}
+        		}
+        	}
+        }
+        Graph graph = new Graph(map, 5, 14);
+        ShortestPath result = graph.GetShortestPath();
+        System.out.println(result.getWeight());
+        for(GraphNode n: result.getPath()){
+            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
+        }
+        System.out.println("Starting Orientation");
+        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+        System.out.println("Instructions:");
+        
+        for(RobotCommand command: result.generateInstructions()){
+            myRobot.doCommand(command);
+        }
 	}
 }

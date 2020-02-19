@@ -1,5 +1,8 @@
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import Constants.MapConstants;
+import Main.GUI;
 import utils.*;
 
 
@@ -185,7 +188,40 @@ public class GraphTest {
         for(RobotCommand command: result.generateInstructions()){
             System.out.println(command.toString());
         }
-
+    }
+    
+    @Test
+    public void RealMapTest(){
+        // Sample map on NTU Learn
+        Map map = Map.getRealMapInstance();
+        for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+        	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+        		MapCell cell = map.getCell(i, j);
+        		if (!cell.isObstacle()) {
+        			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
+        				cell.setVirtualWall(true);
+        			} else {
+        				for (int p=i-1; p<=i+1; p++) {
+        					for (int q=j-1; q<=j+1; q++)
+        						if (map.getCell(p, q).isObstacle())
+        							cell.setVirtualWall(true);
+        				}
+        			}
+        		}
+        	}
+        }
+        Graph graph = new Graph(map, 5, 14);
+        ShortestPath result = graph.GetShortestPath();
+        System.out.println(result.getWeight());
+        for(GraphNode n: result.getPath()){
+            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
+        }
+        System.out.println("Starting Orientation");
+        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+        System.out.println("Instructions:");
+        for(RobotCommand command: result.generateInstructions()){
+            System.out.println(command.toString());
+        }
 
     }
 }

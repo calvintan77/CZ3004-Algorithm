@@ -5,6 +5,7 @@ import java.util.List;
 
 import Constants.MapConstants;
 import Main.GUI;
+import Main.RobotController;
 import utils.Map;
 import utils.Orientation;
 import utils.RobotCommand;
@@ -219,6 +220,14 @@ public class Robot {
 	}
 	
 	public void doCommand(RobotCommand cmd){
+		if (!RobotController.REAL_RUN) {
+			int oneStepTime = 500;
+			try {
+				Thread.sleep(oneStepTime);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		GUI.getInstance().updateRobotUI(cmd);
 	}
 	
