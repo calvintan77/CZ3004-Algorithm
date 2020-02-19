@@ -219,6 +219,7 @@ public class RobotController {
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
         		MapCell cell = map.getCell(i, j);
+        		cell.setExploredStatus(true);
         		if (!cell.isObstacle()) {
         			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
         				cell.setVirtualWall(true);

@@ -81,4 +81,14 @@ public class ShortestPath{
     public boolean isStartingOrientationHorizontal(){
         return path.get(1).isHorizontal();
     }
+
+    public Orientation getStartingOrientation(){
+        // Unfortunate neutral case
+        if(path.size() == 1) return isStartingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
+        if(isStartingOrientationHorizontal()){
+            return path.get(1).getX() > path.get(0).getX() ? Orientation.RIGHT : Orientation.LEFT;
+        }else{
+            return path.get(1).getY() > path.get(0).getY() ? Orientation.UP : Orientation.DOWN;
+        }
+    }
 }
