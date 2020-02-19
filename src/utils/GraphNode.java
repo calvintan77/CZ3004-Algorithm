@@ -19,7 +19,7 @@ public class GraphNode {
      */
     private boolean isHorizontal;
 
-    private boolean isPeriphery = false;
+    private boolean isVirtual = false;
     /**
      * List of neighbours and the weights to get to them.
      */
@@ -43,14 +43,14 @@ public class GraphNode {
      * @param x - x coordinate
      * @param y - y coordinate
      * @param isHorizontal - orientation
-     * @param isPeriphery - if it is start or end node
+     * @param isVirtual - if it is start or end node
      */
-    public GraphNode(int x, int y, boolean isHorizontal, boolean isPeriphery){
+    public GraphNode(int x, int y, boolean isHorizontal, boolean isVirtual){
         this.x = x;
         this.y = y;
         this.isHorizontal = isHorizontal;
         neighbours = new HashMap<>();
-        this.isPeriphery = isPeriphery;
+        this.isVirtual = isVirtual;
     }
 
     /**
@@ -78,13 +78,21 @@ public class GraphNode {
     }
 
     /**
+     * Gets if node is virtual
+     * @return True if Virtual, False if Real
+     */
+    public boolean isVirtual(){
+        return isVirtual;
+    }
+
+    /**
      * Adds a neighbour to the list with associated weight, with input validation
      * @param graphNode - Node to add
      * @param weight - Weight of edge
      * @return True if successful
      */
     public boolean addNeighbour(GraphNode graphNode, Float weight){
-        if(!isPeriphery && !graphNode.isPeriphery) {
+        if(!this.isVirtual && !graphNode.isVirtual) {
             if (graphNode.x == this.x && graphNode.y == this.y) {
                 if (graphNode.isHorizontal == this.isHorizontal) {
                     return false;

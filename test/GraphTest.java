@@ -1,10 +1,7 @@
-import Algorithms.AStarAlgo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import utils.Graph;
-import utils.GraphNode;
-import utils.Map;
-import utils.ShortestPath;
+import utils.*;
+
 
 
 public class GraphTest {
@@ -182,6 +179,13 @@ public class GraphTest {
         for(GraphNode n: result.getPath()){
             System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
         }
+        System.out.println("Starting Orientation");
+        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+        System.out.println("Instructions:");
+        for(RobotCommand command: result.generateInstructions()){
+            System.out.println(command.toString());
+        }
+
 
     }
 }
