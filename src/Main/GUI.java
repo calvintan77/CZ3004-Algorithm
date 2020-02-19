@@ -46,6 +46,7 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
+	private int targetExplorePercentage;
 	public static int exploreTimeLimit;
 	
 	public static GUI getInstance() {
@@ -88,6 +89,10 @@ public class GUI extends JFrame implements ActionListener{
 	
 	public void setMazeGrids(JButton[][] mazeGrids) {
 		this.mazeGrids = mazeGrids;
+	}
+	
+	public int getTargetExplorePercent() {
+		return targetExplorePercentage;
 	}
 	
 	private void initializeDisplayedPane(JPanel contentPane) {
@@ -540,15 +545,15 @@ public class GUI extends JFrame implements ActionListener{
 		}
 	}
 	
-	public void updateRobotUI(String robotAction) {
+	public void updateRobotUI(RobotCommand robotAction) {
 		switch(robotAction) {
-			case RobotCommand.TURN_LEFT:
+			case TURN_LEFT:
 				turnRobotLeft(currentOrientation);
 				break;
-			case RobotCommand.TURN_RIGHT:
+			case TURN_RIGHT:
 				turnRobotRight(currentOrientation);
 				break;
-			case RobotCommand.MOVE_FORWARD:
+			case MOVE_FORWARD:
 				moveRobotForward(currentOrientation);
 				break;
 		}

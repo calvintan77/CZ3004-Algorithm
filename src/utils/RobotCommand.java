@@ -1,7 +1,15 @@
 package utils;
 
-public class RobotCommand {
-	public static final String TURN_LEFT = "J";
-	public static final String TURN_RIGHT = "L";
-	public static final String MOVE_FORWARD = "I";
+public enum RobotCommand {
+	TURN_LEFT("J"), TURN_RIGHT("L"), MOVE_FORWARD("I");
+
+	private String letter;
+
+	RobotCommand(String letter){
+		this.letter = letter;
+	}
+
+	private String getLetter(){
+		return letter;
+	}
 }

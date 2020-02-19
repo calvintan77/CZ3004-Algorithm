@@ -160,7 +160,7 @@ public class RobotController {
 			
 			timeLeft--;
 			GUI.getInstance().setTimer(timeLeft);
-			MazeExplorer.getInstance().setTimeLeft(timeLeft);
+//			MazeExplorer.getInstance().setTimeLeft(timeLeft);
 //			if (timeLeft >= 0) {
 //				SwingWorker<Void, Float> getThreshold = new SwingWorker<Void, Float>() {
 ////					Path _backPath;
