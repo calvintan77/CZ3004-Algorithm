@@ -12,6 +12,8 @@ import utils.RobotCommand;
 public class Robot {
 	private static Robot robot;
 	private int speed;
+	private Orientation o; // need to initialize 
+	private int[] position; 
 	
 	//Singleton strategy pattern
 	public static Robot getInstance() {
@@ -27,7 +29,6 @@ public class Robot {
 	public void setSpeed(int speed) {
 		this.speed = speed;
 	}
-	
 	
 	//return string in the structure: "left,left,front,front,front,right"
 	public String getSensorValues(int[] robotPosition, Orientation robotOrientation) {
@@ -222,4 +223,21 @@ public class Robot {
 		GUI.getInstance().updateRobotUI(cmd);
 	}
 	
+	public Orientation getOrientation() { 
+		return o; 
+	}
+	
+	public int[] getPosition() { 
+		return position; 
+	}
+	
+	public void setPosition(int x, int y) { 
+		position[0] = x;
+		position[1] = y; 
+	}
+	
+	// no defensive check for x 
+	public void setOrientation(int x) { 
+		o = Orientation.values()[x]; 
+	}
 }

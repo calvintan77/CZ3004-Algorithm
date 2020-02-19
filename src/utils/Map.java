@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JButton;
 
@@ -43,7 +46,7 @@ public class Map {
 		mapCells = new MapCell[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				mapCells[i][j] = new MapCell();
+				mapCells[i][j] = new MapCell(i, j);
 			}
 		}
 		this.exploredPercent = 0; 
@@ -55,7 +58,16 @@ public class Map {
 	}
 	
 	public MapCell getCell(int x, int y) {
+		// caller has to check
+		if (x < 0 || y < 0 || x > MapConstants.MAP_WIDTH || y > MapConstants.MAP_HEIGHT) {
+			return null;
+		}
 		return mapCells[x][y];
+	}
+	
+	// marks a given cell as a virtual wall - defensive check not given here, caller has to do 
+	public void markVirtualWall(int x, int y) { 
+		this.getCell(x, y).setVirtualWall(true);
 	}
 	
 	public static String convertHexToBinaryString(String hex) {
@@ -154,6 +166,93 @@ public class Map {
 	
 	public int getExploredPercent() {
 		return this.exploredPercent; 
+	}
+	
+	// unelegant way of getting unseen 
+	public List<MapCell> getAllUnseen() {
+		List<MapCell> arr = new ArrayList<MapCell>(); 
+		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (!this.getCell(i, j).getSeen()) {
+					arr.add(this.getCell(i, j));
+				}
+			}
+		}
+		return arr; 
+	}
+	
+	/**
+	 * TODO: add impl
+	 * @param values: list of string values to update in format of l,l,f,f,f,r 
+	 **/
+	public void updateFromSensor(String values) { 
+		
+	}
+	/**
+	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
+	 * @param m
+	 * @return
+	 */
+	public HashMap<String, MapCell> getNeighbours(MapCell m) {
+		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
+		
+		switch (m.x) {
+		case 0: {// left most row 
+			MapCell right = this.getCell(m.x+1, m.y);
+			if (!right.isObstacle() && !right.isVirtualWall()) {
+				map.put("right", right);
+				}
+			break;
+			}
+		case MapConstants.MAP_WIDTH: { // right most row 
+			MapCell left = this.getCell(m.x-1, m.y);
+			if (!left.isObstacle() && !left.isVirtualWall()) {
+				map.put("left", left);
+				}			
+			break;
+			}
+		default: {
+			MapCell right = this.getCell(m.x+1, m.y);
+			if (!right.isObstacle() && !right.isVirtualWall()) {
+				map.put("right", right);
+				}
+			MapCell left = this.getCell(m.x-1, m.y);
+			if (!left.isObstacle() && !left.isVirtualWall()) {
+				map.put("left", left);
+				}			
+			break;
+		}
+		}
+		
+		switch (m.y) {
+		case 0: {// bottom most row 
+			MapCell up = this.getCell(m.x, m.y+1);
+			if (!up.isObstacle() && !up.isVirtualWall()) {
+				map.put("up", up);
+				}
+			break;
+			}
+		case MapConstants.MAP_HEIGHT: { // top most row 
+			MapCell down = this.getCell(m.x, m.y-1);
+			if (!down.isObstacle() && !down.isVirtualWall()) {
+				map.put("down", down);
+				}			
+			break;
+			}
+		default: {
+			MapCell up = this.getCell(m.x, m.y+1);
+			if (!up.isObstacle() && !up.isVirtualWall()) {
+				map.put("up", up);
+				}
+			MapCell down = this.getCell(m.x, m.y-1);
+			if (!down.isObstacle() && !down.isVirtualWall()) {
+				map.put("down", down);
+				}			
+			break;
+		}
+		}
+		
+		return map;
 	}
 	
 	public static void main(String[] args) {

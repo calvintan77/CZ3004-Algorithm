@@ -13,10 +13,7 @@ import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
 import Simulator.Robot;
-import algorithms.AStarPathFinder;
-import algorithms.Path;
-
-
+import Algorithms.AStarAlgo; 
 
 public class RobotController {
 	public static final boolean REAL_RUN = false;
@@ -29,7 +26,7 @@ public class RobotController {
 		gui = GUI.getInstance();
 	}
 	public void exploreMaze() {
-			
+			/*
 			if (!REAL_RUN) {
 				if (!gui.isIntExploreInput()) {
 					gui.setStatus("invalid input for exploration");
@@ -195,5 +192,6 @@ public class RobotController {
 			
 			} 
 		}
+		*/
 	}
 }
