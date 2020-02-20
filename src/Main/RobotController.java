@@ -233,7 +233,7 @@ public class RobotController {
         		}
         	}
         }
-        Graph graph = new Graph(map, 5, 14);
+        Graph graph = new Graph(map, 11, 3);
         ShortestPath result = graph.GetShortestPath();
         System.out.println(result.getWeight());
         for(GraphNode n: result.getPath()){

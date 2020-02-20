@@ -6,6 +6,7 @@ import java.util.List;
 import Constants.MapConstants;
 import Main.GUI;
 import Main.RobotController;
+import RealRun.RobotRPI;
 import utils.Map;
 import utils.Orientation;
 import utils.RobotCommand;
@@ -16,8 +17,20 @@ public class Robot {
 	
 	//Singleton strategy pattern
 	public static Robot getInstance() {
-		if (robot == null)
-			robot = new Robot();
+		if (!RobotController.REAL_RUN) {
+			if (robot == null)
+				robot = new Robot();
+		} else {
+			if (robot == null) {
+				RobotRPI rpi = new RobotRPI();
+				try {
+					rpi.setUpConnection();
+				} catch (Exception e) {
+					
+				}
+				robot = rpi;
+			}
+		}
 		return robot;
 	}
 	
@@ -175,14 +188,12 @@ public class Robot {
 	}
 	
 	public void doCommand(RobotCommand cmd){
-		if (!RobotController.REAL_RUN) {
-			int oneStepTime = 100;
-			try {
-				Thread.sleep(oneStepTime);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		try {
+			Thread.sleep(1000/speed); 	//int timePerStep = 1000/speed (ms)
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+		
 		GUI.getInstance().updateRobotUI(cmd);
 	}
 	
