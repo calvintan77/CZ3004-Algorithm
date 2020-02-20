@@ -42,175 +42,130 @@ public class Robot {
 				for (int j=y; j <= y+1; j++) {
 					for (int i=x-2; i>=Math.max(x-5, 0); i--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
+				
 
 				for (int i=x-1; i<=x+1; i++) {
 					for (int j=y+2; j <= Math.min(y+3, MapConstants.MAP_HEIGHT-1); j++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
 				
 				
 				for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 					if (realMap.getCell(i,y+1).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case LEFT:
 				for (int i=x; i>=x-1; i--) {
 					for (int j=y-2; j >= Math.max(y-5,0); j--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
 				
 				for (int j=y-1; j <= y+1; j++) {
 					for (int i=x-2; i >= Math.max(x-3, 0); i--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
 				
 				for (int j=y+2; j<= Math.min(y+3, MapConstants.MAP_HEIGHT-1); j++) {
 					if (realMap.getCell(x-1, j).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case RIGHT: 
 				for (int i=x; i<=x+1; i++) {
 					for (int j=y+2; j <= Math.min(y+5,MapConstants.MAP_HEIGHT-1); j++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
+
 				for (int j=y+1; j >= y-1; j--) {
 					for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
-				
+							
 				for (int j=y-2; j >= Math.max(y-3, 0); j--) {
 					if (realMap.getCell(x+1, j).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case DOWN:
 				for (int j=y; j >= y-1; j--) {
 					for (int i=x+2; i <= Math.min(x+5, MapConstants.MAP_WIDTH-1); i++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-
+				
 				for (int i=x+1; i >= x-1; i--) {
-					for (int j=y-2; j >= Math.max(y-3, 0); j++) {
+					for (int j=y-2; j >= Math.max(y-3, 0); j--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
-				
+								
 				for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 					if (realMap.getCell(i,y-1).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 				
@@ -221,7 +176,7 @@ public class Robot {
 	
 	public void doCommand(RobotCommand cmd){
 		if (!RobotController.REAL_RUN) {
-			int oneStepTime = 500;
+			int oneStepTime = 100;
 			try {
 				Thread.sleep(oneStepTime);
 			} catch (InterruptedException e) {

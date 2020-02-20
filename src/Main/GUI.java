@@ -95,6 +95,14 @@ public class GUI extends JFrame implements ActionListener{
 		return targetExplorePercentage;
 	}
 	
+	public int[] getRobotPosition() {
+		return robotPosition;
+	}
+	
+	public Orientation getRobotOrientation() {
+		return currentOrientation;
+	}
+	
 	private void initializeDisplayedPane(JPanel contentPane) {
 
 		/*
