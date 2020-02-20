@@ -6,10 +6,11 @@ import java.util.List;
 import Constants.MapConstants;
 import Main.GUI;
 import utils.Map;
+import utils.MapCell;
 import utils.Orientation;
 import utils.RobotCommand;
 
-public class Robot {
+public class Robot implements RobotInterface {
 	private static Robot robot;
 	private int speed;
 	private Orientation o; // need to initialize 
@@ -231,6 +232,10 @@ public class Robot {
 		return position; 
 	}
 	
+	public MapCell getPositionCell() { 
+		return new MapCell(this.getPosition()[0], this.getPosition()[1]);
+	}
+	
 	public void setPosition(int x, int y) { 
 		position[0] = x;
 		position[1] = y; 
@@ -239,5 +244,9 @@ public class Robot {
 	// no defensive check for x 
 	public void setOrientation(int x) { 
 		o = Orientation.values()[x]; 
+	}
+	
+	public void setOrientation(Orientation o) {
+		this.o = o; 
 	}
 }

@@ -8,8 +8,10 @@ import utils.RobotCommand;
 import utils.ShortestPath;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import Simulator.Robot; 
 
@@ -78,20 +80,23 @@ public class MazeExplorer {
 	public void exploreMaze(Map map, long timeLimit) { 
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
+		MapCell prevNode; 
 		
 		// initial calibration
 		robot.setPosition(1, 1);
-		robot.setOrientation(3); // facing right 
-		// TODO: change to do/while so initial check passes
+		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
+		robot.setOrientation(Orientation.RIGHT); // facing right 
 		do { 
 			// check sensor values; update cells 
 			String toUpdate = robot.getSensorValues(robot.getPosition(), robot.getOrientation()); // toUpdate is a string
 			map.updateFromSensor(toUpdate);
 			// choose direction after updating values
 			Orientation o = this.chooseDirection(map, new MapCell(robot.getPosition()), robot.getOrientation());
+			prevNode = robot.getPositionCell(); // not ideal but robot's internal state only holds its own pos rather than map - should it hold map?
 			// translate orientation to actual command
 			// this does not actually work
 			robot.doCommand(RobotCommand.valueOf(o.toString()));
+			
 		}
 		while (System.nanoTime() - startTime < tLimit && robot.getPosition()[0] != 1 && robot.getPosition()[1] != 1); 
 		
@@ -100,12 +105,12 @@ public class MazeExplorer {
 			// enqueue all unseen cells 
 			List<MapCell> unseen = map.getAllUnseen(); 
 			// shortest path to unseen 
-			for (MapCell m : unseen) { 
-				try {
+			// fuck doing fp in java 
+			List<MapCell> seenNeighbours = unseen.stream().map(mapcell -> map.getNeighbours(mapcell)).map(hashmap -> hashmap.values()).flatMap(Collection::stream).filter(mapcell -> mapcell.getSeen()).collect(Collectors.toList());
+			for (MapCell m : seenNeighbours) { 
+				try { 
 				ShortestPath p = AStarAlgo.AStarSearch(new GraphNode(robot.getPosition()[0], robot.getPosition()[1], false), new GraphNode(m.x, m.y, false));
-				} 
-				
-				catch (Exception e) {
+				} catch (Exception e) {
 					// if we cannot find a path we die 
 				}
 			}
