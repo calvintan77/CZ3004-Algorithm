@@ -1,29 +1,15 @@
 package Main;
 
-import java.awt.Color;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.util.List;
 import java.util.Scanner;
 
-import javax.swing.JButton;
-import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
 import Constants.MapConstants;
 import Simulator.IRobot;
-import Simulator.Robot;
-import Algorithms.AStarAlgo; 
-import utils.Graph;
-import utils.GraphNode;
+import Simulator.VirtualRobot;
 import utils.Map;
 import utils.MapCell;
-import utils.RobotCommand;
-import utils.ShortestPath;
-
 
 
 public class RobotController {
@@ -217,7 +203,7 @@ public class RobotController {
 		myGui.refreshExploreInput();
 		Scanner sc = new Scanner(System.in);
 		String key = null;
-		IRobot myRobot = Robot.getInstance();
+		IRobot myRobot = VirtualRobot.getInstance();
         Map realMap = Map.getRealMapInstance();
         Map map = Map.getExploredMapInstance();
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {

@@ -66,10 +66,14 @@ public class Graph {
             List<GraphNode> path1 = toWaypoint.getPath();
             List<GraphNode> path2 = fromWaypoint.getPath();
             if(path1.size() >= 2 && path2.size() >= 2 && path1.get(path1.size()-2).equals(path2.get(1))) {
+                if(waypoint.isVirtual()){
+                    path1.addAll(path2.subList(1, fromWaypoint.getPath().size()));
+                    return new ShortestPath(toWaypoint.getWeight() + fromWaypoint.getWeight(), path1);
+                }
                 Optional<java.util.Map.Entry<GraphNode, Float>> turningPoint = waypoint.getNeighbours().stream().filter(node ->
                         node.getKey().getX()==waypoint.getX()
                                 && node.getKey().getY() == waypoint.getY()
-                                && node.getKey().isHorizontal() != waypoint.isHorizontal()).findFirst();
+                                && (node.getKey().isHorizontal() != waypoint.isHorizontal())).findFirst();
                 if(turningPoint.isPresent()) {
                     path1.add(turningPoint.get().getKey());
                     path1.addAll(path2);

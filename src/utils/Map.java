@@ -16,7 +16,7 @@ import javax.swing.JButton;
 import Constants.MapConstants;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "C:\\Users\\ongyu\\Documents\\NTU\\Year2\\Sem2\\CZ3004MDP\\CZ3004-Algorithm\\src\\Sample arena 5.txt";
+	private static final String MAP_FILE_PATH = "C:\\Users\\ongyu\\Documents\\NTU\\Year2\\Sem2\\CZ3004MDP\\CZ3004-Algorithm\\src\\Sample arena 3.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced

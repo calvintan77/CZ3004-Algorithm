@@ -1,27 +1,26 @@
 package Simulator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-import Constants.MapConstants;
 import Main.GUI;
-import Main.RobotController;
 import utils.*;
 
-public class Robot implements IRobot {
-	private static Robot robot;
+public class VirtualRobot implements IRobot {
+	private static VirtualRobot virtualRobot;
 	private int speed;
 	private Orientation o; // need to initialize 
 	private Coordinate position;
 	
 	//Singleton strategy pattern
 	public static IRobot getInstance() {
-		if (robot == null)
-			robot = new Robot();
-		return robot;
+		if (virtualRobot == null)
+			virtualRobot = new VirtualRobot();
+		return virtualRobot;
 	}
 	
-	private Robot() {
+	private VirtualRobot() {
 		
 	}
 	
@@ -160,7 +159,55 @@ public class Robot implements IRobot {
 	}
 
 	@Override
+	public void prepareOrientation(Orientation target) {
+		// Orientation update
+		if(this.getOrientation() != target){
+			int rightTurns = this.getOrientation().getRightTurns(target);
+			if(rightTurns > 0) {
+				for (int i = 0; i < rightTurns; i++) {
+					this.doCommand(RobotCommand.TURN_RIGHT);
+				}
+			}else{
+				for(int i = 0; i < -rightTurns; i++){
+					this.doCommand(RobotCommand.TURN_LEFT);
+				}
+			}
+		}
+
+	}
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.o = o; 
+	}
+
+	@Override
+	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell) {
+		HashMap<MapCell, Orientation> candidates = new HashMap<>();
+		//UP orientation
+		for(int i = cell.x+2; i<=cell.x+5; i++){
+			MapCell curr = map.getCell(i, cell.y - 1);
+			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			candidates.put(curr, Orientation.UP);
+		}
+		//DOWN orientation
+		for(int i = cell.x-2; i>=cell.x-5; i--){
+			MapCell curr = map.getCell(i, cell.y + 1);
+			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			candidates.put(curr, Orientation.DOWN);
+		}
+		//RIGHT orientation
+		for(int j = cell.y+2; j>=cell.y+5; j--){
+			MapCell curr = map.getCell(cell.x - 1, j);
+			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			candidates.put(curr, Orientation.RIGHT);
+		}
+		//LEFT orientation
+		for(int j = cell.y-2; j>=cell.y-5; j--){
+			MapCell curr = map.getCell(cell.x + 1, j);
+			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			candidates.put(curr, Orientation.LEFT);
+		}
+		return candidates;
 	}
 }

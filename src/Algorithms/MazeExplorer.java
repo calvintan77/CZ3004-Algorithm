@@ -29,37 +29,6 @@ public class MazeExplorer {
 	public IRobot getRobot() {
 		return MazeExplorer.robot; 
 	}
-	
-	// explore given Map within time limit; assumes known endpoint, constant orientation 
-	public boolean exploreMaze(Map map, int timeLimit, int x, int y) {
-		// we exceeded time limit or we have fully explored the map
-		// probably start a timer here 
-		if (timeLimit < timeLimit || map.getNumExplored() >= 100) {
-			return true;
-		}
-		// mark current cell as explored 
-		map.markCellExplored(x, y);
-		// check if 1. is obstacle 2. have enough space 
-		// later need to add impl to check if actually is obstacle
-		if (map.getCell(x, y).isObstacle()) {
-			return false; 
-		}
-		if (map.getCell(x, y).isExplored()) { // already explored portion
-			return false;
-		}
-		if (x == 1 && y == 1) {
-			return true; // we want to head to end point and repeat to start point 
-		}
-		// end timer here
-		boolean found = exploreMaze(map, timeLimit, x, y+1) || exploreMaze(map, timeLimit, x - 1, y) || exploreMaze(map, timeLimit, x + 1, y) || exploreMaze(map, timeLimit, x, y - 1);
-		if (found) { 
-			// check if enough space
-			// go there 
-		} else {
-			// dead end - do something?
-		}
-		return found; 
-	}
 
 	// explore given map within given time limit - iter 
 	// at every step we need to update sensor values
@@ -84,11 +53,11 @@ public class MazeExplorer {
 			// check sensor values; update cells 
 			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 			// choose direction after updating values
-			Orientation o = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
+			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			prepareOrientation(robot, o);
+			robot.prepareOrientation(nextOrientation);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
@@ -102,9 +71,6 @@ public class MazeExplorer {
 			// shortest path to unseen 
 			// fuck doing fp in java
 			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
-			for(Coordinate n: seenNeighbours){
-				System.out.println(n.getX() + ", " + n.getY());
-			}
 			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
 			try {
 				List<Coordinate> start = new LinkedList<>();
@@ -112,16 +78,33 @@ public class MazeExplorer {
 				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
 				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 				// Orientation update
-				prepareOrientation(robot, toUnexploredPoint.getStartingOrientation());
+				robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
 				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
 					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
 					robot.doCommand(cmd);
 					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}
 			} catch (Exception e) {
-				System.out.println(":(");
-				break;
-				// if we cannot find a path we die
+				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
+				HashMap<MapCell, Orientation> candidates = robot.getLeftSensorVisibilityCandidates(map, unseen.get(0));
+				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+				try{
+					List<Coordinate> start = new LinkedList<>();
+					start.add(robot.getPosition());
+					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
+					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+					// Orientation update
+					robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
+					for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
+						if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
+						robot.doCommand(cmd);
+						map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+					}
+					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
+				}catch(Exception e2) {
+					System.out.println("Unable to access cell, time to cut losses...");
+					break;
+				}
 			}
 		}
 		
@@ -133,28 +116,12 @@ public class MazeExplorer {
 			end.add(new Coordinate(1,1));
 			List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
 			ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-			prepareOrientation(robot, toStartingPoint.getStartingOrientation());
+			robot.prepareOrientation(toStartingPoint.getStartingOrientation());
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
 				robot.doCommand(cmd);
 			}
 		} catch (Exception e) {
 			
-		}
-	}
-
-	public void prepareOrientation(IRobot robot, Orientation target){
-		// Orientation update
-		if(robot.getOrientation() != target){
-			int rightTurns = robot.getOrientation().getRightTurns(target);
-			if(rightTurns > 0) {
-				for (int i = 0; i < rightTurns; i++) {
-					robot.doCommand(RobotCommand.TURN_RIGHT);
-				}
-			}else{
-				for(int i = 0; i < -rightTurns; i++){
-					robot.doCommand(RobotCommand.TURN_LEFT);
-				}
-			}
 		}
 	}
 

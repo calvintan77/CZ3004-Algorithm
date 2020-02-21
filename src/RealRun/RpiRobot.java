@@ -5,20 +5,17 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
-import Simulator.Robot;
 import Simulator.IRobot;
-import utils.Coordinate;
-import utils.MapCell;
-import utils.Orientation;
-import utils.RobotCommand;
+import utils.*;
 
-public class RobotRPI implements IRobot{
+public class RpiRobot implements IRobot{
 	public static final String RPI_IP_ADDRESS = "192.168.9.9";
 	public static final int RPI_PORT = 3053;
-	private static RobotRPI robot = null;
+	private static RpiRobot robot = null;
 	private boolean isConnected = false;
 	
 	private Socket rpiSocket;
@@ -30,7 +27,7 @@ public class RobotRPI implements IRobot{
 
 	public static IRobot getInstance(){
 		if (robot == null) {
-			robot = new RobotRPI();
+			robot = new RpiRobot();
 			while(!robot.isConnected()) {
 				try {
 					robot.setUpConnection();
@@ -42,7 +39,7 @@ public class RobotRPI implements IRobot{
 		return robot;
 	}
 
-	private RobotRPI(){
+	private RpiRobot(){
 
 	}
 
@@ -125,7 +122,17 @@ public class RobotRPI implements IRobot{
 	}
 
 	@Override
+	public void prepareOrientation(Orientation o) {
+
+	}
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.direction = o;
+	}
+
+	@Override
+	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell) {
+		return null;
 	}
 }
