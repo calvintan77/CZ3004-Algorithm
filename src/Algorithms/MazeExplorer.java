@@ -88,6 +88,7 @@ public class MazeExplorer {
 		
 		// initial calibration
 		robot.setPosition(1, 1);
+		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
 		robot.setOrientation(Orientation.RIGHT); // facing right 
 		do { 
 			// check sensor values; update cells 
