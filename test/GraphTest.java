@@ -1,5 +1,8 @@
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import Constants.MapConstants;
+import Main.GUI;
 import utils.*;
 
 
@@ -38,6 +41,8 @@ public class GraphTest {
         g9.addNeighbour(g6, 1f);
 
         Graph graph = new Graph(g4, g8, g7, g6);
+        Assertions.assertThrows(Exception.class, graph::GetShortestPath);
+        /*
         ShortestPath result = graph.GetShortestPath();
         Assertions.assertEquals(6, result.getWeight());
         Assertions.assertEquals(7, result.getPath().size());
@@ -47,7 +52,7 @@ public class GraphTest {
         Assertions.assertEquals(g3, result.getPath().get(3));
         Assertions.assertEquals(g6, result.getPath().get(4));
         Assertions.assertEquals(g9, result.getPath().get(5));
-        Assertions.assertEquals(g8, result.getPath().get(6));
+        Assertions.assertEquals(g8, result.getPath().get(6));*/
     }
 
     @Test
@@ -105,6 +110,12 @@ public class GraphTest {
     public void MapTest(){
         // Sample map on NTU Learn
         Map map = new Map();
+
+        for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
+            for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
+                map.markCellExplored(i,j);
+            }
+        }
         //(4,5) to (9,5) obstacle
         for(int i = 3; i <= 10; i++) {
             map.getCell(i, 6).setVirtualWall(true);
@@ -185,7 +196,41 @@ public class GraphTest {
         for(RobotCommand command: result.generateInstructions()){
             System.out.println(command.toString());
         }
-
+    }
+    
+    @Test
+    public void RealMapTest(){
+        // Sample map on NTU Learn
+        Map map = Map.getRealMapInstance();
+        for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+        	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+        		MapCell cell = map.getCell(i, j);
+        		cell.setExploredStatus(true);
+        		if (!cell.isObstacle()) {
+        			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
+        				cell.setVirtualWall(true);
+        			} else {
+        				for (int p=i-1; p<=i+1; p++) {
+        					for (int q=j-1; q<=j+1; q++)
+        						if (map.getCell(p, q).isObstacle())
+        							cell.setVirtualWall(true);
+        				}
+        			}
+        		}
+        	}
+        }
+        Graph graph = new Graph(map, 5, 14);
+        ShortestPath result = graph.GetShortestPath();
+        System.out.println(result.getWeight());
+        for(GraphNode n: result.getPath()){
+            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
+        }
+        System.out.println("Starting Orientation");
+        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+        System.out.println("Instructions:");
+        for(RobotCommand command: result.generateInstructions()){
+            System.out.println(command.toString());
+        }
 
     }
 }

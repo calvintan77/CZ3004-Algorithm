@@ -5,6 +5,8 @@ import java.util.List;
 
 import Constants.MapConstants;
 import Main.GUI;
+import Main.RobotController;
+import RealRun.RobotRPI;
 import utils.Map;
 import utils.MapCell;
 import utils.Orientation;
@@ -18,8 +20,20 @@ public class Robot implements RobotInterface {
 	
 	//Singleton strategy pattern
 	public static Robot getInstance() {
-		if (robot == null)
-			robot = new Robot();
+		if (!RobotController.REAL_RUN) {
+			if (robot == null)
+				robot = new Robot();
+		} else {
+			if (robot == null) {
+				RobotRPI rpi = new RobotRPI();
+				try {
+					rpi.setUpConnection();
+				} catch (Exception e) {
+					
+				}
+				robot = rpi;
+			}
+		}
 		return robot;
 	}
 	
@@ -43,175 +57,130 @@ public class Robot implements RobotInterface {
 				for (int j=y; j <= y+1; j++) {
 					for (int i=x-2; i>=Math.max(x-5, 0); i--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
+				
 
 				for (int i=x-1; i<=x+1; i++) {
 					for (int j=y+2; j <= Math.min(y+3, MapConstants.MAP_HEIGHT-1); j++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
 				
 				
 				for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 					if (realMap.getCell(i,y+1).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case LEFT:
 				for (int i=x; i>=x-1; i--) {
 					for (int j=y-2; j >= Math.max(y-5,0); j--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
 				
 				for (int j=y-1; j <= y+1; j++) {
 					for (int i=x-2; i >= Math.max(x-3, 0); i--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
 				
 				for (int j=y+2; j<= Math.min(y+3, MapConstants.MAP_HEIGHT-1); j++) {
 					if (realMap.getCell(x-1, j).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case RIGHT: 
 				for (int i=x; i<=x+1; i++) {
 					for (int j=y+2; j <= Math.min(y+5,MapConstants.MAP_HEIGHT-1); j++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
+
 				for (int j=y+1; j >= y-1; j--) {
 					for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
-				
+							
 				for (int j=y-2; j >= Math.max(y-3, 0); j--) {
 					if (realMap.getCell(x+1, j).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 			case DOWN:
 				for (int j=y; j >= y-1; j--) {
 					for (int i=x+2; i <= Math.min(x+5, MapConstants.MAP_WIDTH-1); i++) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-
+				
 				for (int i=x+1; i >= x-1; i--) {
-					for (int j=y-2; j >= Math.max(y-3, 0); j++) {
+					for (int j=y-2; j >= Math.max(y-3, 0); j--) {
 						if (realMap.getCell(i, j).isObstacle()) {
-							sensorValues.add(cnt+"");
-							cnt = 0;
 							break;
 						}
 						cnt++;
 					}
-				}
-				if (cnt != 0) {
 					sensorValues.add(cnt+"");
+					cnt = 0;
 				}
-				
-				
+								
 				for (int i=x+2; i <= Math.min(x+3, MapConstants.MAP_WIDTH-1); i++) {
 					if (realMap.getCell(i,y-1).isObstacle()) {
-						sensorValues.add(cnt+"");
-						cnt = 0;
 						break;
 					}
 					cnt++;
 				}
-				
-				if (cnt != 0) {
-					sensorValues.add(cnt+"");
-				}
+				sensorValues.add(cnt+"");
 				
 				break;
 				
@@ -221,6 +190,12 @@ public class Robot implements RobotInterface {
 	}
 	
 	public void doCommand(RobotCommand cmd){
+		try {
+			Thread.sleep(1000/speed); 	//int timePerStep = 1000/speed (ms)
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		GUI.getInstance().updateRobotUI(cmd);
 	}
 	

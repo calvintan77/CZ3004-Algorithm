@@ -46,7 +46,8 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
-	private static int exploreTimeLimit;
+	private int targetExplorePercentage;
+	public static int exploreTimeLimit;
 	
 	public static GUI getInstance() {
 		if (gui == null) {
@@ -88,6 +89,18 @@ public class GUI extends JFrame implements ActionListener{
 	
 	public void setMazeGrids(JButton[][] mazeGrids) {
 		this.mazeGrids = mazeGrids;
+	}
+	
+	public int getTargetExplorePercent() {
+		return targetExplorePercentage;
+	}
+	
+	public int[] getRobotPosition() {
+		return robotPosition;
+	}
+	
+	public Orientation getRobotOrientation() {
+		return currentOrientation;
 	}
 	
 	private void initializeDisplayedPane(JPanel contentPane) {
@@ -540,15 +553,15 @@ public class GUI extends JFrame implements ActionListener{
 		}
 	}
 	
-	public void updateRobotUI(String robotAction) {
+	public void updateRobotUI(RobotCommand robotAction) {
 		switch(robotAction) {
-			case RobotCommand.TURN_LEFT:
+			case TURN_LEFT:
 				turnRobotLeft(currentOrientation);
 				break;
-			case RobotCommand.TURN_RIGHT:
+			case TURN_RIGHT:
 				turnRobotRight(currentOrientation);
 				break;
-			case RobotCommand.MOVE_FORWARD:
+			case MOVE_FORWARD:
 				moveRobotForward(currentOrientation);
 				break;
 		}
@@ -577,7 +590,7 @@ public class GUI extends JFrame implements ActionListener{
 	}
 	
 	private void turnRobotRight(Orientation orientation) {
-		currentOrientation = Orientation.getCounterClockwise(orientation);
+		currentOrientation = Orientation.getClockwise(orientation);
 		switch(orientation) {
 			case UP:
 				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.CYAN);
@@ -599,9 +612,12 @@ public class GUI extends JFrame implements ActionListener{
 	}
 	
 	private void moveRobotForward(Orientation orientation) {
-		currentOrientation = Orientation.getCounterClockwise(orientation);
 		switch(orientation) {
 			case UP:
+				if (robotPosition[1] + 2 >= MapConstants.MAP_HEIGHT) {
+					System.out.println("Invalid move");
+					return;
+				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
 						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
@@ -616,6 +632,10 @@ public class GUI extends JFrame implements ActionListener{
 				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
 				break;
 			case LEFT:
+				if (robotPosition[0] - 1 < 1) {
+					System.out.println("Invalid move");
+					return;
+				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
 						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
@@ -630,6 +650,10 @@ public class GUI extends JFrame implements ActionListener{
 				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
 				break;
 			case DOWN:
+				if (robotPosition[1] - 1 < 1) {
+					System.out.println("Invalid move");
+					return;
+				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
 						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
@@ -644,6 +668,10 @@ public class GUI extends JFrame implements ActionListener{
 				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
 				break;
 			case RIGHT:
+				if (robotPosition[0] + 2 >= MapConstants.MAP_WIDTH) {
+					System.out.println("Invalid move");
+					return;
+				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
 						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());

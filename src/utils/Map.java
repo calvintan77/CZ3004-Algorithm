@@ -54,7 +54,7 @@ public class Map {
 	
 	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 100 
 		this.getCell(x, y).setExploredStatus(true);
-		this.exploredPercent += 1/300; 
+		this.exploredPercent += 1; 
 	}
 	
 	public MapCell getCell(int x, int y) {
@@ -138,7 +138,7 @@ public class Map {
 				}
 			}
 		}
-		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
+//		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
 	}
 	
 	public static Map loadMapFromFile(String filePath) {
@@ -164,8 +164,18 @@ public class Map {
 		return resultMap;
 	}
 	
-	public int getExploredPercent() {
-		return this.exploredPercent; 
+	public double getExploredPercent() {
+		return (double) this.exploredPercent / 300.0 * 100.0; 
+	}
+	
+	public void updateExploredPercentage() {
+		exploredPercent = 0;
+		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (mapCells[i][j].isExplored())
+					exploredPercent++;
+			}
+		}
 	}
 	
 	// unelegant way of getting unseen 

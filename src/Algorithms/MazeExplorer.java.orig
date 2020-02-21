@@ -1,10 +1,6 @@
 package Algorithms;
 
 import utils.GraphNode;
-import Simulator.Robot;
-import utils.Map;
-import utils.Orientation;
-
 import utils.Map;
 import utils.MapCell;
 import utils.Orientation;
@@ -70,7 +66,7 @@ public class MazeExplorer {
 		}
 		return found; 
 	}
-		
+	
 	// explore given map within given time limit - iter 
 	// at every step we need to update sensor values
 	// after update, determine is there are any virtual walls in front
@@ -88,7 +84,13 @@ public class MazeExplorer {
 		
 		// initial calibration
 		robot.setPosition(1, 1);
+<<<<<<< HEAD
+		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
 		robot.setOrientation(Orientation.RIGHT); // facing right 
+=======
+		robot.setOrientation(Orientation.RIGHT); // facing right 
+		// TODO: change to do/while so initial check passes
+>>>>>>> eee7b900096a918a97c0fc5b646a16a4161d6ced
 		do { 
 			// check sensor values; update cells 
 			String toUpdate = robot.getSensorValues(robot.getPosition(), robot.getOrientation()); // toUpdate is a string
@@ -171,4 +173,3 @@ public class MazeExplorer {
 		}
 	}
 }
-
