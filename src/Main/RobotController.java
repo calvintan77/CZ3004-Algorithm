@@ -14,6 +14,7 @@ import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
 import Constants.MapConstants;
+import Simulator.IRobot;
 import Simulator.Robot;
 import Algorithms.AStarAlgo; 
 import utils.Graph;
@@ -216,7 +217,7 @@ public class RobotController {
 		myGui.refreshExploreInput();
 		Scanner sc = new Scanner(System.in);
 		String key = null;
-		Robot myRobot = Robot.getInstance();
+		IRobot myRobot = Robot.getInstance();
         Map map = Map.getRealMapInstance();
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
@@ -235,18 +236,20 @@ public class RobotController {
         		}
         	}
         }
-        Graph graph = new Graph(map, 11, 3);
-        ShortestPath result = graph.GetShortestPath();
-        System.out.println(result.getWeight());
-        for(GraphNode n: result.getPath()){
-            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
-        }
-        System.out.println("Starting Orientation");
-        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
-        System.out.println("Instructions:");
-        
-        for(RobotCommand command: result.generateInstructions()){
-            myRobot.doCommand(command);
-        }
+//        Graph graph = new Graph(map, 11, 3);
+//        ShortestPath result = graph.GetShortestPath();
+//        System.out.println(result.getWeight());
+//        for(GraphNode n: result.getPath()){
+//            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
+//        }
+//        System.out.println("Starting Orientation");
+//        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+//        System.out.println("Instructions:");
+//
+//        for(RobotCommand command: result.generateInstructions()){
+//            myRobot.doCommand(command);
+//        }
+		MazeExplorer e = MazeExplorer.getInstance();
+        e.setRobot(myRobot);
 	}
 }

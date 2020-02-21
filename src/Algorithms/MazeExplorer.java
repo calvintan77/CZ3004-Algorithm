@@ -1,5 +1,6 @@
 package Algorithms;
 
+import Simulator.IRobot;
 import utils.*;
 import Simulator.Robot;
 
@@ -13,7 +14,7 @@ import Simulator.Robot;
 
 public class MazeExplorer {
 	private static MazeExplorer mazeExplorer;
-	private static Robot robot; 
+	private static IRobot robot;
 	// private Map map; 	
 	public static MazeExplorer getInstance() {
 		if (mazeExplorer == null) {
@@ -23,12 +24,12 @@ public class MazeExplorer {
 	}
 	
 	// a maze explorer is tied to 1 robot; inelegant way to tie them together because of the way we get instance...
-	public void setRobot(Robot r) {
+	public void setRobot(IRobot r) {
 		MazeExplorer.robot = r; 
 	}
 	
 	// no defensive checks - caller calls at own risk 
-	public Robot getRobot() {
+	public IRobot getRobot() {
 		return MazeExplorer.robot; 
 	}
 	
@@ -84,8 +85,7 @@ public class MazeExplorer {
 		robot.setOrientation(Orientation.RIGHT); // facing right
 		do { 
 			// check sensor values; update cells 
-			String toUpdate = robot.getSensorValues(); // toUpdate is a string
-			map.updateFromSensor(toUpdate);
+			map.updateFromSensor(robot.getSensorValues());
 			// choose direction after updating values
 			Orientation o = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			prevNode = robot.getPosition(); // not ideal but robot's internal state only holds its own pos rather than map - should it hold map?
