@@ -7,19 +7,22 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JButton;
 
 import Constants.MapConstants;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "D:\\CZ3004-MULTIDISCIPLINARY PROJECT\\MDP 2020 Sem2\\src\\Sample arena 5.txt";
+	private static final String MAP_FILE_PATH = "C:\\Users\\ongyu\\Documents\\NTU\\Year2\\Sem2\\CZ3004MDP\\CZ3004-Algorithm\\src\\Sample arena 5.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
 	
 	private MapCell[][] mapCells;
-	private int exploredPercent; // have exploredPercent and count so we don't waste time 
+	private int numSquaresExplored; // have exploredPercent and count so we don't waste time
 	
 	//Singleton strategy pattern
 	public static Map getExploredMapInstance() {
@@ -43,19 +46,43 @@ public class Map {
 		mapCells = new MapCell[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				mapCells[i][j] = new MapCell();
+				mapCells[i][j] = new MapCell(i, j);
+				if(i == 0 || j == 0 || i == MapConstants.MAP_WIDTH-1 || j == MapConstants.MAP_HEIGHT-1){
+					mapCells[i][j].setVirtualWall(true);
+				}
 			}
 		}
-		this.exploredPercent = 0; 
+		this.numSquaresExplored = 0;
 	}
 	
-	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 100 
+	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
 		this.getCell(x, y).setExploredStatus(true);
-		this.exploredPercent += 1; 
+		this.numSquaresExplored += 1;
+	}
+	
+	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
+		if (this.getCell(x,y) == null || this.getCell(x, y).getSeen()) { // defensive check
+			return;
+		}
+		this.getCell(x, y).setSeen(true);
+		this.numSquaresExplored += 1;
 	}
 	
 	public MapCell getCell(int x, int y) {
+		// caller has to check
+		if (x < 0 || y < 0 || x >= MapConstants.MAP_WIDTH || y >= MapConstants.MAP_HEIGHT) {
+			return null;
+		}
 		return mapCells[x][y];
+	}
+
+	public MapCell getCell(Coordinate c) {
+		return getCell(c.getX(), c.getY());
+	}
+	
+	// marks a given cell as a virtual wall - defensive check not given here, caller has to do 
+	public void markVirtualWall(int x, int y) { 
+		this.getCell(x, y).setVirtualWall(true);
 	}
 	
 	public static String convertHexToBinaryString(String hex) {
@@ -152,18 +179,201 @@ public class Map {
 		return resultMap;
 	}
 	
-	public double getExploredPercent() {
-		return (double) this.exploredPercent / 300.0 * 100.0; 
+	public int getNumExplored() {
+		return this.numSquaresExplored;
 	}
 	
 	public void updateExploredPercentage() {
-		exploredPercent = 0;
+		numSquaresExplored = 0;
 		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 				if (mapCells[i][j].isExplored())
-					exploredPercent++;
+					numSquaresExplored++;
 			}
 		}
+	}
+	
+	// unelegant way of getting unseen 
+	public List<MapCell> getAllUnseen() {
+		List<MapCell> arr = new ArrayList<MapCell>(); 
+		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (!this.getCell(i, j).getSeen()) {
+					arr.add(this.getCell(i, j));
+				}
+			}
+		}
+		return arr; 
+	}
+	
+	/**
+	 * TODO: abstract getting of sensor coord
+	 * @param values: list of string values to update in format of l,f,f,f,r 
+	 **/
+	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
+	switch (o) { 
+	case UP: 
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
+		break;
+	case DOWN:
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
+		break;
+	case RIGHT:
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
+		break;
+	case LEFT: 
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
+		break;
+	}
+	}
+	
+	/** 
+	 * updates value based on a single sensor 
+	 * @param value: sensor's readings 
+	 * @param maxValue: max sensor reading 
+	 * @param sensorPos: actual sensor position
+	 * @param o: sensor orientation relative to map
+	 */
+	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
+		switch (o) {
+		case RIGHT: 
+			// update all seen 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));		
+				}
+			break;
+		case LEFT: 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
+				}
+			break;
+		case UP:	
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX(), sensorPos.getY() + i);
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
+				}
+			break;
+		case DOWN: 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX(), sensorPos.getY() - i);
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
+				}
+			break;
+			}
+	}
+	
+	/**
+	 * set c to be obstacle and surrounding to be virtual walls 
+	 * @param c
+	 */
+	public void setObstacle(Coordinate c) {
+		if(this.getCell(c) == null) return;
+		this.getCell(c).setObstacleStatus(true);
+		this.markCellSeen(c.getX(), c.getY());
+		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
+			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
+				if (i == c.getX() && j == c.getY()) {
+					continue;
+				} else {
+					if (this.getCell(i, j) != null) {
+						this.getCell(i, j).setVirtualWall(true);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
+	 * @param m
+	 * @return
+	 */
+	public HashMap<String, MapCell> getNeighbours(MapCell m) {
+		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
+		
+		switch (m.x) {
+		case 0: {// left most row 
+			MapCell right = this.getCell(m.x+1, m.y);
+			if (!right.isObstacle() && !right.isVirtualWall()) {
+				map.put("right", right);
+				}
+			break;
+			}
+		case MapConstants.MAP_WIDTH-1: { // right most row
+			MapCell left = this.getCell(m.x-1, m.y);
+			if (!left.isObstacle() && !left.isVirtualWall()) {
+				map.put("left", left);
+				}			
+			break;
+			}
+		default: {
+			MapCell right = this.getCell(m.x+1, m.y);
+			if (!right.isObstacle() && !right.isVirtualWall()) {
+				map.put("right", right);
+				}
+			MapCell left = this.getCell(m.x-1, m.y);
+			if (!left.isObstacle() && !left.isVirtualWall()) {
+				map.put("left", left);
+				}			
+			break;
+		}
+		}
+		
+		switch (m.y) {
+		case 0: {// bottom most row 
+			MapCell up = this.getCell(m.x, m.y+1);
+			if (!up.isObstacle() && !up.isVirtualWall()) {
+				map.put("up", up);
+				}
+			break;
+			}
+		case MapConstants.MAP_HEIGHT-1: { // top most row
+			MapCell down = this.getCell(m.x, m.y-1);
+			if (!down.isObstacle() && !down.isVirtualWall()) {
+				map.put("down", down);
+				}			
+			break;
+			}
+		default: {
+			MapCell up = this.getCell(m.x, m.y+1);
+			if (!up.isObstacle() && !up.isVirtualWall()) {
+				map.put("up", up);
+				}
+			MapCell down = this.getCell(m.x, m.y-1);
+			if (!down.isObstacle() && !down.isVirtualWall()) {
+				map.put("down", down);
+				}			
+			break;
+		}
+		}
+		
+		return map;
 	}
 	
 	public static void main(String[] args) {

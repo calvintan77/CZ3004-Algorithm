@@ -32,17 +32,16 @@ public class MapProcessor {
 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints){
         List<GraphNode> mapResult = ProcessMap(map, StartingPoints, EndingPoints, StartingPoints.get(0));
-        mapResult.remove(3);
-        mapResult.remove(2);
         return mapResult;
     }
 
+    // hit at least 1 ending point 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints, Coordinate waypoint){
         GraphNode[][][] graph = new GraphNode[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT][2];
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
                 MapCell cell = map.getCell(i,j);
-                if(cell.isObstacle() || cell.isVirtualWall() || !cell.isExplored()){
+                if(cell.isObstacle() || cell.isVirtualWall() || !cell.getSeen()){
                     continue;
                 }
 

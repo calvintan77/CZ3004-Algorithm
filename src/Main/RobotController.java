@@ -14,7 +14,9 @@ import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
 import Constants.MapConstants;
+import Simulator.IRobot;
 import Simulator.Robot;
+import Algorithms.AStarAlgo; 
 import utils.Graph;
 import utils.GraphNode;
 import utils.Map;
@@ -37,7 +39,7 @@ public class RobotController {
 		gui = GUI.getInstance();
 	}
 	public void exploreMaze() {
-			
+			/*
 			if (!REAL_RUN) {
 				if (!gui.isIntExploreInput()) {
 					gui.setStatus("invalid input for exploration");
@@ -206,6 +208,7 @@ public class RobotController {
 				exploringTimer.stop();
 			}
 		}
+		*/
 	}
 	
 	public static void main(String[] args) {
@@ -214,37 +217,42 @@ public class RobotController {
 		myGui.refreshExploreInput();
 		Scanner sc = new Scanner(System.in);
 		String key = null;
-		Robot myRobot = Robot.getInstance();
-        Map map = Map.getRealMapInstance();
+		IRobot myRobot = Robot.getInstance();
+        Map realMap = Map.getRealMapInstance();
+        Map map = Map.getExploredMapInstance();
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-        		MapCell cell = map.getCell(i, j);
-        		cell.setExploredStatus(true);
+        		MapCell cell = realMap.getCell(i, j);
+        		//cell.setExploredStatus(true);
         		if (!cell.isObstacle()) {
+        			//TODO: Refactor to MAP, this sets the boundary of arena to virtual walls
         			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
         				cell.setVirtualWall(true);
         			} else {
         				for (int p=i-1; p<=i+1; p++) {
         					for (int q=j-1; q<=j+1; q++)
-        						if (map.getCell(p, q).isObstacle())
+        						if (realMap.getCell(p, q).isObstacle())
         							cell.setVirtualWall(true);
         				}
         			}
         		}
         	}
         }
-        Graph graph = new Graph(map, 11, 3);
-        ShortestPath result = graph.GetShortestPath();
-        System.out.println(result.getWeight());
-        for(GraphNode n: result.getPath()){
-            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
-        }
-        System.out.println("Starting Orientation");
-        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
-        System.out.println("Instructions:");
-        
-        for(RobotCommand command: result.generateInstructions()){
-            myRobot.doCommand(command);
-        }
+//        Graph graph = new Graph(realMap, 11, 3);
+//        ShortestPath result = graph.GetShortestPath();
+//        System.out.println(result.getWeight());
+//        for(GraphNode n: result.getPath()){
+//            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
+//        }
+//        System.out.println("Starting Orientation");
+//        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+//        System.out.println("Instructions:");
+//
+//        for(RobotCommand command: result.generateInstructions()){
+//            myRobot.doCommand(command);
+//        }
+		MazeExplorer e = MazeExplorer.getInstance();
+        e.setRobot(myRobot);
+        e.exploreMaze(map, 100000000);
 	}
 }

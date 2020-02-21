@@ -1,12 +1,24 @@
 package utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapCell {
 	private boolean isExplored;
 	private boolean isObstacle;
 	private boolean isVirtualWall;
+	private boolean isSeen; 
+	public int x; // changed to public for convenience
+	public int y; 
 	
-	public MapCell() {
-		
+	public MapCell(int x, int y) {
+		this.x = x;
+		this.y = y; 
+	}
+	
+	public MapCell(Coordinate arr) {
+		this.x = arr.getX();
+		this.y = arr.getY();
 	}
 	
 	public boolean isExplored() {
@@ -32,4 +44,13 @@ public class MapCell {
 	public void setVirtualWall(boolean status) {
 		isVirtualWall = status;
 	}
+	
+	public void setSeen(boolean status) {
+		this.isSeen = status; 
+	}
+	
+	public boolean getSeen() {
+		return this.isSeen;
+	}
+	
 }

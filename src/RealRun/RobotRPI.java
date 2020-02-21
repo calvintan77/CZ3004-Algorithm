@@ -5,19 +5,50 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Scanner;
 
 import Simulator.Robot;
+import Simulator.IRobot;
+import utils.Coordinate;
+import utils.MapCell;
 import utils.Orientation;
 import utils.RobotCommand;
 
-public class RobotRPI extends Robot{
+public class RobotRPI implements IRobot{
 	public static final String RPI_IP_ADDRESS = "192.168.9.9";
 	public static final int RPI_PORT = 3053;
+	private static RobotRPI robot = null;
+	private boolean isConnected = false;
 	
 	private Socket rpiSocket;
 	private BufferedWriter toRPI;
 	private Scanner fromRPI;
+
+	private Coordinate position;
+	private Orientation direction;
+
+	public static IRobot getInstance(){
+		if (robot == null) {
+			robot = new RobotRPI();
+			while(!robot.isConnected()) {
+				try {
+					robot.setUpConnection();
+				}catch(Exception e){
+					System.out.println(e);
+				}
+			}
+		}
+		return robot;
+	}
+
+	private RobotRPI(){
+
+	}
+
+	public boolean isConnected(){
+		return this.isConnected;
+	}
 	
 	public void setUpConnection () throws UnknownHostException, IOException{
 		rpiSocket = new Socket(RPI_IP_ADDRESS, RPI_PORT);
@@ -29,6 +60,7 @@ public class RobotRPI extends Robot{
 			fromRPI.close();
 		}
 		fromRPI = new Scanner(rpiSocket.getInputStream());
+		this.isConnected = true;
 	}
 	
 	public void closeConnection() throws IOException {
@@ -53,18 +85,21 @@ public class RobotRPI extends Robot{
 		return messageReceived;
 	}
 	
-
+	//TODO: Settle with RPI
 	@Override
-	public String getSensorValues(int[] robotPosition, Orientation robotOrientation) {
+	public List<Integer> getSensorValues() {
 		try {
 			sendMessage("GET_SENSOR_VALUES");
-			return readMessage();
+			//return readMessage();
+			//TODO
+			return null;
 		} catch (Exception e) {
 			
 		}
 		return null;
 	}
-	
+
+	//TODO: Settle with RPI
 	@Override
 	public void doCommand(RobotCommand command) {
 		try {
@@ -72,5 +107,25 @@ public class RobotRPI extends Robot{
 		} catch (Exception e) {
 			
 		}
+	}
+
+	@Override
+	public Orientation getOrientation() {
+		return this.direction;
+	}
+
+	@Override
+	public Coordinate getPosition() {
+		return this.position;
+	}
+
+	@Override
+	public void setPosition(int x, int y) {
+		this.position = new Coordinate(x, y);
+	}
+
+	@Override
+	public void setOrientation(Orientation o) {
+		this.direction = o;
 	}
 }
