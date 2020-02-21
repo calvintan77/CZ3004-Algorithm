@@ -32,8 +32,6 @@ public class MapProcessor {
 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints){
         List<GraphNode> mapResult = ProcessMap(map, StartingPoints, EndingPoints, StartingPoints.get(0));
-        mapResult.remove(3);
-        mapResult.remove(2);
         return mapResult;
     }
 
@@ -43,7 +41,7 @@ public class MapProcessor {
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
                 MapCell cell = map.getCell(i,j);
-                if(cell.isObstacle() || cell.isVirtualWall() || !cell.isExplored()){
+                if(cell.isObstacle() || cell.isVirtualWall() || !cell.getSeen()){
                     continue;
                 }
 

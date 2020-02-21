@@ -218,25 +218,27 @@ public class RobotController {
 		Scanner sc = new Scanner(System.in);
 		String key = null;
 		IRobot myRobot = Robot.getInstance();
-        Map map = Map.getRealMapInstance();
+        Map realMap = Map.getRealMapInstance();
+        Map map = Map.getExploredMapInstance();
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-        		MapCell cell = map.getCell(i, j);
-        		cell.setExploredStatus(true);
+        		MapCell cell = realMap.getCell(i, j);
+        		//cell.setExploredStatus(true);
         		if (!cell.isObstacle()) {
+        			//TODO: Refactor to MAP, this sets the boundary of arena to virtual walls
         			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
         				cell.setVirtualWall(true);
         			} else {
         				for (int p=i-1; p<=i+1; p++) {
         					for (int q=j-1; q<=j+1; q++)
-        						if (map.getCell(p, q).isObstacle())
+        						if (realMap.getCell(p, q).isObstacle())
         							cell.setVirtualWall(true);
         				}
         			}
         		}
         	}
         }
-//        Graph graph = new Graph(map, 11, 3);
+//        Graph graph = new Graph(realMap, 11, 3);
 //        ShortestPath result = graph.GetShortestPath();
 //        System.out.println(result.getWeight());
 //        for(GraphNode n: result.getPath()){
@@ -251,5 +253,6 @@ public class RobotController {
 //        }
 		MazeExplorer e = MazeExplorer.getInstance();
         e.setRobot(myRobot);
+        e.exploreMaze(map, 100000000);
 	}
 }

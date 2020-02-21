@@ -2,15 +2,12 @@ package Algorithms;
 
 import Simulator.IRobot;
 import utils.*;
-import Simulator.Robot;
 
 import utils.Map;
 import utils.Orientation;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import Simulator.Robot; 
 
 public class MazeExplorer {
 	private static MazeExplorer mazeExplorer;
@@ -37,7 +34,7 @@ public class MazeExplorer {
 	public boolean exploreMaze(Map map, int timeLimit, int x, int y) {
 		// we exceeded time limit or we have fully explored the map
 		// probably start a timer here 
-		if (timeLimit < timeLimit || map.getExploredPercent() >= 100) {
+		if (timeLimit < timeLimit || map.getNumExplored() >= 100) {
 			return true;
 		}
 		// mark current cell as explored 
@@ -77,58 +74,53 @@ public class MazeExplorer {
 	public void exploreMaze(Map map, long timeLimit) { 
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
-		Coordinate prevNode;
 
 		// initial calibration
 		robot.setPosition(1, 1);
 		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
-		robot.setOrientation(Orientation.RIGHT); // facing right
+		robot.setOrientation(Orientation.UP); // facing right
+		robot.doCommand(RobotCommand.TURN_RIGHT);
 		do { 
 			// check sensor values; update cells 
-			map.updateFromSensor(robot.getSensorValues());
+			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 			// choose direction after updating values
 			Orientation o = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
-			prevNode = robot.getPosition(); // not ideal but robot's internal state only holds its own pos rather than map - should it hold map?
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			// Orientation update
-			if(robot.getOrientation() != o){
-				int rightTurns = robot.getOrientation().getRightTurns(o);
-				if(rightTurns > 0) {
-					for (int i = 0; i < rightTurns; i++) {
-						robot.doCommand(RobotCommand.TURN_RIGHT);
-					}
-				}else{
-					for(int i = 0; i < -rightTurns; i++){
-						robot.doCommand(RobotCommand.TURN_LEFT);
-					}
-				}
-			}
+			prepareOrientation(robot, o);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
-		while (System.nanoTime() - startTime < tLimit && robot.getPosition().getX() != 1 && robot.getPosition().getY() != 1);
+//		while (System.nanoTime() - startTime < tLimit && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
+		while ((robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
-		while (map.getExploredPercent() < 300 && System.nanoTime() - startTime < tLimit) { 
+		while (map.getNumExplored() < 300 && System.nanoTime() - startTime < tLimit) {
 			// enqueue all unseen cells 
 			List<MapCell> unseen = map.getAllUnseen(); 
 			// shortest path to unseen 
 			// fuck doing fp in java
 			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+			for(Coordinate n: seenNeighbours){
+				System.out.println(n.getX() + ", " + n.getY());
+			}
 			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
 			try {
 				List<Coordinate> start = new LinkedList<>();
 				start.add(robot.getPosition());
 				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
-				ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-				for(RobotCommand cmd: toStartingPoint.generateInstructions()){
+				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+				// Orientation update
+				prepareOrientation(robot, toUnexploredPoint.getStartingOrientation());
+				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
+					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
 					robot.doCommand(cmd);
-					map.updateFromSensor(robot.getSensorValues());
+					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}
 			} catch (Exception e) {
 				System.out.println(":(");
+				break;
 				// if we cannot find a path we die
 			}
 		}
@@ -141,6 +133,7 @@ public class MazeExplorer {
 			end.add(new Coordinate(1,1));
 			List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
 			ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+			prepareOrientation(robot, toStartingPoint.getStartingOrientation());
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
 				robot.doCommand(cmd);
 			}
@@ -148,7 +141,39 @@ public class MazeExplorer {
 			
 		}
 	}
-	
+
+	public void prepareOrientation(IRobot robot, Orientation target){
+		// Orientation update
+		if(robot.getOrientation() != target){
+			int rightTurns = robot.getOrientation().getRightTurns(target);
+			if(rightTurns > 0) {
+				for (int i = 0; i < rightTurns; i++) {
+					robot.doCommand(RobotCommand.TURN_RIGHT);
+				}
+			}else{
+				for(int i = 0; i < -rightTurns; i++){
+					robot.doCommand(RobotCommand.TURN_LEFT);
+				}
+			}
+		}
+	}
+
+	private boolean checkObstruction(Map map, Orientation o, Coordinate c) {
+		int x = c.getX();
+		int y = c.getY();
+		switch (o){
+			case UP:
+				return (map.getCell(x, y+1).isVirtualWall()||map.getCell(x, y+1).isObstacle());
+			case DOWN:
+				return (map.getCell(x, y-1).isVirtualWall()||map.getCell(x, y-1).isObstacle());
+			case RIGHT:
+				return (map.getCell(x+1, y).isVirtualWall()||map.getCell(x+1, y).isObstacle());
+			case LEFT:
+				return (map.getCell(x-1, y).isVirtualWall()||map.getCell(x-1, y).isObstacle());
+		}
+		return true;
+	}
+
 	/**
 	 * choose a next direction to traverse given your current position and orientation
 	 * @param map: the current explored map 
@@ -162,35 +187,45 @@ public class MazeExplorer {
 		// neighbours is based on absolute orientation (north, south, east, west) 
 		HashMap<String, MapCell> neighbours = map.getNeighbours(curPos);
 		switch (o) {
-		case DOWN:
-			// if we are facing down, in order to right wall hug, we try to keep "right" (this case left) 
-			// then go "up" (down) etc
-			if (neighbours.containsKey("left")) {
-				return Orientation.LEFT;
-			} else if (neighbours.containsKey("down")) {
-				return Orientation.DOWN;
-			} else if (neighbours.containsKey("right")) {
-				return Orientation.RIGHT; 
-			} else return Orientation.UP; 
-		case LEFT: 
-			// up, left, down, right 
-			if (neighbours.containsKey("up")) {
-				return Orientation.UP;
-			} else if (neighbours.containsKey("left")) {
-				return Orientation.LEFT;
-			} else if (neighbours.containsKey("down")) {
-				return Orientation.DOWN; 
-			} else return Orientation.RIGHT; 
-		default:
-			// normal 
-			if (neighbours.containsKey("right")) {
-				return Orientation.RIGHT;
-			} else if (neighbours.containsKey("up")) {
-				return Orientation.UP;
-			} else if (neighbours.containsKey("left")) {
-				return Orientation.LEFT; 
-			} else return Orientation.DOWN; 
+			case DOWN:
+				// if we are facing down, in order to right wall hug, we try to keep "right" (this case left)
+				// then go "up" (down) etc
+				if (neighbours.containsKey("left")) {
+					return Orientation.LEFT;
+				} else if (neighbours.containsKey("down")) {
+					return Orientation.DOWN;
+				} else if (neighbours.containsKey("right")) {
+					return Orientation.RIGHT;
+				} else return Orientation.UP;
+			case LEFT:
+				// up, left, down, right
+				if (neighbours.containsKey("up")) {
+					return Orientation.UP;
+				} else if (neighbours.containsKey("left")) {
+					return Orientation.LEFT;
+				} else if (neighbours.containsKey("down")) {
+					return Orientation.DOWN;
+				} else return Orientation.RIGHT;
+			case UP:
+				// normal
+				if (neighbours.containsKey("right")) {
+					return Orientation.RIGHT;
+				} else if (neighbours.containsKey("up")) {
+					return Orientation.UP;
+				} else if (neighbours.containsKey("left")) {
+					return Orientation.LEFT;
+				} else return Orientation.DOWN;
+			case RIGHT:
+				// normal
+				if (neighbours.containsKey("down")) {
+					return Orientation.DOWN;
+				} else if (neighbours.containsKey("right")) {
+					return Orientation.RIGHT;
+				} else if (neighbours.containsKey("up")) {
+					return Orientation.UP;
+				} else return Orientation.LEFT;
 		}
+		return null;
 	}
 }
 

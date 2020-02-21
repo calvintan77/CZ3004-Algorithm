@@ -16,13 +16,13 @@ import javax.swing.JButton;
 import Constants.MapConstants;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "D:\\CZ3004-MULTIDISCIPLINARY PROJECT\\MDP 2020 Sem2\\src\\Sample arena 5.txt";
+	private static final String MAP_FILE_PATH = "C:\\Users\\ongyu\\Documents\\NTU\\Year2\\Sem2\\CZ3004MDP\\CZ3004-Algorithm\\src\\Sample arena 5.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
 	
 	private MapCell[][] mapCells;
-	private int exploredPercent; // have exploredPercent and count so we don't waste time 
+	private int numSquaresExplored; // have exploredPercent and count so we don't waste time
 	
 	//Singleton strategy pattern
 	public static Map getExploredMapInstance() {
@@ -47,27 +47,30 @@ public class Map {
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				mapCells[i][j] = new MapCell(i, j);
+				if(i == 0 || j == 0 || i == MapConstants.MAP_WIDTH-1 || j == MapConstants.MAP_HEIGHT-1){
+					mapCells[i][j].setVirtualWall(true);
+				}
 			}
 		}
-		this.exploredPercent = 0; 
+		this.numSquaresExplored = 0;
 	}
 	
 	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
 		this.getCell(x, y).setExploredStatus(true);
-		this.exploredPercent += 1; 
+		this.numSquaresExplored += 1;
 	}
 	
 	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
-		if (this.getCell(x, y).getSeen()) { // defensive check 
+		if (this.getCell(x,y) == null || this.getCell(x, y).getSeen()) { // defensive check
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
-		this.exploredPercent += 1; 
+		this.numSquaresExplored += 1;
 	}
 	
 	public MapCell getCell(int x, int y) {
 		// caller has to check
-		if (x < 0 || y < 0 || x > MapConstants.MAP_WIDTH || y > MapConstants.MAP_HEIGHT) {
+		if (x < 0 || y < 0 || x >= MapConstants.MAP_WIDTH || y >= MapConstants.MAP_HEIGHT) {
 			return null;
 		}
 		return mapCells[x][y];
@@ -176,16 +179,16 @@ public class Map {
 		return resultMap;
 	}
 	
-	public double getExploredPercent() {
-		return (double) this.exploredPercent / 300.0 * 100.0; 
+	public int getNumExplored() {
+		return this.numSquaresExplored;
 	}
 	
 	public void updateExploredPercentage() {
-		exploredPercent = 0;
+		numSquaresExplored = 0;
 		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 				if (mapCells[i][j].isExplored())
-					exploredPercent++;
+					numSquaresExplored++;
 			}
 		}
 	}
@@ -290,6 +293,7 @@ public class Map {
 	 * @param c
 	 */
 	public void setObstacle(Coordinate c) {
+		if(this.getCell(c) == null) return;
 		this.getCell(c).setObstacleStatus(true);
 		this.markCellSeen(c.getX(), c.getY());
 		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
@@ -321,7 +325,7 @@ public class Map {
 				}
 			break;
 			}
-		case MapConstants.MAP_WIDTH: { // right most row 
+		case MapConstants.MAP_WIDTH-1: { // right most row
 			MapCell left = this.getCell(m.x-1, m.y);
 			if (!left.isObstacle() && !left.isVirtualWall()) {
 				map.put("left", left);
@@ -349,7 +353,7 @@ public class Map {
 				}
 			break;
 			}
-		case MapConstants.MAP_HEIGHT: { // top most row 
+		case MapConstants.MAP_HEIGHT-1: { // top most row
 			MapCell down = this.getCell(m.x, m.y-1);
 			if (!down.isObstacle() && !down.isVirtualWall()) {
 				map.put("down", down);
