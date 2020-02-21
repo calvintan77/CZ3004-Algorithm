@@ -29,23 +29,23 @@ public class Robot implements IRobot {
 		this.speed = speed;
 	}
 	
-	//return string in the structure: "left,left,front,front,front,right"
-	public String getSensorValues() {
+	//return string in the structure: "left,front,front,front,right"
+	public List<Integer> getSensorValues() {
 		Map realMap = Map.getRealMapInstance();
-		List<String> sensorValues = new ArrayList<>();
+		List<Integer> sensorValues = new ArrayList<>();
 		int x = this.position.getX();
 		int y = this.position.getY();
 		int cnt = 0;
 		switch(this.o) {
 			case UP:
-				for (int j=y; j <= y+1; j++) {
+				for (int j=y+1; j <= y+1; j++) {
 					for (int i=x-2; i>=Math.max(x-5, 0); i--) {
 						if (realMap.getCell(i, j).isObstacle()) {
 							break;
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 				
@@ -57,7 +57,7 @@ public class Robot implements IRobot {
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 				
@@ -68,18 +68,18 @@ public class Robot implements IRobot {
 					}
 					cnt++;
 				}
-				sensorValues.add(cnt+"");
+				sensorValues.add(cnt);
 				
 				break;
 			case LEFT:
-				for (int i=x; i>=x-1; i--) {
+				for (int i=x-1; i>=x-1; i--) {
 					for (int j=y-2; j >= Math.max(y-5,0); j--) {
 						if (realMap.getCell(i, j).isObstacle()) {
 							break;
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 				
@@ -90,7 +90,7 @@ public class Robot implements IRobot {
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 				
@@ -100,18 +100,18 @@ public class Robot implements IRobot {
 					}
 					cnt++;
 				}
-				sensorValues.add(cnt+"");
+				sensorValues.add(cnt);
 				
 				break;
 			case RIGHT: 
-				for (int i=x; i<=x+1; i++) {
+				for (int i=x+1; i<=x+1; i++) {
 					for (int j=y+2; j <= Math.min(y+5,MapConstants.MAP_HEIGHT-1); j++) {
 						if (realMap.getCell(i, j).isObstacle()) {
 							break;
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 
@@ -122,7 +122,7 @@ public class Robot implements IRobot {
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 							
@@ -132,18 +132,18 @@ public class Robot implements IRobot {
 					}
 					cnt++;
 				}
-				sensorValues.add(cnt+"");
+				sensorValues.add(cnt);
 				
 				break;
 			case DOWN:
-				for (int j=y; j >= y-1; j--) {
+				for (int j=y-1; j >= y-1; j--) {
 					for (int i=x+2; i <= Math.min(x+5, MapConstants.MAP_WIDTH-1); i++) {
 						if (realMap.getCell(i, j).isObstacle()) {
 							break;
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 				
@@ -154,7 +154,7 @@ public class Robot implements IRobot {
 						}
 						cnt++;
 					}
-					sensorValues.add(cnt+"");
+					sensorValues.add(cnt);
 					cnt = 0;
 				}
 								
@@ -164,13 +164,13 @@ public class Robot implements IRobot {
 					}
 					cnt++;
 				}
-				sensorValues.add(cnt+"");
+				sensorValues.add(cnt);
 				
 				break;
 				
 		}
 		
-		return String.join(",", sensorValues);
+		return sensorValues;
 	}
 	
 	public void doCommand(RobotCommand cmd){

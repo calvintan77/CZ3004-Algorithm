@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.Scanner;
 
 import Simulator.Robot;
@@ -86,10 +87,12 @@ public class RobotRPI implements IRobot{
 	
 	//TODO: Settle with RPI
 	@Override
-	public String getSensorValues() {
+	public List<Integer> getSensorValues() {
 		try {
 			sendMessage("GET_SENSOR_VALUES");
-			return readMessage();
+			//return readMessage();
+			//TODO
+			return null;
 		} catch (Exception e) {
 			
 		}
