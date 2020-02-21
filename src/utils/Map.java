@@ -52,8 +52,16 @@ public class Map {
 		this.exploredPercent = 0; 
 	}
 	
-	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 100 
+	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
 		this.getCell(x, y).setExploredStatus(true);
+		this.exploredPercent += 1; 
+	}
+	
+	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
+		if (this.getCell(x, y).getSeen()) { // defensive check 
+			return;
+		}
+		this.getCell(x, y).setSeen(true);
 		this.exploredPercent += 1; 
 	}
 	
@@ -196,12 +204,107 @@ public class Map {
 	}
 	
 	/**
-	 * TODO: add impl
-	 * @param values: list of string values to update in format of l,l,f,f,f,r 
+	 * TODO: abstract getting of sensor coord
+	 * @param values: list of string values to update in format of l,f,f,f,r 
 	 **/
-	public void updateFromSensor(String values) { 
-		
+	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
+	switch (o) { 
+	case UP: 
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
+		break;
+	case DOWN:
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
+		break;
+	case RIGHT:
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
+		break;
+	case LEFT: 
+		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
+		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
+		break;
 	}
+	}
+	
+	/** 
+	 * updates value based on a single sensor 
+	 * @param value: sensor's readings 
+	 * @param maxValue: max sensor reading 
+	 * @param sensorPos: actual sensor position
+	 * @param o: sensor orientation relative to map
+	 */
+	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
+		switch (o) {
+		case RIGHT: 
+			// update all seen 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));		
+				}
+			break;
+		case LEFT: 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
+				}
+			break;
+		case UP:	
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX(), sensorPos.getY() + i);
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
+				}
+			break;
+		case DOWN: 
+			for (int i = 1; i < value + 1; i++) { 
+				this.markCellSeen(sensorPos.getX(), sensorPos.getY() - i);
+			}
+			if (value != maxValue) { // obstacle in front
+				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
+				}
+			break;
+			}
+	}
+	
+	/**
+	 * set c to be obstacle and surrounding to be virtual walls 
+	 * @param c
+	 */
+	public void setObstacle(Coordinate c) {
+		this.getCell(c).setObstacleStatus(true);
+		this.markCellSeen(c.getX(), c.getY());
+		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
+			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
+				if (i == c.getX() && j == c.getY()) {
+					continue;
+				} else {
+					if (this.getCell(i, j) != null) {
+						this.getCell(i, j).setVirtualWall(true);
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
 	 * @param m

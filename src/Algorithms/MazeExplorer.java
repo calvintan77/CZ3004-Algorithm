@@ -111,7 +111,7 @@ public class MazeExplorer {
 		while (System.nanoTime() - startTime < tLimit && robot.getPosition().getX() != 1 && robot.getPosition().getY() != 1);
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
-		while (map.getExploredPercent() < 100 && System.nanoTime() - startTime < tLimit) { 
+		while (map.getExploredPercent() < 300 && System.nanoTime() - startTime < tLimit) { 
 			// enqueue all unseen cells 
 			List<MapCell> unseen = map.getAllUnseen(); 
 			// shortest path to unseen 
