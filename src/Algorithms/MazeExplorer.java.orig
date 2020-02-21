@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import Simulator.Robot; 
+import Simulator.VirtualRobot;
 
 public class MazeExplorer {
 	private static MazeExplorer mazeExplorer;

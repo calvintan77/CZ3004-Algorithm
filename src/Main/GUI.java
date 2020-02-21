@@ -9,8 +9,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.nio.file.FileSystems;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,7 +25,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import Constants.MapConstants;
-import Simulator.Robot;
+import Simulator.VirtualRobot;
 import utils.Map;
 import utils.Orientation;
 import utils.RobotCommand;
@@ -492,7 +490,7 @@ public class GUI extends JFrame implements ActionListener{
 					String speed = doc.getText(0, doc.getLength());
 					if (speed.matches("[0-9]+")) {
 //						_controller.setRobotSpeed(Integer.parseInt(speed));
-						((Robot)Robot.getInstance()).setSpeed(Integer.parseInt(speed));
+						((VirtualRobot) VirtualRobot.getInstance()).setSpeed(Integer.parseInt(speed));
 						ffpTextFields[0].setText(speed);
 					} else {
 						status.setText("robot speed not set");

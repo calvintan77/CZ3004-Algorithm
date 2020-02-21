@@ -1,10 +1,8 @@
 package Simulator;
 
-import utils.Coordinate;
-import utils.MapCell;
-import utils.Orientation;
-import utils.RobotCommand;
+import utils.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -18,4 +16,5 @@ public interface IRobot {
 	public void setPosition(int x, int y); // this
 	public void prepareOrientation(Orientation o);
 	public void setOrientation(Orientation o);
+	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell);
 }
