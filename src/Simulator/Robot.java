@@ -160,6 +160,24 @@ public class Robot implements IRobot {
 	}
 
 	@Override
+	public void prepareOrientation(Orientation target) {
+		// Orientation update
+		if(this.getOrientation() != target){
+			int rightTurns = this.getOrientation().getRightTurns(target);
+			if(rightTurns > 0) {
+				for (int i = 0; i < rightTurns; i++) {
+					this.doCommand(RobotCommand.TURN_RIGHT);
+				}
+			}else{
+				for(int i = 0; i < -rightTurns; i++){
+					this.doCommand(RobotCommand.TURN_LEFT);
+				}
+			}
+		}
+
+	}
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.o = o; 
 	}

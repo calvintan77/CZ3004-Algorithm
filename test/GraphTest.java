@@ -10,14 +10,14 @@ import utils.*;
 public class GraphTest {
     @Test
     public void ThreeByThreeMiddleBlockedLoop() throws Exception {
-        GraphNode g1 = new GraphNode(1, 1, false);
-        GraphNode g2 = new GraphNode(1, 2, false);
-        GraphNode g3 = new GraphNode(1, 3, false);
-        GraphNode g4 = new GraphNode(2, 1, false);
-        GraphNode g6 = new GraphNode(2, 3, false);
-        GraphNode g7 = new GraphNode(3, 1, false);
-        GraphNode g8 = new GraphNode(3, 2, false);
-        GraphNode g9 = new GraphNode(3, 3, false);
+        GraphNode g1 = new GraphNode(1, 1, false, true);
+        GraphNode g2 = new GraphNode(1, 2, false, true);
+        GraphNode g3 = new GraphNode(1, 3, false, true);
+        GraphNode g4 = new GraphNode(2, 1, false, true);
+        GraphNode g6 = new GraphNode(2, 3, false, true);
+        GraphNode g7 = new GraphNode(3, 1, false, true);
+        GraphNode g8 = new GraphNode(3, 2, false, true);
+        GraphNode g9 = new GraphNode(3, 3, false, true);
         g1.addNeighbour(g2, 1f);
         g2.addNeighbour(g1, 1f);
         g2.addNeighbour(g3, 1f);
@@ -41,8 +41,6 @@ public class GraphTest {
         g9.addNeighbour(g6, 1f);
 
         Graph graph = new Graph(g4, g8, g7, g6);
-        Assertions.assertThrows(Exception.class, graph::GetShortestPath);
-        /*
         ShortestPath result = graph.GetShortestPath();
         Assertions.assertEquals(6, result.getWeight());
         Assertions.assertEquals(7, result.getPath().size());
@@ -52,7 +50,7 @@ public class GraphTest {
         Assertions.assertEquals(g3, result.getPath().get(3));
         Assertions.assertEquals(g6, result.getPath().get(4));
         Assertions.assertEquals(g9, result.getPath().get(5));
-        Assertions.assertEquals(g8, result.getPath().get(6));*/
+        Assertions.assertEquals(g8, result.getPath().get(6));
     }
 
     @Test
@@ -113,7 +111,7 @@ public class GraphTest {
 
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
-                map.markCellExplored(i,j);
+                map.markCellSeen(i,j);
             }
         }
         //(4,5) to (9,5) obstacle
@@ -205,7 +203,7 @@ public class GraphTest {
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
         		MapCell cell = map.getCell(i, j);
-        		cell.setExploredStatus(true);
+        		cell.setSeen(true);
         		if (!cell.isObstacle()) {
         			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
         				cell.setVirtualWall(true);

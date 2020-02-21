@@ -25,8 +25,7 @@ public class ShortestPath{
 
     public List<RobotCommand> generateInstructions(){
         List<RobotCommand> result = new LinkedList<>();
-        Orientation currOrientation = isStartingOrientationHorizontal()?
-                Orientation.RIGHT : Orientation.UP;
+        Orientation currOrientation;
         if(isStartingOrientationHorizontal()){
             if(path.size() < 2) currOrientation = Orientation.RIGHT;
             else currOrientation = path.get(2).getX() > path.get(1).getX()? Orientation.RIGHT : Orientation.LEFT;
@@ -94,12 +93,13 @@ public class ShortestPath{
     }
 
     public Orientation getStartingOrientation(){
+        int compensation = path.get(0).isVirtual()?1:0;
         // Unfortunate neutral case
         if(path.size() == 1) return isStartingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
         if(isStartingOrientationHorizontal()){
-            return path.get(2).getX() > path.get(1).getX() ? Orientation.RIGHT : Orientation.LEFT;
+            return path.get(1+compensation).getX() > path.get(0+compensation).getX() ? Orientation.RIGHT : Orientation.LEFT;
         }else{
-            return path.get(2).getY() > path.get(1).getY() ? Orientation.UP : Orientation.DOWN;
+            return path.get(1+compensation).getY() > path.get(0+compensation).getY() ? Orientation.UP : Orientation.DOWN;
         }
     }
 

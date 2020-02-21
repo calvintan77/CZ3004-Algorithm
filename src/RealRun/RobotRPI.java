@@ -125,6 +125,11 @@ public class RobotRPI implements IRobot{
 	}
 
 	@Override
+	public void prepareOrientation(Orientation o) {
+
+	}
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.direction = o;
 	}

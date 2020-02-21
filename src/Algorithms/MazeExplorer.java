@@ -84,11 +84,11 @@ public class MazeExplorer {
 			// check sensor values; update cells 
 			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 			// choose direction after updating values
-			Orientation o = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
+			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			prepareOrientation(robot, o);
+			robot.prepareOrientation(nextOrientation);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
@@ -102,9 +102,6 @@ public class MazeExplorer {
 			// shortest path to unseen 
 			// fuck doing fp in java
 			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
-			for(Coordinate n: seenNeighbours){
-				System.out.println(n.getX() + ", " + n.getY());
-			}
 			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
 			try {
 				List<Coordinate> start = new LinkedList<>();
@@ -112,7 +109,7 @@ public class MazeExplorer {
 				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
 				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 				// Orientation update
-				prepareOrientation(robot, toUnexploredPoint.getStartingOrientation());
+				robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
 				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
 					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
 					robot.doCommand(cmd);
@@ -133,28 +130,12 @@ public class MazeExplorer {
 			end.add(new Coordinate(1,1));
 			List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
 			ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-			prepareOrientation(robot, toStartingPoint.getStartingOrientation());
+			robot.prepareOrientation(toStartingPoint.getStartingOrientation());
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
 				robot.doCommand(cmd);
 			}
 		} catch (Exception e) {
 			
-		}
-	}
-
-	public void prepareOrientation(IRobot robot, Orientation target){
-		// Orientation update
-		if(robot.getOrientation() != target){
-			int rightTurns = robot.getOrientation().getRightTurns(target);
-			if(rightTurns > 0) {
-				for (int i = 0; i < rightTurns; i++) {
-					robot.doCommand(RobotCommand.TURN_RIGHT);
-				}
-			}else{
-				for(int i = 0; i < -rightTurns; i++){
-					robot.doCommand(RobotCommand.TURN_LEFT);
-				}
-			}
 		}
 	}
 

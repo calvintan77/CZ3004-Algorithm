@@ -16,5 +16,6 @@ public interface IRobot {
 	public Orientation getOrientation(); 
 	public Coordinate getPosition();
 	public void setPosition(int x, int y); // this
+	public void prepareOrientation(Orientation o);
 	public void setOrientation(Orientation o);
 }
