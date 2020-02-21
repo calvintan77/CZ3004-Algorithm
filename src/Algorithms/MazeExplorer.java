@@ -111,12 +111,11 @@ public class MazeExplorer {
 			// shortest path to unseen 
 			// fuck doing fp in java 
 			List<MapCell> seenNeighbours = unseen.stream().map(mapcell -> map.getNeighbours(mapcell)).map(hashmap -> hashmap.values()).flatMap(Collection::stream).filter(mapcell -> mapcell.getSeen()).collect(Collectors.toList());
-			for (MapCell m : seenNeighbours) { 
-				try { 
-				ShortestPath p = AStarAlgo.AStarSearch(new GraphNode(robot.getPosition()[0], robot.getPosition()[1], false), new GraphNode(m.x, m.y, false));
-				} catch (Exception e) {
-					// if we cannot find a path we die 
-				}
+			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
+			try { 
+			// ShortestPath p = AStarAlgo.AStarSearch(new GraphNode(robot.getPosition()[0], robot.getPosition()[1], false), new GraphNode(m.x, m.y, false));
+			} catch (Exception e) {
+				// if we cannot find a path we die 
 			}
 		}
 		

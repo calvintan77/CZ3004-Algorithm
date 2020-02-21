@@ -37,6 +37,7 @@ public class MapProcessor {
         return mapResult;
     }
 
+    // hit at least 1 ending point 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints, Coordinate waypoint){
         GraphNode[][][] graph = new GraphNode[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT][2];
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
