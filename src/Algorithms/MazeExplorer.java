@@ -1,20 +1,12 @@
 package Algorithms;
 
-import utils.GraphNode;
+import utils.*;
 import Simulator.Robot;
+
 import utils.Map;
 import utils.Orientation;
 
-import utils.Map;
-import utils.MapCell;
-import utils.Orientation;
-import utils.RobotCommand;
-import utils.ShortestPath;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import Simulator.Robot; 
@@ -70,7 +62,7 @@ public class MazeExplorer {
 		}
 		return found; 
 	}
-		
+
 	// explore given map within given time limit - iter 
 	// at every step we need to update sensor values
 	// after update, determine is there are any virtual walls in front
@@ -84,44 +76,74 @@ public class MazeExplorer {
 	public void exploreMaze(Map map, long timeLimit) { 
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
-		MapCell prevNode; 
-		
+		Coordinate prevNode;
+
 		// initial calibration
 		robot.setPosition(1, 1);
 		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
-		robot.setOrientation(Orientation.RIGHT); // facing right 
+		robot.setOrientation(Orientation.RIGHT); // facing right
 		do { 
 			// check sensor values; update cells 
-			String toUpdate = robot.getSensorValues(robot.getPosition(), robot.getOrientation()); // toUpdate is a string
+			String toUpdate = robot.getSensorValues(); // toUpdate is a string
 			map.updateFromSensor(toUpdate);
 			// choose direction after updating values
-			Orientation o = this.chooseDirection(map, new MapCell(robot.getPosition()), robot.getOrientation());
-			prevNode = robot.getPositionCell(); // not ideal but robot's internal state only holds its own pos rather than map - should it hold map?
+			Orientation o = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
+			prevNode = robot.getPosition(); // not ideal but robot's internal state only holds its own pos rather than map - should it hold map?
 			// translate orientation to actual command
 			// this does not actually work
-			robot.doCommand(RobotCommand.valueOf(o.toString()));
-			
+			// update robot's internal state
+			// Orientation update
+			if(robot.getOrientation() != o){
+				int rightTurns = robot.getOrientation().getRightTurns(o);
+				if(rightTurns > 0) {
+					for (int i = 0; i < rightTurns; i++) {
+						robot.doCommand(RobotCommand.TURN_RIGHT);
+					}
+				}else{
+					for(int i = 0; i < -rightTurns; i++){
+						robot.doCommand(RobotCommand.TURN_LEFT);
+					}
+				}
+			}
+			// Position update
+			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
-		while (System.nanoTime() - startTime < tLimit && robot.getPosition()[0] != 1 && robot.getPosition()[1] != 1); 
+		while (System.nanoTime() - startTime < tLimit && robot.getPosition().getX() != 1 && robot.getPosition().getY() != 1);
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
 		while (map.getExploredPercent() < 100 && System.nanoTime() - startTime < tLimit) { 
 			// enqueue all unseen cells 
 			List<MapCell> unseen = map.getAllUnseen(); 
 			// shortest path to unseen 
-			// fuck doing fp in java 
-			List<MapCell> seenNeighbours = unseen.stream().map(mapcell -> map.getNeighbours(mapcell)).map(hashmap -> hashmap.values()).flatMap(Collection::stream).filter(mapcell -> mapcell.getSeen()).collect(Collectors.toList());
+			// fuck doing fp in java
+			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
-			try { 
-			// ShortestPath p = AStarAlgo.AStarSearch(new GraphNode(robot.getPosition()[0], robot.getPosition()[1], false), new GraphNode(m.x, m.y, false));
+			try {
+				List<Coordinate> start = new LinkedList<>();
+				start.add(robot.getPosition());
+				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
+				ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+				for(RobotCommand cmd: toStartingPoint.generateInstructions()){
+					robot.doCommand(cmd);
+					map.updateFromSensor(robot.getSensorValues());
+				}
 			} catch (Exception e) {
-				// if we cannot find a path we die 
+				System.out.println(":(");
+				// if we cannot find a path we die
 			}
 		}
 		
 		// path back to start position
 		try {
-		ShortestPath p = AStarAlgo.AStarSearch(new GraphNode(robot.getPosition()[0], robot.getPosition()[1], false), new GraphNode(1, 1, false));
+			List<Coordinate> start = new LinkedList<>();
+			start.add(robot.getPosition());
+			List<Coordinate> end = new LinkedList<>();
+			end.add(new Coordinate(1,1));
+			List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
+			ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
+				robot.doCommand(cmd);
+			}
 		} catch (Exception e) {
 			
 		}
@@ -131,7 +153,7 @@ public class MazeExplorer {
 	 * choose a next direction to traverse given your current position and orientation
 	 * @param map: the current explored map 
 	 * @param curPos: robot's current position
-	 * @param Orientation: robot's current orientation
+	 * @param o: robot's current orientation
 	 * @return Orientation: the cardinal direction of your next move - right wall hug if possible else smallest dist 
 	 */
 	public Orientation chooseDirection(Map map, MapCell curPos, Orientation o) {

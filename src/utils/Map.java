@@ -64,6 +64,10 @@ public class Map {
 		}
 		return mapCells[x][y];
 	}
+
+	public MapCell getCell(Coordinate c) {
+		return getCell(c.getX(), c.getY());
+	}
 	
 	// marks a given cell as a virtual wall - defensive check not given here, caller has to do 
 	public void markVirtualWall(int x, int y) { 

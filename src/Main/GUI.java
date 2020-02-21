@@ -492,7 +492,7 @@ public class GUI extends JFrame implements ActionListener{
 					String speed = doc.getText(0, doc.getLength());
 					if (speed.matches("[0-9]+")) {
 //						_controller.setRobotSpeed(Integer.parseInt(speed));
-						Robot.getInstance().setSpeed(Integer.parseInt(speed));
+						((Robot)Robot.getInstance()).setSpeed(Integer.parseInt(speed));
 						ffpTextFields[0].setText(speed);
 					} else {
 						status.setText("robot speed not set");

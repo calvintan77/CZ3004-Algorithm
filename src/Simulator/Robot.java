@@ -6,38 +6,22 @@ import java.util.List;
 import Constants.MapConstants;
 import Main.GUI;
 import Main.RobotController;
-import RealRun.RobotRPI;
-import utils.Map;
-import utils.MapCell;
-import utils.Orientation;
-import utils.RobotCommand;
+import utils.*;
 
-public class Robot implements RobotInterface {
+public class Robot implements IRobot {
 	private static Robot robot;
 	private int speed;
 	private Orientation o; // need to initialize 
-	private int[] position; 
+	private Coordinate position;
 	
 	//Singleton strategy pattern
-	public static Robot getInstance() {
-		if (!RobotController.REAL_RUN) {
-			if (robot == null)
-				robot = new Robot();
-		} else {
-			if (robot == null) {
-				RobotRPI rpi = new RobotRPI();
-				try {
-					rpi.setUpConnection();
-				} catch (Exception e) {
-					
-				}
-				robot = rpi;
-			}
-		}
+	public static IRobot getInstance() {
+		if (robot == null)
+			robot = new Robot();
 		return robot;
 	}
 	
-	public Robot() {
+	private Robot() {
 		
 	}
 	
@@ -46,13 +30,13 @@ public class Robot implements RobotInterface {
 	}
 	
 	//return string in the structure: "left,left,front,front,front,right"
-	public String getSensorValues(int[] robotPosition, Orientation robotOrientation) {
+	public String getSensorValues() {
 		Map realMap = Map.getRealMapInstance();
 		List<String> sensorValues = new ArrayList<>();
-		int x = robotPosition[0];
-		int y = robotPosition[1];
+		int x = this.position.getX();
+		int y = this.position.getY();
 		int cnt = 0;
-		switch(robotOrientation) {
+		switch(this.o) {
 			case UP:
 				for (int j=y; j <= y+1; j++) {
 					for (int i=x-2; i>=Math.max(x-5, 0); i--) {
@@ -190,6 +174,29 @@ public class Robot implements RobotInterface {
 	}
 	
 	public void doCommand(RobotCommand cmd){
+		switch (cmd){
+			case TURN_LEFT:
+				this.setOrientation(Orientation.getCounterClockwise(this.o));
+				break;
+			case TURN_RIGHT:
+				this.setOrientation(Orientation.getClockwise(this.o));
+				break;
+			case MOVE_FORWARD:
+				switch(this.o){
+					case UP:
+						this.setPosition(this.getPosition().getX(), this.getPosition().getY() + 1);
+						break;
+					case LEFT:
+						this.setPosition(this.getPosition().getX() - 1, this.getPosition().getY());
+						break;
+					case DOWN:
+						this.setPosition(this.getPosition().getX(), this.getPosition().getY() - 1);
+						break;
+					case RIGHT:
+						this.setPosition(this.getPosition().getX() + 1, this.getPosition().getY());
+						break;
+				}
+		}
 		try {
 			Thread.sleep(1000/speed); 	//int timePerStep = 1000/speed (ms)
 		} catch (InterruptedException e) {
@@ -198,29 +205,23 @@ public class Robot implements RobotInterface {
 		
 		GUI.getInstance().updateRobotUI(cmd);
 	}
-	
+
+	@Override
 	public Orientation getOrientation() { 
 		return o; 
 	}
-	
-	public int[] getPosition() { 
+
+	@Override
+	public Coordinate getPosition() {
 		return position; 
 	}
-	
-	public MapCell getPositionCell() { 
-		return new MapCell(this.getPosition()[0], this.getPosition()[1]);
-	}
-	
+
+	@Override
 	public void setPosition(int x, int y) { 
-		position[0] = x;
-		position[1] = y; 
+		this.position = new Coordinate(x, y);
 	}
-	
-	// no defensive check for x 
-	public void setOrientation(int x) { 
-		o = Orientation.values()[x]; 
-	}
-	
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.o = o; 
 	}

@@ -16,9 +16,9 @@ public class MapCell {
 		this.y = y; 
 	}
 	
-	public MapCell(int[] arr) {
-		this.x = arr[0];
-		this.y = arr[1];
+	public MapCell(Coordinate arr) {
+		this.x = arr.getX();
+		this.y = arr.getY();
 	}
 	
 	public boolean isExplored() {

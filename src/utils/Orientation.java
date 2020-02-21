@@ -15,4 +15,15 @@ public enum Orientation {
     public boolean isAligned(boolean isHorizontal){
         return (isHorizontal == (this == RIGHT || this == LEFT));
     }
+
+    public int getRightTurns(Orientation dest){
+	    int diff = this.ordinal() - dest.ordinal();
+	    if(diff == -3){
+	        return 1;
+        }
+	    if(diff == 3){
+	        return -1;
+        }
+	    return diff;
+    }
 }
