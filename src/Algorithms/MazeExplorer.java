@@ -85,7 +85,7 @@ public class MazeExplorer {
 					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}
 			} catch (Exception e) {
-				System.out.println(":(");
+				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
 				HashMap<MapCell, Orientation> candidates = robot.getLeftSensorVisibilityCandidates(map, unseen.get(0));
 				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 				try{
@@ -102,7 +102,7 @@ public class MazeExplorer {
 					}
 					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
 				}catch(Exception e2) {
-					System.out.println("Time to cut losses...");
+					System.out.println("Unable to access cell, time to cut losses...");
 					break;
 				}
 			}
