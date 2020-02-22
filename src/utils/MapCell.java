@@ -21,9 +21,9 @@ public class MapCell {
 		this.y = arr.getY();
 	}
 	
-	public boolean isExplored() {
-		return isExplored;
-	}
+//	public boolean isExplored() {
+//		return isExplored;
+//	}
 	
 	public boolean isObstacle() {
 		return isObstacle;
@@ -33,9 +33,9 @@ public class MapCell {
 		return isVirtualWall;
 	}
 	
-	public void setExploredStatus(boolean status) {
-		isExplored = status;
-	}
+//	public void setExploredStatus(boolean status) {
+//		isExplored = status;
+//	}
 	
 	public void setObstacleStatus(boolean status) {
 		isObstacle = status;

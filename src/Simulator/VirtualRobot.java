@@ -83,26 +83,27 @@ public class VirtualRobot implements IRobot {
 			case RIGHT:
 				// update all seen
 				for (int i = 1; i <= maxValue; i++) {
-					if(map.getCell(x+i, y) == null)return i-1;
-					if(map.getCell(x+i, y).isObstacle()) return i-1;
+					if(map.getCell(x+i, y) == null || map.getCell(x+i, y).isObstacle())
+						return i-1;
+
 				}
 				return maxValue;
 			case LEFT:
 				for (int i = 1; i <= maxValue; i++) {
-					if(map.getCell(x-i, y) == null)return i-1;
-					if(map.getCell(x-i, y).isObstacle()) return i-1;
+					if(map.getCell(x-i, y) == null || map.getCell(x-i, y).isObstacle())
+						return i-1;
 				}
 				return maxValue;
 			case UP:
 				for (int i = 1; i <= maxValue; i++) {
-					if(map.getCell(x, y+i) == null)return i-1;
-					if(map.getCell(x, y+i).isObstacle()) return i-1;
+					if(map.getCell(x, y+i) == null || map.getCell(x, y+i).isObstacle())
+						return i-1;
 				}
 				return maxValue;
 			case DOWN:
 				for (int i = 1; i <= maxValue; i++) {
-					if(map.getCell(x, y-i) == null)return i-1;
-					if(map.getCell(x, y-i).isObstacle()) return i-1;
+					if(map.getCell(x, y-i) == null || map.getCell(x, y-i).isObstacle())
+						return i-1;
 				}
 				return maxValue;
 		}
@@ -134,7 +135,6 @@ public class VirtualRobot implements IRobot {
 				}
 		}
 		GUI.getInstance().updateRobotUI(cmd);
-
 		try {
 			Thread.sleep(1000/speed); 	//int timePerStep = 1000/speed (ms)
 		} catch (InterruptedException e) {

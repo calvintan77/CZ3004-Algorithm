@@ -8,8 +8,13 @@ import Algorithms.MazeExplorer;
 import Constants.MapConstants;
 import Simulator.IRobot;
 import Simulator.VirtualRobot;
+import utils.Graph;
+import utils.GraphNode;
 import utils.Map;
 import utils.MapCell;
+import utils.Orientation;
+import utils.RobotCommand;
+import utils.ShortestPath;
 
 
 public class RobotController {
@@ -209,7 +214,8 @@ public class RobotController {
         for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
         	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
         		MapCell cell = realMap.getCell(i, j);
-        		//cell.setExploredStatus(true);
+//        		cell.setExploredStatus(true);
+        		cell.setSeen(true);
         		if (!cell.isObstacle()) {
         			//TODO: Refactor to MAP, this sets the boundary of arena to virtual walls
         			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
@@ -224,7 +230,9 @@ public class RobotController {
         		}
         	}
         }
-//        Graph graph = new Graph(realMap, 11, 3);
+//        myRobot.setOrientation(Orientation.UP);
+//        myRobot.setPosition(1, 1);
+//        Graph graph = new Graph(realMap, 1, 1);
 //        ShortestPath result = graph.GetShortestPath();
 //        System.out.println(result.getWeight());
 //        for(GraphNode n: result.getPath()){
@@ -237,8 +245,9 @@ public class RobotController {
 //        for(RobotCommand command: result.generateInstructions()){
 //            myRobot.doCommand(command);
 //        }
+        ((VirtualRobot) myRobot).setSpeed(1);
 		MazeExplorer e = MazeExplorer.getInstance();
         e.setRobot(myRobot);
-        e.exploreMaze(map, 100000000);
+        e.exploreMaze(map, 1000000000);
 	}
 }

@@ -14,9 +14,10 @@ import java.util.List;
 import javax.swing.JButton;
 
 import Constants.MapConstants;
+import Main.GUI;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "C:\\Users\\ongyu\\Documents\\NTU\\Year2\\Sem2\\CZ3004MDP\\CZ3004-Algorithm\\src\\Sample arena 3.txt";
+	private static final String MAP_FILE_PATH = "src/inputMap.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
@@ -55,16 +56,15 @@ public class Map {
 		this.numSquaresExplored = 0;
 	}
 	
-	public void markCellExplored(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
-		this.getCell(x, y).setExploredStatus(true);
-		this.numSquaresExplored += 1;
-	}
-	
 	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
 		if (this.getCell(x,y) == null || this.getCell(x, y).getSeen()) { // defensive check
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
+		if (this.getCell(x, y).isObstacle())
+			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.OBSTACLE_CELL_COLOR);
+		else if (!((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
+			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.EMPTY_CELL_COLOR);
 		this.numSquaresExplored += 1;
 	}
 	
@@ -118,7 +118,7 @@ public class Map {
 		binaryStringMapDescriptor1.append("11");
 		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-				if (map.getCell(i, j).isExplored()) {
+				if (map.getCell(i, j).getSeen()) {
 					binaryStringMapDescriptor1.append("1");
 					if (map.getCell(i, j).isObstacle())
 						binaryStringMapDescriptor2.append("1");
@@ -166,7 +166,7 @@ public class Map {
 			int stringIndex = 0;
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 				for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-					resultMap.getCell(i, j).setExploredStatus(true);
+					resultMap.getCell(i, j).setSeen(true);
 					if (binaryStringMapDescriptor2.charAt(stringIndex) == '0') {
 						resultMap.getCell(i, j).setObstacleStatus(false);
 					} else resultMap.getCell(i, j).setObstacleStatus(true);
@@ -187,7 +187,7 @@ public class Map {
 		numSquaresExplored = 0;
 		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (mapCells[i][j].isExplored())
+				if (mapCells[i][j].getSeen())
 					numSquaresExplored++;
 			}
 		}
@@ -211,36 +211,36 @@ public class Map {
 	 * @param values: list of string values to update in format of l,f,f,f,r 
 	 **/
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
-	switch (o) { 
-	case UP: 
-		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
-		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
-		break;
-	case DOWN:
-		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
-		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
-		break;
-	case RIGHT:
-		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
-		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
-		break;
-	case LEFT: 
-		updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-		updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-		updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
-		updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-		updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
-		break;
-	}
+		switch (o) { 
+			case UP: 
+				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
+				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
+				break;
+			case DOWN:
+				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
+				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
+				break;
+			case RIGHT:
+				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
+				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
+				break;
+			case LEFT: 
+				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
+				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
+				break;
+		}
 	}
 	
 	/** 
@@ -252,40 +252,40 @@ public class Map {
 	 */
 	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
 		switch (o) {
-		case RIGHT: 
-			// update all seen 
-			for (int i = 1; i < value + 1; i++) { 
-				this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
-			}
-			if (value != maxValue) { // obstacle in front
-				this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));		
+			case RIGHT: 
+				// update all seen 
+				for (int i = 1; i <= value; i++) { 
+					this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
 				}
-			break;
-		case LEFT: 
-			for (int i = 1; i < value + 1; i++) { 
-				this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
-			}
-			if (value != maxValue) { // obstacle in front
-				this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
+				if (value != maxValue) { // obstacle in front
+					this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));	
 				}
-			break;
-		case UP:	
-			for (int i = 1; i < value + 1; i++) { 
-				this.markCellSeen(sensorPos.getX(), sensorPos.getY() + i);
-			}
-			if (value != maxValue) { // obstacle in front
-				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
+				break;
+			case LEFT: 
+				for (int i = 1; i <= value; i++) { 
+					this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
 				}
-			break;
-		case DOWN: 
-			for (int i = 1; i < value + 1; i++) { 
-				this.markCellSeen(sensorPos.getX(), sensorPos.getY() - i);
-			}
-			if (value != maxValue) { // obstacle in front
-				this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
+				if (value != maxValue) { // obstacle in front
+					this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
 				}
-			break;
-			}
+				break;
+			case UP:	
+				for (int i = 1; i <= value; i++) { 
+					this.markCellSeen(sensorPos.getX(), sensorPos.getY() + i);
+				}
+				if (value != maxValue) { // obstacle in front
+					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
+				}
+				break;
+			case DOWN: 
+				for (int i = 1; i <= value; i++) { 
+					this.markCellSeen(sensorPos.getX(), sensorPos.getY() - i);
+				}
+				if (value != maxValue) { // obstacle in front
+					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
+				}
+				break;
+		}
 	}
 	
 	/**

@@ -47,6 +47,12 @@ public class GUI extends JFrame implements ActionListener{
 	private int targetExplorePercentage;
 	public static int exploreTimeLimit;
 	
+	public static final Color EMPTY_CELL_COLOR = Color.GREEN;
+	public static final Color OBSTACLE_CELL_COLOR = Color.RED;
+	public static final Color GOAL_START_ZONE_COLOR = Color.ORANGE;
+	public static final Color ROBOT_COLOR = Color.CYAN;
+	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
+	
 	public static GUI getInstance() {
 		if (gui == null) {
 			gui = new GUI();
@@ -121,12 +127,12 @@ public class GUI extends JFrame implements ActionListener{
 				
 				if (RobotController.REAL_RUN) {
 					mapGrids[realX][realY].setEnabled(false);
-					mapGrids[realX][realY].setBackground(Color.GRAY);
+					mapGrids[realX][realY].setBackground(ROBOT_HEAD_COLOR);
 				} else {
 					mapGrids[realX][realY].setActionCommand("ToggleObstacleAt " + realX + "," + realY);
 					mapGrids[realX][realY].addActionListener(this);
-					mapGrids[realX][realY].setBorder(BorderFactory.createLineBorder(Color.GRAY));
-					mapGrids[realX][realY].setBackground(Color.GREEN);
+					mapGrids[realX][realY].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
+					mapGrids[realX][realY].setBackground(EMPTY_CELL_COLOR);
 					if ((realX <= 2 & realY <= 2) || (realX >= 12 & realY >= 17)) {
 						mapGrids[realX][realY].setEnabled(false);
 						mapGrids[realX][realY].setBackground(Color.ORANGE);
@@ -344,11 +350,11 @@ public class GUI extends JFrame implements ActionListener{
 				int realY = 19-x;
 				mazeGrids[realX][realY] = new JButton();
 				mazeGrids[realX][realY].setEnabled(false);
-				mazeGrids[realX][realY].setBorder(BorderFactory.createLineBorder(Color.GRAY));
+				mazeGrids[realX][realY].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
 				if (realY == 9) {
 					mazeGrids[realX][realY]
 							.setBorder(new CompoundBorder(BorderFactory.createMatteBorder(3, 0, 0, 0, Color.BLUE),
-									BorderFactory.createMatteBorder(0, 1, 1, 1, Color.GRAY)));
+									BorderFactory.createMatteBorder(0, 1, 1, 1, ROBOT_HEAD_COLOR)));
 				}
 				
 				maze.add(mazeGrids[realX][realY]);
@@ -376,10 +382,10 @@ public class GUI extends JFrame implements ActionListener{
 			int index = cmd.indexOf(",");
 			int x = Integer.parseInt(cmd.substring(17, index));
 			int y = Integer.parseInt(cmd.substring(index + 1));
-			if (mapGrids[x][y].getBackground() == Color.GREEN) {
-				mapGrids[x][y].setBackground(Color.RED);
+			if (mapGrids[x][y].getBackground() == EMPTY_CELL_COLOR) {
+				mapGrids[x][y].setBackground(OBSTACLE_CELL_COLOR);
 			} else {
-				mapGrids[x][y].setBackground(Color.GREEN);
+				mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 			}
 		} else if (cmd.equals("SwitchCtrl")) {
 			JComboBox cb = (JComboBox) e.getSource();
@@ -392,7 +398,7 @@ public class GUI extends JFrame implements ActionListener{
 			for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
 				for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
 					if (! (x <= 2 && y <= 2) || (x >= 13 && y >= 13))
-						mapGrids[x][y].setBackground(Color.GREEN);
+						mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 				}
 			}
 			Map.getRealMapInstance().loadMap(mapGrids);
@@ -459,11 +465,11 @@ public class GUI extends JFrame implements ActionListener{
 							robotPosition = new int[] {x,y};
 							for (int i=x-1; i<=x+1; i++) {
 								for (int j=y-1; j<=y+1; j++) {
-									mazeGrids[i][j].setBackground(Color.CYAN);
+									mazeGrids[i][j].setBackground(ROBOT_COLOR);
 								}
 							}
 							currentOrientation = Orientation.UP;
-							mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+							mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
 						} else {
 							for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 								for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
@@ -472,7 +478,7 @@ public class GUI extends JFrame implements ActionListener{
 							}
 							for (int i=x-1; i<=x+1; i++) {
 								for (int j=y-1; j<=y+1; j++) {
-									mazeGrids[i][j].setBackground(Color.CYAN);
+									mazeGrids[i][j].setBackground(ROBOT_COLOR);
 								}
 							}
 							robotPosition[0] = x;
@@ -545,7 +551,7 @@ public class GUI extends JFrame implements ActionListener{
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				if (map.getCell(i, j).isObstacle()) {
-					mapGrids[i][j].setBackground(Color.RED);
+					mapGrids[i][j].setBackground(OBSTACLE_CELL_COLOR);
 				}
 			}
 		}
@@ -569,20 +575,20 @@ public class GUI extends JFrame implements ActionListener{
 		currentOrientation = Orientation.getCounterClockwise(orientation);
 		switch(orientation) {
 			case UP:
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case LEFT:
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case DOWN:
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case RIGHT:
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 		}
 	}
@@ -591,20 +597,20 @@ public class GUI extends JFrame implements ActionListener{
 		currentOrientation = Orientation.getClockwise(orientation);
 		switch(orientation) {
 			case UP:
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case LEFT:
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case DOWN:
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case RIGHT:
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.CYAN);
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_COLOR);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 		}
 	}
@@ -618,16 +624,18 @@ public class GUI extends JFrame implements ActionListener{
 				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
+							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
 					}
 				}
 				robotPosition[1] += 1;
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(Color.CYAN);
+						mazeGrids[i][j].setBackground(ROBOT_COLOR);
 					}
 				}
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case LEFT:
 				if (robotPosition[0] - 1 < 1) {
@@ -636,16 +644,18 @@ public class GUI extends JFrame implements ActionListener{
 				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
+							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
 					}
 				}
 				robotPosition[0] -= 1;
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(Color.CYAN);
+						mazeGrids[i][j].setBackground(ROBOT_COLOR);
 					}
 				}
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case DOWN:
 				if (robotPosition[1] - 1 < 1) {
@@ -654,16 +664,18 @@ public class GUI extends JFrame implements ActionListener{
 				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
+							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
 					}
 				}
 				robotPosition[1] -= 1;
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(Color.CYAN);
+						mazeGrids[i][j].setBackground(ROBOT_COLOR);
 					}
 				}
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case RIGHT:
 				if (robotPosition[0] + 2 >= MapConstants.MAP_WIDTH) {
@@ -672,16 +684,18 @@ public class GUI extends JFrame implements ActionListener{
 				}
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(mapGrids[i][j].getBackground());
+						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
+							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
 					}
 				}
 				robotPosition[0] += 1;
 				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
 					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(Color.CYAN);
+						mazeGrids[i][j].setBackground(ROBOT_COLOR);
 					}
 				}
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(Color.GRAY);
+				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
 				break;
 		}
 	}
