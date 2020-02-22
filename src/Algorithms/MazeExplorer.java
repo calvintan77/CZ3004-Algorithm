@@ -101,6 +101,7 @@ public class MazeExplorer {
 						map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 					}
 					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
+					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}catch(Exception e2) {
 					System.out.println("Unable to access cell, time to cut losses...");
 					break;
