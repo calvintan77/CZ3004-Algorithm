@@ -160,16 +160,23 @@ public class VirtualRobot implements IRobot {
 
 	@Override
 	public void prepareOrientation(Orientation target) {
+		prepareOrientation(target, false);
+	}
+
+	@Override
+	public void prepareOrientation(Orientation target, boolean checkSensors) {
 		// Orientation update
 		if(this.getOrientation() != target){
 			int rightTurns = this.getOrientation().getRightTurns(target);
 			if(rightTurns > 0) {
 				for (int i = 0; i < rightTurns; i++) {
 					this.doCommand(RobotCommand.TURN_RIGHT);
+					if(checkSensors) getSensorValues();
 				}
 			}else{
 				for(int i = 0; i < -rightTurns; i++){
 					this.doCommand(RobotCommand.TURN_LEFT);
+					if(checkSensors) getSensorValues();
 				}
 			}
 		}

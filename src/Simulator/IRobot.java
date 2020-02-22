@@ -15,6 +15,7 @@ public interface IRobot {
 	public Coordinate getPosition();
 	public void setPosition(int x, int y); // this
 	public void prepareOrientation(Orientation o);
+	public void prepareOrientation(Orientation o, boolean checkSensors);
 	public void setOrientation(Orientation o);
 	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell);
 }

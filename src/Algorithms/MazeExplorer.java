@@ -57,7 +57,7 @@ public class MazeExplorer {
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			robot.prepareOrientation(nextOrientation);
+			robot.prepareOrientation(nextOrientation, true);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
