@@ -245,7 +245,7 @@ public class RobotController {
 //        for(RobotCommand command: result.generateInstructions()){
 //            myRobot.doCommand(command);
 //        }
-        ((VirtualRobot) myRobot).setSpeed(1);
+        ((VirtualRobot) myRobot).setSpeed(50);
 		MazeExplorer e = MazeExplorer.getInstance();
         e.setRobot(myRobot);
         e.exploreMaze(map, 1000000000);

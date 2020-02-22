@@ -131,7 +131,7 @@ public class Map {
 		
 		String hexStringMapDescriptor2 = convertBinaryToHexString(binaryStringMapDescriptor2.toString());
 		File mapFile = new File(savePath);
-		if (!mapFile.exists())
+//		if (!mapFile.exists())
 			try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){	
 				mapFileWriter.write(hexStringMapDescriptor1);
 				mapFileWriter.newLine();
@@ -139,7 +139,7 @@ public class Map {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		else System.out.println("File already existed");
+//		else System.out.println("File already existed");
 	}
 	
 
@@ -153,7 +153,7 @@ public class Map {
 				}
 			}
 		}
-//		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
+		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
 	}
 	
 	public static Map loadMapFromFile(String filePath) {

@@ -134,13 +134,12 @@ public class VirtualRobot implements IRobot {
 						break;
 				}
 		}
-		GUI.getInstance().updateRobotUI(cmd);
 		try {
 			Thread.sleep(1000/speed); 	//int timePerStep = 1000/speed (ms)
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+		GUI.getInstance().updateRobotUI(cmd);
 	}
 
 	@Override
