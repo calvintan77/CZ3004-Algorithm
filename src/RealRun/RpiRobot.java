@@ -127,6 +127,11 @@ public class RpiRobot implements IRobot{
 	}
 
 	@Override
+	public void prepareOrientation(Orientation o, boolean checkSensors) {
+
+	}
+
+	@Override
 	public void setOrientation(Orientation o) {
 		this.direction = o;
 	}
