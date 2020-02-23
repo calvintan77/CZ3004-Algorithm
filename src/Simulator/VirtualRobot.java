@@ -191,27 +191,48 @@ public class VirtualRobot implements IRobot {
 	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell) {
 		HashMap<MapCell, Orientation> candidates = new HashMap<>();
 		//UP orientation
-		for(int i = cell.x+2; i<=cell.x+5; i++){
+		outer_up: for(int i = cell.x+2; i<=cell.x+5; i++){
 			MapCell curr = map.getCell(i, cell.y - 1);
 			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			//Check obstructions
+			for(int i2 = i; i2 >= cell.x; i2--){
+				if(map.getCell(i2, cell.y) == null || map.getCell(i2, cell.y).isObstacle()){
+					continue outer_up;
+				}
+			}
 			candidates.put(curr, Orientation.UP);
 		}
 		//DOWN orientation
-		for(int i = cell.x-2; i>=cell.x-5; i--){
+		outer_down: for(int i = cell.x-2; i>=cell.x-5; i--){
 			MapCell curr = map.getCell(i, cell.y + 1);
 			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			for(int i2 = i; i2 <= cell.x; i2++){
+				if(map.getCell(i2, cell.y) == null || map.getCell(i2, cell.y).isObstacle()){
+					continue outer_down;
+				}
+			}
 			candidates.put(curr, Orientation.DOWN);
 		}
 		//RIGHT orientation
-		for(int j = cell.y+2; j>=cell.y+5; j--){
+		outer_right: for(int j = cell.y+2; j>=cell.y+5; j--){
 			MapCell curr = map.getCell(cell.x - 1, j);
 			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			for(int j2 = j; j2 >= cell.y; j2--){
+				if(map.getCell(cell.x, j2) == null || map.getCell(cell.x, j2).isObstacle()){
+					continue outer_right;
+				}
+			}
 			candidates.put(curr, Orientation.RIGHT);
 		}
 		//LEFT orientation
-		for(int j = cell.y-2; j>=cell.y-5; j--){
+		outer_left: for(int j = cell.y-2; j>=cell.y-5; j--){
 			MapCell curr = map.getCell(cell.x + 1, j);
 			if(curr == null || curr.isObstacle() || curr.isVirtualWall()) continue;
+			for(int j2 = j; j2 <= cell.y; j2++){
+				if(map.getCell(cell.x, j2) == null || map.getCell(cell.x, j2).isObstacle()){
+					continue outer_left;
+				}
+			}
 			candidates.put(curr, Orientation.LEFT);
 		}
 		return candidates;
