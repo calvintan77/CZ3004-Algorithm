@@ -17,7 +17,7 @@ import Constants.MapConstants;
 import Main.GUI;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "src/inputMap.txt";
+	private static final String MAP_FILE_PATH = "src/Sample arena 5.txt";
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
@@ -52,7 +52,7 @@ public class Map {
 				if(i == 0 || j == 0 || i == MapConstants.MAP_WIDTH-1 || j == MapConstants.MAP_HEIGHT-1){
 					mapCells[i][j].setVirtualWall(true);
 				}
-				if ( (i<=2 && j<=2) || (i>=12 && j>=17))
+				if ((i<=2 && j<=2))
 					this.markCellSeen(i, j);
 			}
 		}
@@ -63,6 +63,7 @@ public class Map {
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
+		//TODO: Don't mix responsibilities here
 		if (this.getCell(x, y).isObstacle())
 			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.OBSTACLE_CELL_COLOR);
 		else if (!((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
@@ -163,10 +164,9 @@ public class Map {
 		this.numSquaresExplored = 0;
 		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
 			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
-				if ((x<=2 && y<=2) || (x>=12 && y>=17)) {
+				mapCells[x][y].clear();
+				if ((x<=2 && y<=2)) {
 					this.markCellSeen(x, y);
-				} else {
-					mapCells[x][y].clear();
 				}
 				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
 					mapCells[x][y].setVirtualWall(true);

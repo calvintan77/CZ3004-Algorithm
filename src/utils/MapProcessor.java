@@ -8,7 +8,7 @@ import java.util.List;
 
 public class MapProcessor {
     public static float FORWARD_WEIGHT = 1;
-    public static float TURNING_WEIGHT = 1;
+    public static float TURNING_WEIGHT = 2;
 
     /**
      * Processes a map of the arena into a node representation. Multiple ending points and both starting orientations
