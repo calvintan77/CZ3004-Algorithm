@@ -3,6 +3,7 @@ package utils;
 public class Coordinate {
     private int X;
     private int Y;
+    private Facing facing = Facing.NONE;
 
     public int getX() {
         return X;
@@ -12,8 +13,21 @@ public class Coordinate {
         return Y;
     }
 
+    public Facing getFacing(){
+        return facing;
+    }
+
     public Coordinate(int x, int y) {
         X = x;
         Y = y;
+    }
+
+    public Coordinate(int x, int y, Facing f){
+        this(x, y);
+        this.facing = f;
+    }
+
+    public enum Facing{
+        HORIZONTAL, VERTICAL, NONE
     }
 }

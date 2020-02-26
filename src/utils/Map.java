@@ -134,7 +134,7 @@ public class Map {
 		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
 		File mapFile = new File(savePath);
 
-		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){	
+		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
 			mapFileWriter.write(h1MapDescriptor);
 			mapFileWriter.newLine();
 			mapFileWriter.write(h2MapDescriptor);
@@ -150,7 +150,7 @@ public class Map {
 			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
 				if (mapGrids[x][y].getBackground() == GUI.OBSTACLE_CELL_COLOR) {
 					mapCells[x][y].setObstacleStatus(true);
-				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR 
+				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR
 						|| mapGrids[x][y].getBackground() == GUI.GOAL_START_ZONE_COLOR){
 					mapCells[x][y].setObstacleStatus(false);
 				}
@@ -158,7 +158,7 @@ public class Map {
 		}
 		Map.saveMap(Map.getRealMapInstance(), "src/inputMap.txt");
 	}
-	
+
 	public void clearMap() {
 		this.numSquaresExplored = 0;
 		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
@@ -171,7 +171,7 @@ public class Map {
 				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
 					mapCells[x][y].setVirtualWall(true);
 			}
-		} 
+		}
 	}
 	
 	public static Map loadMapFromFile(String filePath) {
@@ -336,7 +336,7 @@ public class Map {
 		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
 		
 		switch (m.x) {
-			case 0: {// left most row 
+			case 0: {// left most row
 				MapCell right = this.getCell(m.x+1, m.y);
 				if (!right.isObstacle() && !right.isVirtualWall()) {
 					map.put("right", right);
@@ -347,7 +347,7 @@ public class Map {
 				MapCell left = this.getCell(m.x-1, m.y);
 				if (!left.isObstacle() && !left.isVirtualWall()) {
 					map.put("left", left);
-					}			
+					}
 				break;
 				}
 			default: {
@@ -358,13 +358,13 @@ public class Map {
 				MapCell left = this.getCell(m.x-1, m.y);
 				if (!left.isObstacle() && !left.isVirtualWall()) {
 					map.put("left", left);
-					}			
+					}
 				break;
 			}
 		}
 		
 		switch (m.y) {
-			case 0: {// bottom most row 
+			case 0: {// bottom most row
 				MapCell up = this.getCell(m.x, m.y+1);
 				if (!up.isObstacle() && !up.isVirtualWall()) {
 					map.put("up", up);
@@ -375,7 +375,7 @@ public class Map {
 				MapCell down = this.getCell(m.x, m.y-1);
 				if (!down.isObstacle() && !down.isVirtualWall()) {
 					map.put("down", down);
-					}			
+					}
 				break;
 				}
 			default: {
@@ -386,7 +386,7 @@ public class Map {
 				MapCell down = this.getCell(m.x, m.y-1);
 				if (!down.isObstacle() && !down.isVirtualWall()) {
 					map.put("down", down);
-					}			
+					}
 				break;
 			}
 		}
