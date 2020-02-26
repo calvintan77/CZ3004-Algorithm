@@ -4,7 +4,6 @@ import Simulator.IRobot;
 import utils.*;
 
 import utils.Map;
-import utils.Orientation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,9 +44,11 @@ public class MazeExplorer {
 		long tLimit = timeLimit * (1000000000);
 
 		// initial calibration
-		robot.setPosition(1, 1);
+		if (robot.getPosition() == null)
+			robot.setPosition(1, 1);
 		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
-		robot.setOrientation(Orientation.UP); // facing right
+		if (robot.getOrientation() == null)
+			robot.setOrientation(Orientation.UP); // facing right
 		robot.doCommand(RobotCommand.TURN_RIGHT);
 		do { 
 			// check sensor values; update cells 
@@ -57,36 +58,30 @@ public class MazeExplorer {
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			robot.prepareOrientation(nextOrientation, true);
+			List<Object[]> updateList = robot.prepareOrientation(nextOrientation, true);
+			//update map while prepareOrientation
+			for (Object[] updateArgs: updateList)
+				map.updateFromSensor((List<Integer>) updateArgs[0], (Coordinate) updateArgs[1], (Orientation) updateArgs[2]);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
-//		while (System.nanoTime() - startTime < tLimit && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
-		while ((robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
+		while (System.nanoTime() - startTime < tLimit && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
+//		while ((robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
-		while (map.getNumExplored() < 300 && System.nanoTime() - startTime < tLimit) {
-			// enqueue all unseen cells 
+		// enqueue all unseen cells 
+		HashSet<MapCell> unableToAcess = new HashSet<>();
+		int previousSetSize = -1;
+		while (unableToAcess.size() != previousSetSize) {
+			previousSetSize = unableToAcess.size();
+			unableToAcess.clear();
 			List<MapCell> unseen = map.getAllUnseen(); 
-			// shortest path to unseen 
-			// fuck doing fp in java
-			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
-			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
-			try {
-				List<Coordinate> start = new LinkedList<>();
-				start.add(robot.getPosition());
-				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
-				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-				// Orientation update
-				robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
-				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
-					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
-					robot.doCommand(cmd);
-					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
-				}
-			} catch (Exception e) {
-				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
-				HashMap<MapCell, Orientation> candidates = robot.getLeftSensorVisibilityCandidates(map, unseen.get(0));
+			for (MapCell unseenNode: unseen) {
+				if (!(map.getNumExplored() < 300 && System.nanoTime() - startTime < tLimit)) break;
+				if (unseenNode.getSeen())
+					continue;
+				System.out.println("attempting to brute force candidates for cell "+unseenNode.toString());
+				HashMap<MapCell, Orientation> candidates = robot.getSensorVisibilityCandidates(map, unseenNode);
 				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 				try{
 					List<Coordinate> start = new LinkedList<>();
@@ -103,8 +98,8 @@ public class MazeExplorer {
 					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
 					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}catch(Exception e2) {
-					System.out.println("Unable to access cell, time to cut losses...");
-					break;
+					System.out.println("Unable to access cell "+unseenNode.toString());
+					unableToAcess.add(unseenNode);
 				}
 			}
 		}

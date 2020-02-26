@@ -45,15 +45,17 @@ public class Map {
 	
 	public Map() {
 		mapCells = new MapCell[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
+		this.numSquaresExplored = 0;
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				mapCells[i][j] = new MapCell(i, j);
 				if(i == 0 || j == 0 || i == MapConstants.MAP_WIDTH-1 || j == MapConstants.MAP_HEIGHT-1){
 					mapCells[i][j].setVirtualWall(true);
 				}
+				if ( (i<=2 && j<=2) || (i>=12 && j>=17))
+					this.markCellSeen(i, j);
 			}
 		}
-		this.numSquaresExplored = 0;
 	}
 	
 	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
@@ -113,61 +115,77 @@ public class Map {
 	}
 	
 	public static void saveMap(Map map, String savePath) {
-		StringBuilder binaryStringMapDescriptor1 = new StringBuilder();
-		StringBuilder binaryStringMapDescriptor2 = new StringBuilder();
-		binaryStringMapDescriptor1.append("11");
+		StringBuilder b1MapDescriptor = new StringBuilder();
+		StringBuilder b2MapDescriptor = new StringBuilder();
+		b1MapDescriptor.append("11");
 		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 				if (map.getCell(i, j).getSeen()) {
-					binaryStringMapDescriptor1.append("1");
+					b1MapDescriptor.append("1");
 					if (map.getCell(i, j).isObstacle())
-						binaryStringMapDescriptor2.append("1");
-					else binaryStringMapDescriptor2.append("0");
-				} else binaryStringMapDescriptor1.append("0");
+						b2MapDescriptor.append("1");
+					else b2MapDescriptor.append("0");
+				} else b1MapDescriptor.append("0");
 			}
 		}
-		binaryStringMapDescriptor1.append("11");
-		String hexStringMapDescriptor1 = convertBinaryToHexString(binaryStringMapDescriptor1.toString());
+		b1MapDescriptor.append("11");
+		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
 		
-		String hexStringMapDescriptor2 = convertBinaryToHexString(binaryStringMapDescriptor2.toString());
+		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
 		File mapFile = new File(savePath);
-//		if (!mapFile.exists())
-			try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){	
-				mapFileWriter.write(hexStringMapDescriptor1);
-				mapFileWriter.newLine();
-				mapFileWriter.write(hexStringMapDescriptor2);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-//		else System.out.println("File already existed");
+
+		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){	
+			mapFileWriter.write(h1MapDescriptor);
+			mapFileWriter.newLine();
+			mapFileWriter.write(h2MapDescriptor);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 
 	public void loadMap(JButton[][] mapGrids) {
 		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
 			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
-				if (mapGrids[x][y].getBackground() == Color.RED) {
+				if (mapGrids[x][y].getBackground() == GUI.OBSTACLE_CELL_COLOR) {
 					mapCells[x][y].setObstacleStatus(true);
-				} else {
+				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR 
+						|| mapGrids[x][y].getBackground() == GUI.GOAL_START_ZONE_COLOR){
 					mapCells[x][y].setObstacleStatus(false);
 				}
 			}
 		}
-		Map.saveMap(Map.getRealMapInstance(), "D:/CZ3004-MULTIDISCIPLINARY PROJECT/MDP 2020 Sem2/src/inputMap.txt");
+		Map.saveMap(Map.getRealMapInstance(), "src/inputMap.txt");
+	}
+	
+	public void clearMap() {
+		this.numSquaresExplored = 0;
+		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
+			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
+				if ((x<=2 && y<=2) || (x>=12 && y>=17)) {
+					this.markCellSeen(x, y);
+				} else {
+					mapCells[x][y].clear();
+				}
+				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
+					mapCells[x][y].setVirtualWall(true);
+			}
+		} 
 	}
 	
 	public static Map loadMapFromFile(String filePath) {
 		Map resultMap = new Map();
 		File mapFile = new File(filePath);
 		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
-			String hexStringMapDescriptor1 = mapFileReader.readLine();
-			String hexStringMapDescriptor2 = mapFileReader.readLine();
-			String binaryStringMapDescriptor2 = convertHexToBinaryString(hexStringMapDescriptor2);
+			String h1MapDescriptor = mapFileReader.readLine();
+			String h2MapDescriptor = mapFileReader.readLine();
+			String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
 			int stringIndex = 0;
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 				for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
 					resultMap.getCell(i, j).setSeen(true);
-					if (binaryStringMapDescriptor2.charAt(stringIndex) == '0') {
+					if (b2MapDescriptor.charAt(stringIndex) == '0') {
 						resultMap.getCell(i, j).setObstacleStatus(false);
 					} else resultMap.getCell(i, j).setObstacleStatus(true);
 					stringIndex++;
@@ -318,59 +336,59 @@ public class Map {
 		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
 		
 		switch (m.x) {
-		case 0: {// left most row 
-			MapCell right = this.getCell(m.x+1, m.y);
-			if (!right.isObstacle() && !right.isVirtualWall()) {
-				map.put("right", right);
+			case 0: {// left most row 
+				MapCell right = this.getCell(m.x+1, m.y);
+				if (!right.isObstacle() && !right.isVirtualWall()) {
+					map.put("right", right);
+					}
+				break;
 				}
-			break;
-			}
-		case MapConstants.MAP_WIDTH-1: { // right most row
-			MapCell left = this.getCell(m.x-1, m.y);
-			if (!left.isObstacle() && !left.isVirtualWall()) {
-				map.put("left", left);
-				}			
-			break;
-			}
-		default: {
-			MapCell right = this.getCell(m.x+1, m.y);
-			if (!right.isObstacle() && !right.isVirtualWall()) {
-				map.put("right", right);
+			case MapConstants.MAP_WIDTH-1: { // right most row
+				MapCell left = this.getCell(m.x-1, m.y);
+				if (!left.isObstacle() && !left.isVirtualWall()) {
+					map.put("left", left);
+					}			
+				break;
 				}
-			MapCell left = this.getCell(m.x-1, m.y);
-			if (!left.isObstacle() && !left.isVirtualWall()) {
-				map.put("left", left);
-				}			
-			break;
-		}
+			default: {
+				MapCell right = this.getCell(m.x+1, m.y);
+				if (!right.isObstacle() && !right.isVirtualWall()) {
+					map.put("right", right);
+					}
+				MapCell left = this.getCell(m.x-1, m.y);
+				if (!left.isObstacle() && !left.isVirtualWall()) {
+					map.put("left", left);
+					}			
+				break;
+			}
 		}
 		
 		switch (m.y) {
-		case 0: {// bottom most row 
-			MapCell up = this.getCell(m.x, m.y+1);
-			if (!up.isObstacle() && !up.isVirtualWall()) {
-				map.put("up", up);
+			case 0: {// bottom most row 
+				MapCell up = this.getCell(m.x, m.y+1);
+				if (!up.isObstacle() && !up.isVirtualWall()) {
+					map.put("up", up);
+					}
+				break;
 				}
-			break;
-			}
-		case MapConstants.MAP_HEIGHT-1: { // top most row
-			MapCell down = this.getCell(m.x, m.y-1);
-			if (!down.isObstacle() && !down.isVirtualWall()) {
-				map.put("down", down);
-				}			
-			break;
-			}
-		default: {
-			MapCell up = this.getCell(m.x, m.y+1);
-			if (!up.isObstacle() && !up.isVirtualWall()) {
-				map.put("up", up);
+			case MapConstants.MAP_HEIGHT-1: { // top most row
+				MapCell down = this.getCell(m.x, m.y-1);
+				if (!down.isObstacle() && !down.isVirtualWall()) {
+					map.put("down", down);
+					}			
+				break;
 				}
-			MapCell down = this.getCell(m.x, m.y-1);
-			if (!down.isObstacle() && !down.isVirtualWall()) {
-				map.put("down", down);
-				}			
-			break;
-		}
+			default: {
+				MapCell up = this.getCell(m.x, m.y+1);
+				if (!up.isObstacle() && !up.isVirtualWall()) {
+					map.put("up", up);
+					}
+				MapCell down = this.getCell(m.x, m.y-1);
+				if (!down.isObstacle() && !down.isVirtualWall()) {
+					map.put("down", down);
+					}			
+				break;
+			}
 		}
 		
 		return map;
@@ -379,13 +397,13 @@ public class Map {
 	public static void main(String[] args) {
 		File mapFile = new File(MAP_FILE_PATH);
 		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
-			String hexStringMapDescriptor1 = mapFileReader.readLine();
-			String hexStringMapDescriptor2 = mapFileReader.readLine();
-			String binaryStringMapDescriptor2 = convertHexToBinaryString(hexStringMapDescriptor2);
-//			System.out.println(binaryStringMapDescriptor2);
-//			System.out.println(binaryStringMapDescriptor2.length());
-			System.out.println(hexStringMapDescriptor2);
-			System.out.println(convertBinaryToHexString(binaryStringMapDescriptor2));
+			String h1MapDescriptor = mapFileReader.readLine();
+			String h2MapDescriptor = mapFileReader.readLine();
+			String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
+//			System.out.println(b2MapDescriptor);
+//			System.out.println(b2MapDescriptor.length());
+			System.out.println(h2MapDescriptor);
+			System.out.println(convertBinaryToHexString(b2MapDescriptor));
 		} catch (Exception e){
 			e.printStackTrace();
 		}

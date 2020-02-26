@@ -25,6 +25,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import Constants.MapConstants;
+import RealRun.RpiRobot;
 import Simulator.VirtualRobot;
 import utils.Map;
 import utils.Orientation;
@@ -37,6 +38,13 @@ public class GUI extends JFrame implements ActionListener{
 	private static final String EXPLORATION = "Explore maze";
 	private static final String FASTEST_PATH = "Find fastest path";
 	
+	public static final Color EMPTY_CELL_COLOR = Color.GREEN;
+	public static final Color OBSTACLE_CELL_COLOR = Color.RED;
+	public static final Color GOAL_START_ZONE_COLOR = Color.ORANGE;
+	public static final Color ROBOT_COLOR = Color.CYAN;
+	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
+	public static final Color UNEXPLORED_CELL_COLOR = Color.BLACK;
+	
 	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
 	private JButton[][] mapGrids, mazeGrids;
@@ -46,12 +54,7 @@ public class GUI extends JFrame implements ActionListener{
 	private Orientation currentOrientation;
 	private int targetExplorePercentage;
 	public static int exploreTimeLimit;
-	
-	public static final Color EMPTY_CELL_COLOR = Color.GREEN;
-	public static final Color OBSTACLE_CELL_COLOR = Color.RED;
-	public static final Color GOAL_START_ZONE_COLOR = Color.ORANGE;
-	public static final Color ROBOT_COLOR = Color.CYAN;
-	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
+
 	
 	public static GUI getInstance() {
 		if (gui == null) {
@@ -243,6 +246,7 @@ public class GUI extends JFrame implements ActionListener{
 			exploreTextFields[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[2].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[2].getDocument().putProperty("name", "Target Coverage");
+			exploreTextFields[2].setEditable(false);;
 			
 			exploreCtrlLabels[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[3].setText("360");
@@ -395,20 +399,36 @@ public class GUI extends JFrame implements ActionListener{
 		} else if (cmd.equals("LoadMap")) {
 			Map.getRealMapInstance().loadMap(mapGrids);
 		} else if (cmd.equals("ClearMap")) {
-			for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
-				for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
-					if (! (x <= 2 && y <= 2) || (x >= 13 && y >= 13))
-						mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
-				}
-			}
-			Map.getRealMapInstance().loadMap(mapGrids);
+			clearMapGrids();
 		} else if (cmd.equals("ExploreMaze")) {
+			clearMazeGrids();
+			refreshExploreInput();
 			exploreButton.setEnabled(false);
-//        	_controller.exploreMaze();
+        	RobotController.getInstance().exploreMaze();
 		} else if (cmd.equals("FindFastestPath")) {
 			ffpButton.setEnabled(false);
 //			_controller.findFastestPath();
 		}
+	}
+	
+	public void clearMapGrids() {
+		for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
+			for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
+				if (! ((x <= 2 && y <= 2) || (x >= 13 && y >= 13)))
+					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
+			}
+		}
+		Map.getRealMapInstance().loadMap(mapGrids);
+	}
+	
+	public void clearMazeGrids() {
+		for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
+			for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
+				if (! ((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
+					mazeGrids[x][y].setBackground(UNEXPLORED_CELL_COLOR);
+			}
+		}
+		Map.getExploredMapInstance().clearMap();
 	}
 
 	public void setStatus(String message) {
@@ -469,6 +489,13 @@ public class GUI extends JFrame implements ActionListener{
 								}
 							}
 							currentOrientation = Orientation.UP;
+							if (!RobotController.REAL_RUN) {
+								VirtualRobot.getInstance().setPosition(x,y);
+								VirtualRobot.getInstance().setOrientation(currentOrientation);
+							} else {
+								RpiRobot.getInstance().setPosition(x, y);
+								RpiRobot.getInstance().setOrientation(currentOrientation);
+							}
 							mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
 						} else {
 							for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
@@ -495,7 +522,6 @@ public class GUI extends JFrame implements ActionListener{
 				try {
 					String speed = doc.getText(0, doc.getLength());
 					if (speed.matches("[0-9]+")) {
-//						_controller.setRobotSpeed(Integer.parseInt(speed));
 						((VirtualRobot) VirtualRobot.getInstance()).setSpeed(Integer.parseInt(speed));
 						ffpTextFields[0].setText(speed);
 					} else {

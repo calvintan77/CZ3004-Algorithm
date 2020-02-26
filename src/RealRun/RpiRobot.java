@@ -127,8 +127,8 @@ public class RpiRobot implements IRobot{
 	}
 
 	@Override
-	public void prepareOrientation(Orientation o, boolean checkSensors) {
-
+	public List<Object[]> prepareOrientation(Orientation o, boolean checkSensors) {
+		return null;
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class RpiRobot implements IRobot{
 	}
 
 	@Override
-	public HashMap<MapCell, Orientation> getLeftSensorVisibilityCandidates(Map map, MapCell cell) {
+	public HashMap<MapCell, Orientation> getSensorVisibilityCandidates(Map map, MapCell cell) {
 		return null;
 	}
 }

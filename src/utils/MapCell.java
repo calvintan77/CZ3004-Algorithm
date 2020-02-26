@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapCell {
-	private boolean isExplored;
+
 	private boolean isObstacle;
 	private boolean isVirtualWall;
 	private boolean isSeen; 
@@ -21,10 +21,6 @@ public class MapCell {
 		this.y = arr.getY();
 	}
 	
-//	public boolean isExplored() {
-//		return isExplored;
-//	}
-	
 	public boolean isObstacle() {
 		return isObstacle;
 	}
@@ -32,10 +28,6 @@ public class MapCell {
 	public boolean isVirtualWall() {
 		return isVirtualWall;
 	}
-	
-//	public void setExploredStatus(boolean status) {
-//		isExplored = status;
-//	}
 	
 	public void setObstacleStatus(boolean status) {
 		isObstacle = status;
@@ -51,6 +43,16 @@ public class MapCell {
 	
 	public boolean getSeen() {
 		return this.isSeen;
+	}
+	
+	public void clear() {
+		this.isSeen = false;
+		this.isVirtualWall = false;
+		this.isObstacle = false;
+	}
+	
+	public String toString() {
+		return x+","+y;
 	}
 	
 }
