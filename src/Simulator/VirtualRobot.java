@@ -171,12 +171,12 @@ public class VirtualRobot implements IRobot {
 			if(rightTurns > 0) {
 				for (int i = 0; i < rightTurns; i++) {
 					this.doCommand(RobotCommand.TURN_RIGHT);
-					if(checkSensors) updateList.add(new Object[] {getSensorValues(), position, o});
+					if(checkSensors) updateList.add(new Object[] {getSensorValues(), o});
 				}
 			}else{
 				for(int i = 0; i < -rightTurns; i++){
 					this.doCommand(RobotCommand.TURN_LEFT);
-					if(checkSensors) updateList.add(new Object[] {getSensorValues(), position, o});
+					if(checkSensors) updateList.add(new Object[] {getSensorValues(), o});
 				}
 			}
 		}

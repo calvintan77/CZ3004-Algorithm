@@ -44,6 +44,7 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color ROBOT_COLOR = Color.CYAN;
 	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
 	public static final Color UNEXPLORED_CELL_COLOR = Color.BLACK;
+	public static final Color FASTEST_PATH_CORLOR = Color.YELLOW;
 	
 	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
@@ -52,7 +53,7 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
-	private int targetExplorePercentage;
+	private int targetExplorePercentage, wayPointX, wayPointY;
 	public static int exploreTimeLimit;
 
 	
@@ -108,6 +109,18 @@ public class GUI extends JFrame implements ActionListener{
 	
 	public Orientation getRobotOrientation() {
 		return currentOrientation;
+	}
+	
+	public int getWayPointX() {
+		return wayPointX;
+	}
+	
+	public int getWayPointY() {
+		return wayPointY;
+	}
+	
+	public void setMazeGridColor(int x, int y, Color color) {
+		mazeGrids[x][y].setBackground(color);
 	}
 	
 	private void initializeDisplayedPane(JPanel contentPane) {
@@ -230,7 +243,7 @@ public class GUI extends JFrame implements ActionListener{
 		if (!RobotController.REAL_RUN) {
 			exploreTextFields[0].setEditable(false);
 			exploreCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[0].setText("1,1");
+			exploreTextFields[0].setText("2,2");
 			exploreTextFields[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[0].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[0].getDocument().putProperty("name", "Robot Initial Position");
@@ -264,8 +277,8 @@ public class GUI extends JFrame implements ActionListener{
 		exploreCtrlPane.setBorder(new EmptyBorder(20, 20, 20, 20));
 
 		// Add control panel for finding fastest path.
-		JLabel[] ffpCtrlLabels = new JLabel[2];
-		ffpTextFields = new JTextField[2];
+		JLabel[] ffpCtrlLabels = new JLabel[4];
+		ffpTextFields = new JTextField[4];
 		ffpButton = new JButton("Find fatest path");
 		
 		if (RobotController.REAL_RUN) {
@@ -273,23 +286,30 @@ public class GUI extends JFrame implements ActionListener{
 		} else {
 			ffpButton.setActionCommand("FindFastestPath");
 			ffpButton.addActionListener(this);
-			ffpButton.setEnabled(false);
+			ffpButton.setEnabled(true);
 		}
 		
 		ffpCtrlLabels[0] = new JLabel("Speed (steps/sec): ");
 		ffpCtrlLabels[1] = new JLabel("Time limit (sec): ");
-		for (int i = 0; i < 2; i++) {
+		ffpCtrlLabels[2] = new JLabel("WaypointX: ");
+		ffpCtrlLabels[3] = new JLabel("WaypointY: ");
+		
+		for (int i = 0; i < ffpTextFields.length; i++) {
 			ffpTextFields[i] = new JTextField(10);
 			if (RobotController.REAL_RUN) {
 				ffpTextFields[i].setEditable(false);
 			}
 		}
 
-		JPanel ffpInputPane = new JPanel(new GridLayout(2, 2));
+		JPanel ffpInputPane = new JPanel(new GridLayout(4, 2));
 		ffpInputPane.add(ffpCtrlLabels[0]);
 		ffpInputPane.add(ffpTextFields[0]);
 		ffpInputPane.add(ffpCtrlLabels[1]);
 		ffpInputPane.add(ffpTextFields[1]);
+		ffpInputPane.add(ffpCtrlLabels[2]);
+		ffpInputPane.add(ffpTextFields[2]);
+		ffpInputPane.add(ffpCtrlLabels[3]);
+		ffpInputPane.add(ffpTextFields[3]);
 		
 		if (!RobotController.REAL_RUN) {
 			ffpCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -301,6 +321,18 @@ public class GUI extends JFrame implements ActionListener{
 			ffpTextFields[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[1].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			ffpTextFields[1].getDocument().putProperty("name", "Robot FFP Time Limit");
+			
+			ffpTextFields[2].setText("1");
+			ffpCtrlLabels[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
+			ffpTextFields[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
+			ffpTextFields[2].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
+			ffpTextFields[2].getDocument().putProperty("name", "WaypointX");
+			
+			ffpTextFields[3].setText("1");
+			ffpCtrlLabels[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
+			ffpTextFields[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
+			ffpTextFields[3].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
+			ffpTextFields[3].getDocument().putProperty("name", "WaypointY");
 		}
 
 		JPanel ffpBtnPane = new JPanel();
@@ -406,8 +438,9 @@ public class GUI extends JFrame implements ActionListener{
 			exploreButton.setEnabled(false);
         	RobotController.getInstance().exploreMaze();
 		} else if (cmd.equals("FindFastestPath")) {
+			refreshFfpInput();
 			ffpButton.setEnabled(false);
-//			_controller.findFastestPath();
+			RobotController.getInstance().fastestPath();
 		}
 	}
 	
@@ -564,6 +597,20 @@ public class GUI extends JFrame implements ActionListener{
 					} else {
 						status.setText("time limit for fastest path not set");
 					}
+				} catch (BadLocationException ex) {
+					ex.printStackTrace();
+				}
+			} else if (name.equals("WaypointX")) {
+				try {
+					String x = doc.getText(0, doc.getLength());
+					wayPointX = Integer.parseInt(x);
+				} catch (BadLocationException ex) {
+					ex.printStackTrace();
+				}
+			} else if (name.equals("WaypointY")) {
+				try {
+					String y = doc.getText(0, doc.getLength());
+					wayPointY = Integer.parseInt(y);
 				} catch (BadLocationException ex) {
 					ex.printStackTrace();
 				}

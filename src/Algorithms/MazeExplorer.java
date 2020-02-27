@@ -61,7 +61,7 @@ public class MazeExplorer {
 			List<Object[]> updateList = robot.prepareOrientation(nextOrientation, true);
 			//update map while prepareOrientation
 			for (Object[] updateArgs: updateList)
-				map.updateFromSensor((List<Integer>) updateArgs[0], (Coordinate) updateArgs[1], (Orientation) updateArgs[2]);
+				map.updateFromSensor((List<Integer>) updateArgs[0], robot.getPosition(), (Orientation) updateArgs[1]);
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
