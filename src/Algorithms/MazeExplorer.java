@@ -5,6 +5,7 @@ import utils.*;
 
 import utils.Map;
 
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,17 +40,17 @@ public class MazeExplorer {
 	 * @param map: the given map which we are doing exploration on - start point is assumed to be (1,1) 
 	 * @param timeLimit: the time (in seconds) which we have to explore the maze 
 	 */
-	public void exploreMaze(Map map, long timeLimit) { 
+	public void exploreMaze(Map map, long timeLimit, int targetCoverage) { 
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
 
 		// initial calibration
 		if (robot.getPosition() == null)
 			robot.setPosition(1, 1);
-		// TODO: change method signature of setOrientation to accept Orientation as param instead of int...
 		if (robot.getOrientation() == null)
 			robot.setOrientation(Orientation.UP); // facing right
 		robot.doCommand(RobotCommand.TURN_RIGHT);
+		// Initial Right Wall Hug
 		do { 
 			// check sensor values; update cells 
 			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
@@ -58,48 +59,61 @@ public class MazeExplorer {
 			// translate orientation to actual command
 			// this does not actually work
 			// update robot's internal state
-			List<Object[]> updateList = robot.prepareOrientation(nextOrientation, true);
-			//update map while prepareOrientation
-			for (Object[] updateArgs: updateList)
-				map.updateFromSensor((List<Integer>) updateArgs[0], robot.getPosition(), (Orientation) updateArgs[1]);
+			robot.prepareOrientation(nextOrientation, true, map);
+
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
 		}
-		while (System.nanoTime() - startTime < tLimit && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
+		while (System.nanoTime() - startTime < tLimit && map.getExploredPercent() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 //		while ((robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 		
-		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored 
-		// enqueue all unseen cells 
-		HashSet<MapCell> unableToAcess = new HashSet<>();
-		int previousSetSize = -1;
-		while (unableToAcess.size() != previousSetSize) {
-			previousSetSize = unableToAcess.size();
-			unableToAcess.clear();
-			List<MapCell> unseen = map.getAllUnseen(); 
-			for (MapCell unseenNode: unseen) {
-				if (!(map.getNumExplored() < 300 && System.nanoTime() - startTime < tLimit)) break;
-				if (unseenNode.getSeen())
-					continue;
-				System.out.println("attempting to brute force candidates for cell "+unseenNode.toString());
-				HashMap<MapCell, Orientation> candidates = robot.getSensorVisibilityCandidates(map, unseenNode);
-				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
-				try{
+		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored
+		// enqueue all unseen cells
+		List<MapCell> unseen = map.getAllUnseen();
+		while (map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime < tLimit) {
+			// shortest path to unseen
+			// fuck doing fp in java
+			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
+			try {
+				List<Coordinate> start = new LinkedList<>();
+				start.add(robot.getPosition());
+				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
+				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+				// Orientation update
+				robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
+				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
+					if(!(map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime < tLimit)) break;
+					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
+					robot.doCommand(cmd);
+					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+				}
+				unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
+			} catch (Exception e) {
+				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
+				HashMap<MapCell, Orientation> candidates = new HashMap<>();
+				unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
+				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y, candidates.get(cell).isAligned(true) ? Coordinate.Facing.HORIZONTAL : Coordinate.Facing.VERTICAL)).collect(Collectors.toList());
+				try {
 					List<Coordinate> start = new LinkedList<>();
 					start.add(robot.getPosition());
 					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
 					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 					// Orientation update
 					robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
-					for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
-						if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
+					for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
+						if(!(map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime < tLimit)) break;
+						if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition()))
+							break;
 						robot.doCommand(cmd);
 						map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 					}
 					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
 					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
-				}catch(Exception e2) {
-					System.out.println("Unable to access cell "+unseenNode.toString());
-					unableToAcess.add(unseenNode);
+					unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
+				} catch (Exception e2) {
+					System.out.println("Unable to access cell, cutting losses");
+					break;
 				}
 			}
 		}

@@ -2,6 +2,7 @@ package Main;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.SwingWorker;
@@ -61,12 +62,12 @@ public class RobotController {
 		SwingWorker<Void, Void> exploreMaze = new SwingWorker<Void, Void>() {
 			@Override
 			protected Void doInBackground() throws Exception {
-
+				gui.setStatus("Exploring");
 				try {
 					if (!REAL_RUN) {
 						robot.prepareOrientation(Orientation.UP);
-						explorer.exploreMaze(Map.getExploredMapInstance(), GUI.exploreTimeLimit);
-					}else explorer.exploreMaze(Map.getExploredMapInstance(), EXPLORE_TIME_LIMIT);
+						explorer.exploreMaze(Map.getExploredMapInstance(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
+					}else explorer.exploreMaze(Map.getExploredMapInstance(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw e;
@@ -75,7 +76,7 @@ public class RobotController {
 			}
 			@Override
 			public void done() {
-				
+				gui.setStatus("Done exploring");
 			}
 
 		};
@@ -94,10 +95,11 @@ public class RobotController {
 			}
 		};
 		
-	
 		exploringTimer = new Timer(1000, timeActionListener);
+		timeActionListener.setTimer(exploringTimer);
 		exploringTimer.start();
 		updateCoverage.execute();
+		exploreMaze.execute();
 		
 	}
 	
@@ -111,51 +113,64 @@ public class RobotController {
 			}
 			gui.refreshFfpInput();
 		} else robot = RpiRobot.getInstance();
-		
 		SwingWorker<Void, Void> fastestPath = new SwingWorker<Void, Void>() {
 			@Override
 			protected Void doInBackground() throws Exception {
-
+				gui.setStatus("finding fastest path");
 				try {
 					int wayPointX = gui.getWayPointX();
 					int wayPointY = gui.getWayPointY();
-					Graph graph = new Graph(Map.getExploredMapInstance(), wayPointX, wayPointY);
+					Graph graph = new Graph(Map.getExploredMapInstance(), wayPointX, wayPointX);
 					ShortestPath result = graph.GetShortestPath();
-					System.out.println(result.getWeight());
-					for(GraphNode n: result.getPath()){
-					    gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
+					if (result.isStartingOrientationHorizontal()) {
+						robot.prepareOrientation(Orientation.RIGHT);
+					} else robot.prepareOrientation(Orientation.UP);
+					List<GraphNode> path = result.getPath();
+					for(GraphNode n: path){
+						if (!( (n.getX()==0 && n.getY()==0) || 
+							(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
+					    	gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
 					}
 					
 					for(RobotCommand command: result.generateInstructions()){
 					    robot.doCommand(command);
 					}
+					
+					for(GraphNode n: path){
+						if (!(gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_COLOR
+							|| gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_HEAD_COLOR)
+							&& !( (n.getX()==0 && n.getY()==0) || 
+								(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
+							gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
+					}
 				} catch (Exception e) {
-					e.printStackTrace();
-					throw e;
+					System.out.println("Unable to find fastest path");					
 				}
 				return null;
 			}
 			@Override
 			public void done() {
-				
+				gui.setStatus("Done finding fastest path");
 			}
 
 		};
 		
 		ExploreTimeClass timeActionListener;
 		if (REAL_RUN) {
-			timeActionListener = new ExploreTimeClass(EXPLORE_TIME_LIMIT, fastestPath);
+			timeActionListener = new ExploreTimeClass(FASTEST_PATH_TIME_LIMIT, fastestPath);
 			
-		} else timeActionListener = new ExploreTimeClass(GUI.exploreTimeLimit, fastestPath);
+		} else timeActionListener = new ExploreTimeClass(GUI.fastestPathTimeLimit, fastestPath);
 		fastestPathTimer = new Timer(1000, timeActionListener);
+		timeActionListener.setTimer(fastestPathTimer);
 		fastestPathTimer.start();
-		
+		fastestPath.execute();
 		
 	}
 	
 	class ExploreTimeClass implements ActionListener {
 		int timeLimit;
-		int timeLeft; 
+		int timeLeft;
+		Timer timer;
 		SwingWorker<Void, Void> task;
 		public ExploreTimeClass(int timeLimit, SwingWorker<Void,Void> task) {
 			this.timeLimit = timeLimit;
@@ -163,28 +178,30 @@ public class RobotController {
 			this.task = task;
 		}
 		
+		public void setTimer(Timer timer) {
+			this.timer = timer;
+		}
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (timeLeft == timeLimit)
-				task.execute();
 			timeLeft--;
 			GUI.getInstance().setTimer(timeLeft);
 			if (timeLeft >= 0) {
 
 				
 				if (timeLeft == 0) {
-					exploringTimer.stop();
-					gui.setTimerMessage("exploration: time out");
+					gui.setTimerMessage("Time out");
 					gui.setExploreBtnEnabled(true);
 					gui.setFfpBtnEnabled(true);
+					if (timer != null)
+						timer.stop();
 				} else if (task.isDone()) {
-					exploringTimer.stop();
-					gui.setTimerMessage("finish exploration within time limit");
+					gui.setTimerMessage(String.format("finish within time limit (%ds)", timeLimit-timeLeft));
 					gui.setExploreBtnEnabled(true);
 					gui.setFfpBtnEnabled(true);
+					if (timer != null)
+						timer.stop();
 				}
-				
-//				getThreshold.execute();
 				
 			} 
 			
@@ -196,7 +213,6 @@ public class RobotController {
 		GUI myGui = GUI.getInstance();
 		myGui.setVisible(true);
 		myGui.refreshExploreInput();
-
 //		String key = null;
 //		IRobot myRobot = VirtualRobot.getInstance();
 //        Map realMap = Map.getRealMapInstance();

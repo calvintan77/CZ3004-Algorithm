@@ -17,7 +17,9 @@ import Constants.MapConstants;
 import Main.GUI;
 
 public class Map {
-	private static final String MAP_FILE_PATH = "src/sample arena 3.txt";
+
+	private static final String MAP_FILE_PATH = "src/inputMap.txt";
+
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
@@ -63,7 +65,8 @@ public class Map {
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
-		this.numSquaresExplored += 1;
+		this.numSquaresExplored++;
+		//TODO: Don't mix responsibilities here
 		if (this.getCell(x, y).isObstacle())
 			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.OBSTACLE_CELL_COLOR);
 		else if (!((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
@@ -82,9 +85,14 @@ public class Map {
 		return getCell(c.getX(), c.getY());
 	}
 	
+	
 	// marks a given cell as a virtual wall - defensive check not given here, caller has to do 
 	public void markVirtualWall(int x, int y) { 
 		this.getCell(x, y).setVirtualWall(true);
+	}
+	
+	public float getExploredPercent() {
+		return (float) this.numSquaresExplored * 100f/300f;
 	}
 	
 	public static String convertHexToBinaryString(String hex) {
@@ -129,19 +137,45 @@ public class Map {
 			}
 		}
 		b1MapDescriptor.append("11");
+		if (b2MapDescriptor.length() % 4 != 0) {
+			int padding = 4 - (b2MapDescriptor.length()%4);
+			for (int i=0; i<padding; i++) {
+				b2MapDescriptor.append("0");
+			}
+		}
 		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
 		
 		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
 		File mapFile = new File(savePath);
 
-		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){	
+		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
 			mapFileWriter.write(h1MapDescriptor);
 			mapFileWriter.newLine();
 			mapFileWriter.write(h2MapDescriptor);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+	}
+	
+	public static String generateMapDescriptor(Map map) {
+		StringBuilder b1MapDescriptor = new StringBuilder();
+		StringBuilder b2MapDescriptor = new StringBuilder();
+		b1MapDescriptor.append("11");
+		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
+			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+				if (map.getCell(i, j).getSeen()) {
+					b1MapDescriptor.append("1");
+					if (map.getCell(i, j).isObstacle())
+						b2MapDescriptor.append("1");
+					else b2MapDescriptor.append("0");
+				} else b1MapDescriptor.append("0");
+			}
+		}
+		b1MapDescriptor.append("11");
+		
+		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
+		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
+		return h1MapDescriptor+"\n"+h2MapDescriptor;
 	}
 	
 
@@ -150,7 +184,7 @@ public class Map {
 			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
 				if (mapGrids[x][y].getBackground() == GUI.OBSTACLE_CELL_COLOR) {
 					mapCells[x][y].setObstacleStatus(true);
-				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR 
+				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR
 						|| mapGrids[x][y].getBackground() == GUI.GOAL_START_ZONE_COLOR){
 					mapCells[x][y].setObstacleStatus(false);
 				}
@@ -158,21 +192,20 @@ public class Map {
 		}
 		Map.saveMap(Map.getRealMapInstance(), "src/inputMap.txt");
 	}
-	
+
 	public void clearMap() {
-		this.numSquaresExplored = 0;
 		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
 			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
 				if (x<=2 && y<=2) {
 					mapCells[x][y].setSeen(true);
-					this.numSquaresExplored++;
 				} else {
 					mapCells[x][y].clear();
 				}
 				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
 					mapCells[x][y].setVirtualWall(true);
 			}
-		} 
+		}
+		this.numSquaresExplored = 9;
 	}
 	
 	public static Map loadMapFromFile(String filePath) {
@@ -181,10 +214,13 @@ public class Map {
 		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
 			String h1MapDescriptor = mapFileReader.readLine();
 			String h2MapDescriptor = mapFileReader.readLine();
+			String b1MapDescriptor = convertHexToBinaryString(h1MapDescriptor);
 			String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
 			int stringIndex = 0;
 			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
 				for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+					if (b1MapDescriptor.charAt(j*MapConstants.MAP_WIDTH+i+2) == '0')
+						continue;
 					resultMap.getCell(i, j).setSeen(true);
 					if (b2MapDescriptor.charAt(stringIndex) == '0') {
 						resultMap.getCell(i, j).setObstacleStatus(false);
@@ -337,7 +373,7 @@ public class Map {
 		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
 		
 		switch (m.x) {
-			case 0: {// left most row 
+			case 0: {// left most row
 				MapCell right = this.getCell(m.x+1, m.y);
 				if (!right.isObstacle() && !right.isVirtualWall()) {
 					map.put("right", right);
@@ -348,7 +384,7 @@ public class Map {
 				MapCell left = this.getCell(m.x-1, m.y);
 				if (!left.isObstacle() && !left.isVirtualWall()) {
 					map.put("left", left);
-					}			
+					}
 				break;
 				}
 			default: {
@@ -359,13 +395,13 @@ public class Map {
 				MapCell left = this.getCell(m.x-1, m.y);
 				if (!left.isObstacle() && !left.isVirtualWall()) {
 					map.put("left", left);
-					}			
+					}
 				break;
 			}
 		}
 		
 		switch (m.y) {
-			case 0: {// bottom most row 
+			case 0: {// bottom most row
 				MapCell up = this.getCell(m.x, m.y+1);
 				if (!up.isObstacle() && !up.isVirtualWall()) {
 					map.put("up", up);
@@ -376,7 +412,7 @@ public class Map {
 				MapCell down = this.getCell(m.x, m.y-1);
 				if (!down.isObstacle() && !down.isVirtualWall()) {
 					map.put("down", down);
-					}			
+					}
 				break;
 				}
 			default: {
@@ -387,7 +423,7 @@ public class Map {
 				MapCell down = this.getCell(m.x, m.y-1);
 				if (!down.isObstacle() && !down.isVirtualWall()) {
 					map.put("down", down);
-					}			
+					}
 				break;
 			}
 		}

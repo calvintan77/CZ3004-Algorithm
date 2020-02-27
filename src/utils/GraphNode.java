@@ -141,4 +141,9 @@ public class GraphNode {
     public int hashCode() {
         return Objects.hash(x, y, isHorizontal);
     }
+
+    @Override
+    public String toString(){
+        return "X: " + this.getX() + ", Y: " + this.getY() + (this.isHorizontal?" Horizontal":" Vertical");
+    }
 }

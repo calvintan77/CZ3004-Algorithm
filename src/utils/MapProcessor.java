@@ -70,7 +70,12 @@ public class MapProcessor {
         GraphNode start = new GraphNode(0,0, true, true);
         for(Coordinate st: StartingPoints){
             if(graph[st.getX()][st.getY()][0] != null){
-                ConnectNodesWithZero(graph, start, st);
+                if(st.getFacing() == Coordinate.Facing.NONE){
+                    ConnectNodesWithZero(graph, start, st);
+                }
+                else{
+                    ConnectGraphNodeWithZero(graph, start, st, st.getFacing() == Coordinate.Facing.HORIZONTAL);
+                }
             }
         }
 
@@ -78,16 +83,23 @@ public class MapProcessor {
         GraphNode end = new GraphNode(14,19, true, true);
         for(Coordinate ed: EndingPoints){
             if(graph[ed.getX()][ed.getY()][0] != null) {
-                ConnectNodesWithZero(graph, end, ed);
+                if(ed.getFacing() == Coordinate.Facing.NONE) {
+                    ConnectNodesWithZero(graph, end, ed);
+                } else{
+                    ConnectGraphNodeWithZero(graph, end, ed, ed.getFacing() == Coordinate.Facing.HORIZONTAL);
+                }
             }
         }
         return Arrays.asList(start, end, graph[waypoint.getX()][waypoint.getY()][0], graph[waypoint.getX()][waypoint.getY()][1]);
     }
 
     private static void ConnectNodesWithZero(GraphNode[][][] graph, GraphNode node1, Coordinate node2) {
-        graph[node2.getX()][node2.getY()][0].addNeighbour(node1, 0f);
-        graph[node2.getX()][node2.getY()][1].addNeighbour(node1, 0f);
-        node1.addNeighbour( graph[node2.getX()][node2.getY()][0], 0f);
-        node1.addNeighbour( graph[node2.getX()][node2.getY()][1], 0f);
+        ConnectGraphNodeWithZero(graph, node1, node2, false);
+        ConnectGraphNodeWithZero(graph, node1, node2, true);
+    }
+
+    private static void ConnectGraphNodeWithZero(GraphNode[][][] graph, GraphNode node1, Coordinate node2, boolean isHorizontal){
+        graph[node2.getX()][node2.getY()][isHorizontal?0:1].addNeighbour(node1, 0f);
+        node1.addNeighbour( graph[node2.getX()][node2.getY()][isHorizontal?0:1], 0f);
     }
 }

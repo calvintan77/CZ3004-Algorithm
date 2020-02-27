@@ -127,8 +127,7 @@ public class RpiRobot implements IRobot{
 	}
 
 	@Override
-	public List<Object[]> prepareOrientation(Orientation o, boolean checkSensors) {
-		return null;
+	public void prepareOrientation(Orientation o, boolean checkSensors, Map map) {
 	}
 
 	@Override
