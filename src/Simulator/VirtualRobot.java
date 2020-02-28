@@ -136,7 +136,7 @@ public class VirtualRobot implements IRobot {
 				}
 		}
 		try {
-			Thread.sleep(1000 / speed);    //int timePerStep = 1000/speed (ms)
+			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / speed);    //int timePerStep = 1000/speed (ms)
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

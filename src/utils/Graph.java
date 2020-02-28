@@ -51,6 +51,8 @@ public class Graph {
     public ShortestPath GetShortestPath(){
         ShortestPath pathWPHoriz = GetShortestPathThroughWaypoint(waypointHoriz);
         ShortestPath pathWPVert = GetShortestPathThroughWaypoint(waypointVert);
+        if(pathWPHoriz == null) return pathWPVert;
+        if(pathWPVert == null) return pathWPHoriz;
         return pathWPHoriz.getWeight() < pathWPVert.getWeight()? pathWPHoriz: pathWPVert;
     }
 

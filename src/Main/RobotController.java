@@ -72,6 +72,7 @@ public class RobotController {
 					e.printStackTrace();
 					throw e;
 				}
+				Map.saveMap(Map.getExploredMapInstance(), "src/exploredMap.txt");
 				return null;
 			}
 			@Override
@@ -120,8 +121,19 @@ public class RobotController {
 				try {
 					int wayPointX = gui.getWayPointX();
 					int wayPointY = gui.getWayPointY();
-					Graph graph = new Graph(Map.getExploredMapInstance(), wayPointX, wayPointX);
+					Map exploredMap = null;
+					if (Map.getExploredMapInstance().getExploredPercent() < 100) {
+						exploredMap = Map.getExploredMapInstance().clone();
+					} else exploredMap = Map.getExploredMapInstance();
+					Graph graph = new Graph(exploredMap, wayPointX, wayPointY);
+					gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
 					ShortestPath result = graph.GetShortestPath();
+					if (result == null) {
+						System.out.println("Unable to find path through waypoint");
+						graph = new Graph(exploredMap, 1, 1);
+						result = graph.GetShortestPath();
+					}
 					if (result.isStartingOrientationHorizontal()) {
 						robot.prepareOrientation(Orientation.RIGHT);
 					} else robot.prepareOrientation(Orientation.UP);
@@ -143,7 +155,10 @@ public class RobotController {
 								(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
 							gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
 					}
+					gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
 				} catch (Exception e) {
+					e.printStackTrace();
 					System.out.println("Unable to find fastest path");					
 				}
 				return null;
@@ -238,7 +253,7 @@ public class RobotController {
 //        }
 //        myRobot.setOrientation(Orientation.UP);
 //        myRobot.setPosition(1, 1);
-//        Graph graph = new Graph(realMap, 4, 1);
+//        Graph graph = new Graph(realMap, 10, 14);
 //        ShortestPath result = graph.GetShortestPath();
 //        System.out.println(result.getWeight());
 //        for(GraphNode n: result.getPath()){
@@ -246,8 +261,10 @@ public class RobotController {
 //        }
 //        System.out.println("Starting Orientation");
 //        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
+//        if (result.isStartingOrientationHorizontal())
+//        	myRobot.prepareOrientation(Orientation.RIGHT);
+//        else myRobot.prepareOrientation(Orientation.UP);
 //        System.out.println("Instructions:");
-//        myRobot.prepareOrientation(Orientation.RIGHT);
 //        for(RobotCommand command: result.generateInstructions()){
 //            myRobot.doCommand(command);
 //        }

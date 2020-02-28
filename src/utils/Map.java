@@ -92,7 +92,7 @@ public class Map {
 	}
 	
 	public float getExploredPercent() {
-		return (float) this.numSquaresExplored * 100f/300f;
+		return (float) this.numSquaresExplored / 3f;
 	}
 	
 	public static String convertHexToBinaryString(String hex) {
@@ -429,6 +429,19 @@ public class Map {
 		}
 		
 		return map;
+	}
+	
+	public Map clone() {
+		Map cloneMap = new Map();
+		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+				if (!this.getCell(i, j).getSeen() || this.getCell(i,j).isObstacle()) {
+					cloneMap.getCell(i, j).setSeen(true);
+					cloneMap.setObstacle(new Coordinate(i,j));
+				} else cloneMap.getCell(i, j).setSeen(true);
+			}
+		}
+		return cloneMap;
 	}
 	
 	public static void main(String[] args) {

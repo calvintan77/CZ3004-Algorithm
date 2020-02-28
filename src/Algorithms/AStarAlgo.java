@@ -1,6 +1,7 @@
 package Algorithms;
 
 import utils.GraphNode;
+import utils.MapProcessor;
 import utils.ShortestPath;
 
 import java.util.*;
@@ -77,7 +78,7 @@ public class AStarAlgo {
             this.weight = weight;
         }
         public double getEstimatedWeight(GraphNode destination){
-            return weight + graphNode.getEuclideanDistanceTo(destination);
+            return weight + graphNode.getEuclideanDistanceTo(destination) * MapProcessor.FORWARD_WEIGHT;
         }
         public double getWeight(){
             return weight;

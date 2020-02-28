@@ -29,6 +29,7 @@ import RealRun.RpiRobot;
 import Simulator.IRobot;
 import Simulator.VirtualRobot;
 import utils.Map;
+import utils.MapProcessor;
 import utils.Orientation;
 import utils.RobotCommand;
 
@@ -46,6 +47,7 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
 	public static final Color UNEXPLORED_CELL_COLOR = Color.BLACK;
 	public static final Color FASTEST_PATH_CORLOR = Color.YELLOW;
+	public static final Color WAYPOINT_COLOR = Color.BLUE;
 	
 	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
@@ -54,7 +56,7 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
-	private int targetExplorePercentage, wayPointX, wayPointY;
+	private int targetExplorePercentage, wayPointX, wayPointY, prevwayPointX, prevwayPointY;
 	public static int exploreTimeLimit;
 	public static int fastestPathTimeLimit;
 	
@@ -126,6 +128,10 @@ public class GUI extends JFrame implements ActionListener{
 	
 	public void setMazeGridColor(int x, int y, Color color) {
 		mazeGrids[x][y].setBackground(color);
+	}
+	
+	public void setMapGridColor(int x, int y, Color color) {
+		mapGrids[x][y].setBackground(color);
 	}
 	
 	private void initializeDisplayedPane(JPanel contentPane) {
@@ -433,15 +439,21 @@ public class GUI extends JFrame implements ActionListener{
 			clearMapGrids();
 		} else if (cmd.equals("ExploreMaze")) {
 			clearMazeGrids();
+			eraseWayPoint();
 			refreshExploreInput();
 			exploreButton.setEnabled(false);
         	RobotController.getInstance().exploreMaze();
 		} else if (cmd.equals("FindFastestPath")) {
 //			refreshFfpInput();
 			ffpButton.setEnabled(false);
+			eraseWayPoint();
 			resetRobotLocation(1,1,Orientation.UP);
 			RobotController.getInstance().fastestPath();
 		}
+	}
+	public void eraseWayPoint() {
+		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR)
+			mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
 	}
 	
 	public void resetRobotLocation(int x, int y, Orientation o) {
@@ -614,8 +626,11 @@ public class GUI extends JFrame implements ActionListener{
 				
 			} else if (name.equals("Robot Explore Speed")) {
 				if (input.matches("[0-9]+")) {
-					((VirtualRobot) VirtualRobot.getInstance()).setSpeed(Integer.parseInt(input));
+					int speed = Integer.parseInt(input);
+					((VirtualRobot) VirtualRobot.getInstance()).setSpeed(speed);
 					ffpTextFields[0].setText(input);
+					MapProcessor.FORWARD_WEIGHT = 1f/speed;
+					MapProcessor.TURNING_WEIGHT = 2f/speed;
 				}
 				
 			} else if (name.equals("Target Coverage")) {
@@ -636,11 +651,15 @@ public class GUI extends JFrame implements ActionListener{
 					fastestPathTimeLimit = Integer.parseInt(input);
 				} 
 			} else if (name.equals("WaypointX")) {
-				if (input.matches("[0-9]+"))
+				if (input.matches("[0-9]+")) {
+					prevwayPointX = wayPointX;
 					wayPointX = Integer.parseInt(input);
+				}
 			} else if (name.equals("WaypointY")) {				
-				if (input.matches("[0-9]+"))
+				if (input.matches("[0-9]+")) {
+					prevwayPointY = wayPointY;
 					wayPointY = Integer.parseInt(input);
+				}
 			}
 		}
 
