@@ -120,6 +120,7 @@ public class MazeExplorer {
 					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
 					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 					// Orientation update
+					//TODO: Check first instruction, if turn, then getStartingOrientation with that orientation and then skip first instruction
 					robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
 					for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
 						if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
