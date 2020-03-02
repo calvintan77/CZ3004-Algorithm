@@ -19,7 +19,7 @@ import Main.GUI;
 
 public class Map {
 
-	private static final String MAP_FILE_PATH = "src/sample arena 5.txt";
+	private static final String MAP_FILE_PATH = "src/input.txt";
 
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 

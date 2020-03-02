@@ -121,6 +121,11 @@ public class RpiRobot implements IRobot{
 	public void setPosition(int x, int y) {
 		this.position = new Coordinate(x, y);
 	}
+	
+	@Override
+	public void setOrientation(Orientation o) {
+		this.o = o;
+	}
 
 	@Override
 	public void prepareOrientation(Orientation target) {
@@ -144,11 +149,6 @@ public class RpiRobot implements IRobot{
 				}
 			}
 		}
-	}
-
-	@Override
-	public void setOrientation(Orientation o) {
-		this.o = o;
 	}
 
 	@Override

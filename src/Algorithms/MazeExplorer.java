@@ -51,11 +51,11 @@ public class MazeExplorer {
 		if (robot.getOrientation() == null)
 			robot.setOrientation(Orientation.UP); // facing right
 		robot.doCommand(RobotCommand.TURN_RIGHT);
+		// check sensor values; update cells 
+		map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 		double weight = 0;
 		// Initial Right Wall Hug
 		do { 
-			// check sensor values; update cells 
-			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
@@ -65,6 +65,7 @@ public class MazeExplorer {
 
 			// Position update
 			robot.doCommand(RobotCommand.MOVE_FORWARD);
+			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 			try {
 				weight = getPathToStart(map).getWeight();
 			}catch (Exception e) {
@@ -85,6 +86,10 @@ public class MazeExplorer {
 			try {
 				List<Coordinate> start = new LinkedList<>();
 				start.add(robot.getPosition());
+				switch (robot.getOrientation()) {
+					case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
+					case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
+				}
 				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
 				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 				// Orientation update
@@ -92,6 +97,8 @@ public class MazeExplorer {
 				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
 					if(!(map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
+					long temp = unseen.stream().filter(x -> !x.getSeen()).count();
+					if (temp != unseen.size()) break;
 					robot.doCommand(cmd);
 					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 				}
@@ -105,6 +112,11 @@ public class MazeExplorer {
 				try {
 					List<Coordinate> start = new LinkedList<>();
 					start.add(robot.getPosition());
+					//The shortest path should consider the start orientation
+					switch (robot.getOrientation()) {
+						case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
+						case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
+					}
 					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
 					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 					// Orientation update
@@ -113,6 +125,8 @@ public class MazeExplorer {
 						if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 						if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition()))
 							break;
+						long temp = unseen.stream().filter(x -> !x.getSeen()).count();
+						if (temp != unseen.size()) break;
 						robot.doCommand(cmd);
 						map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
 					}
@@ -126,7 +140,7 @@ public class MazeExplorer {
 				}
 			}
 		}
-		
+				
 		// path back to start position
 		try {
 			ShortestPath toStartingPoint = getPathToStart(map);
@@ -134,6 +148,7 @@ public class MazeExplorer {
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
 				robot.doCommand(cmd);
 			}
+			robot.getPosition().setFacing(Coordinate.Facing.NONE);
 		} catch (Exception e) {
 			
 		}
@@ -142,6 +157,10 @@ public class MazeExplorer {
 	private ShortestPath getPathToStart(Map map) throws Exception {
 		List<Coordinate> start = new LinkedList<>();
 		start.add(robot.getPosition());
+		switch (robot.getOrientation()) {
+			case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
+			case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
+		}
 		List<Coordinate> end = new LinkedList<>();
 		end.add(new Coordinate(1,1));
 		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);

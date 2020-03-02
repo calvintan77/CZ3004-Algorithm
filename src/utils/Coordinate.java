@@ -16,6 +16,10 @@ public class Coordinate {
     public Facing getFacing(){
         return facing;
     }
+    
+    public void setFacing(Facing f) {
+    	this.facing = f;
+    }
 
     public Coordinate(int x, int y) {
         X = x;

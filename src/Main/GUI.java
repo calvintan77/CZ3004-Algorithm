@@ -439,24 +439,27 @@ public class GUI extends JFrame implements ActionListener{
 			clearMapGrids();
 		} else if (cmd.equals("ExploreMaze")) {
 			clearMazeGrids();
-			eraseWayPoint();
+			eraseWayPoint(Map.getRealMapInstance());
 			refreshExploreInput();
 			exploreButton.setEnabled(false);
         	RobotController.getInstance().exploreMaze();
 		} else if (cmd.equals("FindFastestPath")) {
 //			refreshFfpInput();
 			ffpButton.setEnabled(false);
-			eraseWayPoint();
+			eraseWayPoint(Map.getExploredMapInstance());
 			resetRobotLocation(1,1,Orientation.UP);
 			RobotController.getInstance().fastestPath();
 		}
 	}
-	public void eraseWayPoint() {
+	public void eraseWayPoint(Map map) {
 		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
 			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
-			else
-				mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
+				mapGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
+			} else if (!map.getCell(prevwayPointX, prevwayPointY).getSeen())
+				mapGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
+			else mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
 	}
 	

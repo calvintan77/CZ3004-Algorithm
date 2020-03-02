@@ -162,7 +162,7 @@ public class RobotController {
 						gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+//					e.printStackTrace();
 					System.out.println("Unable to find fastest path");					
 				}
 				return null;
