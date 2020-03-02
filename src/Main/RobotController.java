@@ -126,8 +126,10 @@ public class RobotController {
 						exploredMap = Map.getExploredMapInstance().clone();
 					} else exploredMap = Map.getExploredMapInstance();
 					Graph graph = new Graph(exploredMap, wayPointX, wayPointY);
-					gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
-					gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					if (wayPointX != 1 || wayPointY != 1) {
+						gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+						gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					}
 					ShortestPath result = graph.GetShortestPath();
 					if (result == null) {
 						System.out.println("Unable to find path through waypoint");
@@ -155,8 +157,10 @@ public class RobotController {
 								(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
 							gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
 					}
-					gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
-					gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					if (wayPointX != 1 || wayPointY != 1) {
+						gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+						gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 					System.out.println("Unable to find fastest path");					

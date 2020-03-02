@@ -452,8 +452,12 @@ public class GUI extends JFrame implements ActionListener{
 		}
 	}
 	public void eraseWayPoint() {
-		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR)
-			mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
+			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
+				mapGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
+			else
+				mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+		}
 	}
 	
 	public void resetRobotLocation(int x, int y, Orientation o) {

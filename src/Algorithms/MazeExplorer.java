@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class MazeExplorer {
 	private static MazeExplorer mazeExplorer;
 	private static IRobot robot;
-	private static double BUFFER = 1d  * (1000000000);
+	private static double BUFFER = 1.5  * (1000000000);
 	// private Map map; 	
 	public static MazeExplorer getInstance() {
 		if (mazeExplorer == null) {
