@@ -14,6 +14,7 @@ import java.util.List;
 import javax.swing.JButton;
 
 import Constants.MapConstants;
+import Constants.SensorConstants;
 import Main.GUI;
 
 public class Map {
@@ -144,8 +145,8 @@ public class Map {
 			}
 		}
 		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
-		
 		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
+		
 		File mapFile = new File(savePath);
 
 		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
@@ -268,32 +269,32 @@ public class Map {
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
 		switch (o) { 
 			case UP: 
-				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
-				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
+				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
+				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
 				break;
 			case DOWN:
-				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
-				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
+				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
+				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
 				break;
 			case RIGHT:
-				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
-				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
+				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
+				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
 				break;
 			case LEFT: 
-				updateSingleSensor(values.get(0), 4, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), 2, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(2), 2, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
-				updateSingleSensor(values.get(3), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(4), 2, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
+				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
+				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
+				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
+				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
+				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
 				break;
 		}
 	}
@@ -306,6 +307,7 @@ public class Map {
 	 * @param o: sensor orientation relative to map
 	 */
 	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
+		if(value==-1) value = maxValue;
 		switch (o) {
 			case RIGHT: 
 				// update all seen 

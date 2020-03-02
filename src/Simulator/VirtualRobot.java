@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import Constants.SensorConstants;
 import Main.GUI;
 import utils.*;
 
@@ -37,32 +38,32 @@ public class VirtualRobot implements IRobot {
 		int cnt = 0;
 		switch (this.o) {
 			case UP:
-				sensorValues.add(getSingleSensor(realMap, 4, getPosition().getX() - 1, getPosition().getY() + 1, Orientation.getCounterClockwise(getOrientation())));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() + 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX(), getPosition().getY() + 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() + 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() + 1, Orientation.getClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.LONG_RANGE, getPosition().getX() - 1, getPosition().getY() + 1, Orientation.getCounterClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() + 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX(), getPosition().getY() + 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() + 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() + 1, Orientation.getClockwise(getOrientation())));
 				break;
 			case LEFT:
-				sensorValues.add(getSingleSensor(realMap, 4, getPosition().getX() - 1, getPosition().getY() - 1, Orientation.getCounterClockwise(getOrientation())));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() - 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY(), getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() + 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() + 1, Orientation.getClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.LONG_RANGE, getPosition().getX() - 1, getPosition().getY() - 1, Orientation.getCounterClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() - 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY(), getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() + 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() + 1, Orientation.getClockwise(getOrientation())));
 				break;
 			case RIGHT:
-				sensorValues.add(getSingleSensor(realMap, 4, getPosition().getX() + 1, getPosition().getY() + 1, Orientation.getCounterClockwise(getOrientation())));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() + 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY(), getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() - 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() - 1, Orientation.getClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.LONG_RANGE, getPosition().getX() + 1, getPosition().getY() + 1, Orientation.getCounterClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() + 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY(), getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() - 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() - 1, Orientation.getClockwise(getOrientation())));
 				break;
 			case DOWN:
-				sensorValues.add(getSingleSensor(realMap, 4, getPosition().getX() + 1, getPosition().getY() - 1, Orientation.getCounterClockwise(getOrientation())));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() + 1, getPosition().getY() - 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX(), getPosition().getY() - 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() - 1, getOrientation()));
-				sensorValues.add(getSingleSensor(realMap, 2, getPosition().getX() - 1, getPosition().getY() - 1, Orientation.getClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.LONG_RANGE, getPosition().getX() + 1, getPosition().getY() - 1, Orientation.getCounterClockwise(getOrientation())));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() + 1, getPosition().getY() - 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX(), getPosition().getY() - 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() - 1, getOrientation()));
+				sensorValues.add(getSingleSensor(realMap, SensorConstants.SHORT_RANGE, getPosition().getX() - 1, getPosition().getY() - 1, Orientation.getClockwise(getOrientation())));
 				break;
 
 		}
@@ -193,7 +194,7 @@ public class VirtualRobot implements IRobot {
 		HashMap<MapCell, Orientation> candidates = new HashMap<>();
 		MapCell check;
 		//4 is left sensor length
-		for (int i = 1; i <= 4; i++) {
+		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
 			//POSITION IS LEFT OF ROBOT IN MAP
 			MapCell cand = map.getCell(cell.x + i, cell.y);
 			if (cand == null || cand.isObstacle()) {
@@ -203,7 +204,7 @@ public class VirtualRobot implements IRobot {
 			check = map.getCell(cell.x + i + 1, cell.y - 1);
 			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.UP);
 			//FRONT AND RIGHT SENSORS
-			if (i <= 2) {
+			if (i <= SensorConstants.SHORT_RANGE) {
 				// RIGHT SENSOR
 				check = map.getCell(cell.x + i + 1, cell.y + 1);
 				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.DOWN);
@@ -214,7 +215,7 @@ public class VirtualRobot implements IRobot {
 		}
 
 		//POSITION IS RIGHT OF ROBOT IN MAP
-		for (int i = 1; i <= 4; i++) {
+		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
 			MapCell cand = map.getCell(cell.x - i, cell.y);
 			if (cand == null || cand.isObstacle()) {
 				break;
@@ -223,7 +224,7 @@ public class VirtualRobot implements IRobot {
 			check = map.getCell(cell.x - i - 1, cell.y + 1);
 			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.DOWN);
 			//FRONT AND RIGHT SENSORS
-			if (i <= 2) {
+			if (i <= SensorConstants.SHORT_RANGE) {
 				// RIGHT SENSOR
 				check = map.getCell(cell.x - i - 1, cell.y - 1);
 				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.UP);
@@ -234,7 +235,7 @@ public class VirtualRobot implements IRobot {
 		}
 
 		//POSITION IS BELOW THE ROBOT IN MAP
-		for (int i = 1; i <= 4; i++) {
+		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
 			MapCell cand = map.getCell(cell.x, cell.y + i);
 			if (cand == null || cand.isObstacle()) {
 				break;
@@ -243,7 +244,7 @@ public class VirtualRobot implements IRobot {
 			check = map.getCell(cell.x + 1, cell.y + i + 1);
 			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.LEFT);
 			//FRONT AND RIGHT SENSORS
-			if (i <= 2) {
+			if (i <= SensorConstants.SHORT_RANGE) {
 				// RIGHT SENSOR
 				check = map.getCell(cell.x - 1, cell.y + i + 1);
 				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.RIGHT);
@@ -254,7 +255,7 @@ public class VirtualRobot implements IRobot {
 		}
 
 		//POSITION IS ABOVE THE ROBOT IN MAP
-		for (int i = 1; i <= 4; i++) {
+		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
 			MapCell cand = map.getCell(cell.x, cell.y - i);
 			if (cand == null || cand.isObstacle()) {
 				break;
@@ -263,7 +264,7 @@ public class VirtualRobot implements IRobot {
 			check = map.getCell(cell.x - 1, cell.y - i - 1);
 			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.RIGHT);
 			//FRONT AND RIGHT SENSORS
-			if (i <= 2) {
+			if (i <= SensorConstants.SHORT_RANGE) {
 				// RIGHT SENSOR
 				check = map.getCell(cell.x + 1, cell.y - i - 1);
 				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.LEFT);
