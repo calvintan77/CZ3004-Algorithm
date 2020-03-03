@@ -147,10 +147,15 @@ public class MazeExplorer {
 				}
 			}
 		}
-				
+		
 		// path back to start position
 		try {
-			ShortestPath toStartingPoint = getPathToStart(map);
+			ShortestPath toStartingPoint;
+			if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) {
+				toStartingPoint = getPathToStart(map.clone());
+			}else {
+				toStartingPoint = getPathToStart(map);
+			}
 			robot.prepareOrientation(toStartingPoint.getStartingOrientation());
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
 				robot.doCommand(cmd);

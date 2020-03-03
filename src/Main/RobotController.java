@@ -125,17 +125,23 @@ public class RobotController {
 					if (Map.getExploredMapInstance().getExploredPercent() < 100) {
 						exploredMap = Map.getExploredMapInstance().clone();
 					} else exploredMap = Map.getExploredMapInstance();
-					Graph graph = new Graph(exploredMap, wayPointX, wayPointY);
-					if (wayPointX != 1 || wayPointY != 1) {
-						gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
-						gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
-					}
-					ShortestPath result = graph.GetShortestPath();
-					if (result == null) {
-						System.out.println("Unable to find path through waypoint");
-						graph = new Graph(exploredMap, 1, 1);
+					ShortestPath result;
+					do {
+						Graph graph = new Graph(exploredMap, wayPointX, wayPointY);
+						if (wayPointX != 1 || wayPointY != 1) {
+							gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+							gui.setMapGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
+						}
 						result = graph.GetShortestPath();
-					}
+						if (result == null) {
+							System.out.println("Unable to find path through waypoint");
+							graph = new Graph(exploredMap, 1, 1);
+							result = graph.GetShortestPath();
+						}
+						if (result == null) {
+							exploredMap.expandSearchSpace();
+						}
+					}while (result == null && !exploredMap.getAllUnseen().isEmpty());
 					if (result.isStartingOrientationHorizontal()) {
 						robot.prepareOrientation(Orientation.RIGHT);
 					} else robot.prepareOrientation(Orientation.UP);

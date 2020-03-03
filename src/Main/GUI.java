@@ -419,39 +419,48 @@ public class GUI extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
-		if (cmd.matches("ToggleObstacleAt [0-9]+,[0-9]+")) {
-			int index = cmd.indexOf(",");
-			int x = Integer.parseInt(cmd.substring(17, index));
-			int y = Integer.parseInt(cmd.substring(index + 1));
-			if (mapGrids[x][y].getBackground() == EMPTY_CELL_COLOR) {
-				mapGrids[x][y].setBackground(OBSTACLE_CELL_COLOR);
-			} else {
-				mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
+		try {
+			if (cmd.matches("ToggleObstacleAt [0-9]+,[0-9]+")) {
+				int index = cmd.indexOf(",");
+				int x = Integer.parseInt(cmd.substring(17, index));
+				int y = Integer.parseInt(cmd.substring(index + 1));
+				if (mapGrids[x][y].getBackground() == EMPTY_CELL_COLOR) {
+					mapGrids[x][y].setBackground(OBSTACLE_CELL_COLOR);
+				} else {
+					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
+				}
+			} else if (cmd.equals("SwitchCtrl")) {
+				JComboBox cb = (JComboBox) e.getSource();
+				JPanel cardPanel = (JPanel) settingPane.getComponent(1);
+				CardLayout cardLayout = (CardLayout) (cardPanel.getLayout());
+				cardLayout.show(cardPanel, (String) cb.getSelectedItem());
+			} else if (cmd.equals("LoadMap")) {
+				Map.getRealMapInstance().loadMap(mapGrids);
+			} else if (cmd.equals("ClearMap")) {
+				clearMapGrids();
+			} else if (cmd.equals("ExploreMaze")) {
+				clearMazeGrids();
+				if (!RobotController.REAL_RUN)
+					eraseWayPointForMapGrids(Map.getRealMapInstance());
+				eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+				refreshExploreInput();
+				exploreButton.setEnabled(false);
+	        	RobotController.getInstance().exploreMaze();
+			} else if (cmd.equals("FindFastestPath")) {
+	//			refreshFfpInput();
+				ffpButton.setEnabled(false);
+				if (!RobotController.REAL_RUN)
+					eraseWayPointForMapGrids(Map.getExploredMapInstance());
+				eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+				resetRobotLocation(1,1,Orientation.UP);
+				RobotController.getInstance().fastestPath();
 			}
-		} else if (cmd.equals("SwitchCtrl")) {
-			JComboBox cb = (JComboBox) e.getSource();
-			JPanel cardPanel = (JPanel) settingPane.getComponent(1);
-			CardLayout cardLayout = (CardLayout) (cardPanel.getLayout());
-			cardLayout.show(cardPanel, (String) cb.getSelectedItem());
-		} else if (cmd.equals("LoadMap")) {
-			Map.getRealMapInstance().loadMap(mapGrids);
-		} else if (cmd.equals("ClearMap")) {
-			clearMapGrids();
-		} else if (cmd.equals("ExploreMaze")) {
-			clearMazeGrids();
-			eraseWayPoint(Map.getRealMapInstance());
-			refreshExploreInput();
-			exploreButton.setEnabled(false);
-        	RobotController.getInstance().exploreMaze();
-		} else if (cmd.equals("FindFastestPath")) {
-//			refreshFfpInput();
-			ffpButton.setEnabled(false);
-			eraseWayPoint(Map.getExploredMapInstance());
-			resetRobotLocation(1,1,Orientation.UP);
-			RobotController.getInstance().fastestPath();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
-	public void eraseWayPoint(Map map) {
+	
+	public void eraseWayPointForMapGrids(Map map) {
 		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
 			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
@@ -460,6 +469,18 @@ public class GUI extends JFrame implements ActionListener{
 			} else if (!map.getCell(prevwayPointX, prevwayPointY).getSeen())
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
 			else mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+		}
+	}
+	
+	public void eraseWayPointForMazeGrids(Map map) {
+		if (mazeGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
+			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
+				mazeGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
+			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
+				mazeGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
+			} else if (!map.getCell(prevwayPointX, prevwayPointY).getSeen())
+				mazeGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
+			else mazeGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
 	}
 	
@@ -515,7 +536,7 @@ public class GUI extends JFrame implements ActionListener{
 	public void clearMapGrids() {
 		for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
 			for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
-				if (! ((x <= 2 && y <= 2) || (x >= 13 && y >= 13)))
+				if (! ((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
 					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 			}
 		}
@@ -659,13 +680,33 @@ public class GUI extends JFrame implements ActionListener{
 				} 
 			} else if (name.equals("WaypointX")) {
 				if (input.matches("[0-9]+")) {
+					int value = Integer.parseInt(input);
+					if (value > 14)
+						return;
 					prevwayPointX = wayPointX;
-					wayPointX = Integer.parseInt(input);
+					prevwayPointY = wayPointY;
+					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+					if (!RobotController.REAL_RUN)
+						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+					wayPointX = value;
+					GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+					if (!RobotController.REAL_RUN)
+						GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
 				}
 			} else if (name.equals("WaypointY")) {				
 				if (input.matches("[0-9]+")) {
+					int value = Integer.parseInt(input);
+					if (value > 19)
+						return;
+					prevwayPointX = wayPointX;
 					prevwayPointY = wayPointY;
-					wayPointY = Integer.parseInt(input);
+					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+					if (!RobotController.REAL_RUN)
+						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+					wayPointY = value;
+					GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+					if (!RobotController.REAL_RUN)
+						GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
 				}
 			}
 		}

@@ -8,8 +8,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 
@@ -19,7 +21,7 @@ import Main.GUI;
 
 public class Map {
 
-	private static final String MAP_FILE_PATH = "src/input.txt";
+	private static final String MAP_FILE_PATH = "src/sample arena 3.txt";
 
 	private static Map exploredMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
@@ -262,6 +264,19 @@ public class Map {
 		return arr; 
 	}
 	
+	// unelegant way of getting seen 
+	public List<MapCell> getAllSeen() {
+		List<MapCell> arr = new ArrayList<MapCell>(); 
+		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
+			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
+				if (this.getCell(i, j).getSeen()) {
+					arr.add(this.getCell(i, j));
+				}
+			}
+		}
+		return arr; 
+	}
+	
 	/**
 	 * TODO: abstract getting of sensor coord
 	 * @param values: list of string values to update in format of l,f,f,f,r 
@@ -350,9 +365,17 @@ public class Map {
 	 * @param c
 	 */
 	public void setObstacle(Coordinate c) {
+		setObstacle(c, true);
+	}
+	
+	/**
+	 * set c to be obstacle and surrounding to be virtual walls 
+	 * @param c
+	 */
+	public void setObstacle(Coordinate c, boolean markSeen) {
 		if(this.getCell(c) == null) return;
 		this.getCell(c).setObstacleStatus(true);
-		this.markCellSeen(c.getX(), c.getY());
+		if(markSeen) this.markCellSeen(c.getX(), c.getY());
 		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
 			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
 				if (i == c.getX() && j == c.getY()) {
@@ -361,6 +384,25 @@ public class Map {
 					if (this.getCell(i, j) != null) {
 						this.getCell(i, j).setVirtualWall(true);
 					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * unset c to be obstacle and surrounding to be virtual walls 
+	 * @param c
+	 */
+	public void unsetObstacle(Coordinate c) {
+		if(this.getCell(c) == null) return;
+		this.getCell(c).setObstacleStatus(false);
+		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
+			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
+				if (i != 0 && i != 14 && j != 0 && j != 19 && 
+						this.getCell(i, j) != null && 
+						this.getCell(i, j).getSeen() &&
+						!this.getAdjacent(this.getCell(i, j)).stream().anyMatch(x -> x.isObstacle()&&x.getSeen())) {
+					this.getCell(i, j).setVirtualWall(false);
 				}
 			}
 		}
@@ -433,18 +475,48 @@ public class Map {
 		return map;
 	}
 	
+	/**
+	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
+	 * @param m
+	 * @return
+	 */
+	public List<MapCell> getAdjacent(MapCell m) {
+		List<MapCell> cells = new ArrayList<>();
+		for(int i = m.x-1; i <= m.x+1; i++) {
+			for(int j = m.y-1; j <= m.y+1; j++) {
+				if(i == m.x && j == m.y) continue;
+				if(this.getCell(i, j) != null) {
+					cells.add(this.getCell(i, j));
+				}
+			}
+		}
+		return cells;
+	}
+	
 	public Map clone() {
 		Map cloneMap = new Map();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).getSeen() || this.getCell(i,j).isObstacle()) {
-					cloneMap.getCell(i, j).setSeen(true);
-					cloneMap.setObstacle(new Coordinate(i,j));
+				if (!this.getCell(i, j).getSeen()) {
+					cloneMap.setObstacle(new Coordinate(i,j), false);
 				} else cloneMap.getCell(i, j).setSeen(true);
+				if(this.getCell(i, j).isObstacle()) {
+					cloneMap.setObstacle(new Coordinate(i, j), false);
+				}
 			}
 		}
 		return cloneMap;
 	}
+	
+	public void expandSearchSpace() {
+		List<Coordinate> seenNeighbours = getAllSeen().stream().map(this::getAdjacent).flatMap(Collection::stream).filter(x -> !x.getSeen()).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		for(Coordinate c:seenNeighbours) {
+			this.getCell(c).setSeen(true);
+			unsetObstacle(c);
+		}
+	}
+	
+	
 	
 	public static void main(String[] args) {
 		File mapFile = new File(MAP_FILE_PATH);
