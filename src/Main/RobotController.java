@@ -65,7 +65,7 @@ public class RobotController {
 				gui.setStatus("Exploring");
 				try {
 					if (!REAL_RUN) {
-						robot.prepareOrientationCmds(Orientation.UP);
+						robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.UP), null);
 						explorer.exploreMaze(Map.getExploredMapInstance(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
 					}else explorer.exploreMaze(Map.getExploredMapInstance(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
 				} catch (Exception e) {
@@ -143,8 +143,8 @@ public class RobotController {
 						}
 					}while (result == null && !exploredMap.getAllUnseen().isEmpty());
 					if (result.isStartingOrientationHorizontal()) {
-						robot.prepareOrientationCmds(Orientation.RIGHT);
-					} else robot.prepareOrientationCmds(Orientation.UP);
+						robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.RIGHT), null);
+					} else robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.UP), null);
 					List<GraphNode> path = result.getPath();
 					for(GraphNode n: path){
 						if (!( (n.getX()==0 && n.getY()==0) || 
