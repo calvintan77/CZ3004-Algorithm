@@ -126,6 +126,19 @@ public class Map {
 	}
 	
 	public static void saveMap(Map map, String savePath) {
+		MapTuple tup = generateMapDescriptor(map);		
+		File mapFile = new File(savePath);
+
+		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
+			mapFileWriter.write(tup.GetP1());
+			mapFileWriter.newLine();
+			mapFileWriter.write(tup.GetP2());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static MapTuple generateMapDescriptor(Map map) {
 		StringBuilder b1MapDescriptor = new StringBuilder();
 		StringBuilder b2MapDescriptor = new StringBuilder();
 		b1MapDescriptor.append("11");
@@ -140,6 +153,7 @@ public class Map {
 			}
 		}
 		b1MapDescriptor.append("11");
+
 		if (b2MapDescriptor.length() % 4 != 0) {
 			int padding = 4 - (b2MapDescriptor.length()%4);
 			for (int i=0; i<padding; i++) {
@@ -148,37 +162,7 @@ public class Map {
 		}
 		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
 		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
-		
-		File mapFile = new File(savePath);
-
-		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
-			mapFileWriter.write(h1MapDescriptor);
-			mapFileWriter.newLine();
-			mapFileWriter.write(h2MapDescriptor);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static String generateMapDescriptor(Map map) {
-		StringBuilder b1MapDescriptor = new StringBuilder();
-		StringBuilder b2MapDescriptor = new StringBuilder();
-		b1MapDescriptor.append("11");
-		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-				if (map.getCell(i, j).getSeen()) {
-					b1MapDescriptor.append("1");
-					if (map.getCell(i, j).isObstacle())
-						b2MapDescriptor.append("1");
-					else b2MapDescriptor.append("0");
-				} else b1MapDescriptor.append("0");
-			}
-		}
-		b1MapDescriptor.append("11");
-		
-		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
-		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
-		return h1MapDescriptor+"\n"+h2MapDescriptor;
+		return new MapTuple(h1MapDescriptor, h2MapDescriptor);
 	}
 	
 
@@ -278,7 +262,6 @@ public class Map {
 	}
 	
 	/**
-	 * TODO: abstract getting of sensor coord
 	 * @param values: list of string values to update in format of l,f,f,f,r 
 	 **/
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 

@@ -112,7 +112,8 @@ public class VirtualRobot implements IRobot {
 		return -1;
 	}
 
-	public void doCommand(RobotCommand cmd) {
+	@Override
+	public void doCommandWithSensor(RobotCommand cmd, Map map) {
 		switch (cmd) {
 			case TURN_LEFT:
 				this.setOrientation(Orientation.getCounterClockwise(this.o));
@@ -123,18 +124,21 @@ public class VirtualRobot implements IRobot {
 			case MOVE_FORWARD:
 				switch (this.o) {
 					case UP:
-						this.setPosition(this.getPosition().getX(), this.getPosition().getY() + 1);
+						this.setPosition(this.position.getX(), this.position.getY() + 1);
 						break;
 					case LEFT:
-						this.setPosition(this.getPosition().getX() - 1, this.getPosition().getY());
+						this.setPosition(this.position.getX() - 1, this.position.getY());
 						break;
 					case DOWN:
-						this.setPosition(this.getPosition().getX(), this.getPosition().getY() - 1);
+						this.setPosition(this.position.getX(), this.position.getY() - 1);
 						break;
 					case RIGHT:
-						this.setPosition(this.getPosition().getX() + 1, this.getPosition().getY());
+						this.setPosition(this.position.getX() + 1, this.position.getY());
 						break;
 				}
+		}
+		if(map != null){
+			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
 		}
 		try {
 			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / speed);    //int timePerStep = 1000/speed (ms)
@@ -160,27 +164,21 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void prepareOrientation(Orientation target) {
-		prepareOrientation(target, false, null);
-	}
-
-	@Override
-	public void prepareOrientation(Orientation target, boolean checkSensors, Map map) {
-		// Orientation update
+	public List<RobotCommand> prepareOrientationCmds(Orientation target) {
+		List<RobotCommand> cmds = new ArrayList<>();
 		if (this.getOrientation() != target) {
 			int rightTurns = this.getOrientation().getRightTurns(target);
 			if (rightTurns > 0) {
 				for (int i = 0; i < rightTurns; i++) {
-					this.doCommand(RobotCommand.TURN_RIGHT);
-					if (checkSensors) map.updateFromSensor(getSensorValues(), this.position, this.o);
+					cmds.add(RobotCommand.TURN_RIGHT);
 				}
 			} else {
 				for (int i = 0; i < -rightTurns; i++) {
-					this.doCommand(RobotCommand.TURN_LEFT);
-					if (checkSensors) map.updateFromSensor(getSensorValues(), this.position, this.o);
+					cmds.add(RobotCommand.TURN_LEFT);
 				}
 			}
 		}
+		return cmds;
 
 	}
 
@@ -279,4 +277,23 @@ public class VirtualRobot implements IRobot {
 	private boolean isViableCell(MapCell cell) {
 		return cell != null && !cell.isObstacle() && !cell.isVirtualWall();
 	}
+
+	public boolean Calibrate(Map m) { 
+		return true; 
+	}
+
+	@Override
+	public void prepareOrientation(List<RobotCommand> cmds, Map map) {
+		for(RobotCommand cmd: cmds){
+			doCommandWithSensor(cmd, map);
+		}
+	}
+
+	@Override
+	public void doFastestPath(List<RobotCommand> cmds) {
+		for(RobotCommand cmd: cmds){
+			doCommandWithSensor(cmd, null);
+		}
+	}
+	
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum RobotCommand {
-	TURN_LEFT("J"), TURN_RIGHT("L"), MOVE_FORWARD("I");
+	TURN_LEFT("L"), TURN_RIGHT("R"), MOVE_FORWARD("M"), CALIBRATE("C"); 
 
 	private String letter;
 	private static Map<String, RobotCommand> map = new HashMap<>();

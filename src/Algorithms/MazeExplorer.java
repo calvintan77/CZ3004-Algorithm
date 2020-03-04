@@ -34,8 +34,7 @@ public class MazeExplorer {
 	// explore given map within given time limit - iter 
 	// at every step we need to update sensor values
 	// after update, determine is there are any virtual walls in front
-	// while NO VIRTUAL WALL we can move 
-	// TODO: translate orientation to actual move 
+	// while NO VIRTUAL WALL we can move  
 	/**
 	 * right wall hug to explore  
 	 * @param map: the given map which we are doing exploration on - start point is assumed to be (1,1) 
@@ -50,22 +49,20 @@ public class MazeExplorer {
 			robot.setPosition(1, 1);
 		if (robot.getOrientation() == null)
 			robot.setOrientation(Orientation.UP); // facing right
-		robot.doCommand(RobotCommand.TURN_RIGHT);
-		// check sensor values; update cells 
-		map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+		robot.doCommandWithSensor(RobotCommand.TURN_RIGHT, map);
 		double weight = 0;
 		// Initial Right Wall Hug
 		do { 
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
-			// this does not actually work
 			// update robot's internal state
-			robot.prepareOrientation(nextOrientation, true, map);
-
+			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation),map);
 			// Position update
-			robot.doCommand(RobotCommand.MOVE_FORWARD);
-			map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+			if (robot.getPosition().equals(new Coordinate(14, 19))) { 
+				robot.Calibrate(map); 
+			}
 			try {
 				weight = getPathToStart(map).getWeight();
 			}catch (Exception e) {
@@ -73,7 +70,6 @@ public class MazeExplorer {
 			}
 		}
 		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getExploredPercent() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
-//		while ((robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored
 		// enqueue all unseen cells
@@ -82,7 +78,6 @@ public class MazeExplorer {
 			// shortest path to unseen
 			// fuck doing fp in java
 			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
-			// change to List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints)
 			try {
 				List<Coordinate> start = new LinkedList<>();
 				start.add(robot.getPosition());
@@ -96,14 +91,13 @@ public class MazeExplorer {
 				if(IsMakingWeirdTurns(toUnexploredPoint)){
 					toUnexploredPoint.getPath().remove(1);
 				}
-				robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
+				robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
 				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
 					if(!(map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
-					long temp = unseen.stream().filter(x -> !x.getSeen()).count();
-					if (temp != unseen.size()) break;
-					robot.doCommand(cmd);
-					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+					long numUnseen = unseen.stream().filter(x -> !x.getSeen()).count();
+					if (numUnseen != unseen.size()) break;
+					robot.doCommandWithSensor(cmd, map);
 				}
 				weight = getPathToStart(map).getWeight();
 				unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
@@ -126,19 +120,18 @@ public class MazeExplorer {
 					if(IsMakingWeirdTurns(toUnexploredPoint)) {
 						toUnexploredPoint.getPath().remove(1);
 					}
-					//TODO: Check first instruction, if turn, then getStartingOrientation with that orientation and then skip first instruction
-					robot.prepareOrientation(toUnexploredPoint.getStartingOrientation());
+					robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
+					// Loop over commands until discover new unseen
 					for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
 						if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 						if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition()))
 							break;
-						long temp = unseen.stream().filter(x -> !x.getSeen()).count();
-						if (temp != unseen.size()) break;
-						robot.doCommand(cmd);
-						map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+						long numUnseen = unseen.stream().filter(x -> !x.getSeen()).count();
+						if (numUnseen != unseen.size()) break;
+						robot.doCommandWithSensor(cmd, map);
 					}
-					robot.prepareOrientation(candidates.get(map.getCell(toUnexploredPoint.getDestination())));
-					map.updateFromSensor(robot.getSensorValues(), robot.getPosition(), robot.getOrientation());
+					// See edge case cell
+					robot.prepareOrientation(robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination()))), map);
 					weight = getPathToStart(map).getWeight();
 					unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
 				} catch (Exception e2) {
@@ -156,10 +149,13 @@ public class MazeExplorer {
 			}else {
 				toStartingPoint = getPathToStart(map);
 			}
-			robot.prepareOrientation(toStartingPoint.getStartingOrientation());
+			// Set orientation to face the right way to go to start
+			robot.prepareOrientation(robot.prepareOrientationCmds(toStartingPoint.getStartingOrientation()), map);
+			// go back to start
 			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
-				robot.doCommand(cmd);
+				robot.doCommandWithSensor(cmd, map);
 			}
+			// Prepare for FP to goalzone
 			robot.getPosition().setFacing(Coordinate.Facing.NONE);
 		} catch (Exception e) {
 			

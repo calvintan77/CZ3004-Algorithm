@@ -65,7 +65,7 @@ public class RobotController {
 				gui.setStatus("Exploring");
 				try {
 					if (!REAL_RUN) {
-						robot.prepareOrientation(Orientation.UP);
+						robot.prepareOrientationCmds(Orientation.UP);
 						explorer.exploreMaze(Map.getExploredMapInstance(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
 					}else explorer.exploreMaze(Map.getExploredMapInstance(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
 				} catch (Exception e) {
@@ -143,8 +143,8 @@ public class RobotController {
 						}
 					}while (result == null && !exploredMap.getAllUnseen().isEmpty());
 					if (result.isStartingOrientationHorizontal()) {
-						robot.prepareOrientation(Orientation.RIGHT);
-					} else robot.prepareOrientation(Orientation.UP);
+						robot.prepareOrientationCmds(Orientation.RIGHT);
+					} else robot.prepareOrientationCmds(Orientation.UP);
 					List<GraphNode> path = result.getPath();
 					for(GraphNode n: path){
 						if (!( (n.getX()==0 && n.getY()==0) || 
@@ -152,9 +152,7 @@ public class RobotController {
 					    	gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
 					}
 					
-					for(RobotCommand command: result.generateInstructions()){
-					    robot.doCommand(command);
-					}
+					robot.doFastestPath(result.generateInstructions());
 					
 					for(GraphNode n: path){
 						if (!(gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_COLOR
@@ -238,49 +236,5 @@ public class RobotController {
 		GUI myGui = GUI.getInstance();
 		myGui.setVisible(true);
 		myGui.refreshExploreInput();
-//		String key = null;
-//		IRobot myRobot = VirtualRobot.getInstance();
-//        Map realMap = Map.getRealMapInstance();
-////        Map map = Map.getExploredMapInstance();
-//        for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
-//        	for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-//        		MapCell cell = realMap.getCell(i, j);
-////        		cell.setExploredStatus(true);
-//        		cell.setSeen(true);
-//        		if (!cell.isObstacle()) {
-//        			//TODO: Refactor to MAP, this sets the boundary of arena to virtual walls
-//        			if (i==0 || i==MapConstants.MAP_WIDTH-1 || j==0 || j==MapConstants.MAP_HEIGHT-1) {
-//        				cell.setVirtualWall(true);
-//        			} else {
-//        				for (int p=i-1; p<=i+1; p++) {
-//        					for (int q=j-1; q<=j+1; q++)
-//        						if (realMap.getCell(p, q).isObstacle())
-//        							cell.setVirtualWall(true);
-//        				}
-//        			}
-//        		}
-//        	}
-//        }
-//        myRobot.setOrientation(Orientation.UP);
-//        myRobot.setPosition(1, 1);
-//        Graph graph = new Graph(realMap, 10, 14);
-//        ShortestPath result = graph.GetShortestPath();
-//        System.out.println(result.getWeight());
-//        for(GraphNode n: result.getPath()){
-//            System.out.println("Coordinate: (" + n.getX() + ", " + n.getY() + "), Orientation: " + (n.isHorizontal()? "horizontal":"vertical"));
-//        }
-//        System.out.println("Starting Orientation");
-//        System.out.println(result.isStartingOrientationHorizontal()?"Facing Left":"Facing Up");
-//        if (result.isStartingOrientationHorizontal())
-//        	myRobot.prepareOrientation(Orientation.RIGHT);
-//        else myRobot.prepareOrientation(Orientation.UP);
-//        System.out.println("Instructions:");
-//        for(RobotCommand command: result.generateInstructions()){
-//            myRobot.doCommand(command);
-//        }
-//        ((VirtualRobot) myRobot).setSpeed(20);
-//		MazeExplorer e = MazeExplorer.getInstance();
-//        e.setRobot(myRobot);
-//        e.exploreMaze(map, 1000000000);
 	}
 }

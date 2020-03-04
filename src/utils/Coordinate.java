@@ -34,4 +34,9 @@ public class Coordinate {
     public enum Facing{
         HORIZONTAL, VERTICAL, NONE
     }
+
+    public boolean equals(Object o) { 
+        Coordinate cor = (Coordinate) o;
+        return this.X == cor.getX() && this.Y == cor.getY();
+    }
 }
