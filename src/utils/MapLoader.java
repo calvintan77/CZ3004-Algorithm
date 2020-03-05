@@ -1,7 +1,7 @@
 package utils;
 
 import Constants.MapConstants;
-import Main.GUI;
+import GUI.GUI;
 
 import javax.swing.*;
 import java.io.*;

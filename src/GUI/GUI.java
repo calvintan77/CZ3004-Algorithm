@@ -1,4 +1,4 @@
-package Main;
+package GUI;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -10,13 +10,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,9 +18,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import Constants.MapConstants;
-import RealRun.RpiRobot;
-import Simulator.IRobot;
-import Simulator.VirtualRobot;
+import Threading.RobotController;
+import connection.SyncObject;
 import utils.*;
 
 
@@ -50,9 +43,11 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton[][] mapGrids, mazeGrids;
 	private JTextField[] exploreTextFields, ffpTextFields;
 	private JButton exploreButton, ffpButton;
-	private int[] robotPosition;
-	private Orientation currentOrientation;
-	private int targetExplorePercentage, wayPointX, wayPointY, prevWayPointX, prevWayPointY;
+	private GUIUpdate update;
+	private SwingWorker<Void, Void> pollingWorker;
+	private Timer timerWorker;
+	private int wayPointX = -1;
+	private int wayPointY = -1;
 	public static int exploreTimeLimit;
 	public static int fastestPathTimeLimit;
 	
@@ -93,23 +88,7 @@ public class GUI extends JFrame implements ActionListener{
 	public JButton[][] getMazeGrids() {
 		return mazeGrids;
 	}
-	
-	public void setMazeGrids(JButton[][] mazeGrids) {
-		this.mazeGrids = mazeGrids;
-	}
-	
-	public int getTargetExplorePercent() {
-		return targetExplorePercentage;
-	}
-	
-	public int[] getRobotPosition() {
-		return robotPosition;
-	}
-	
-	public Orientation getRobotOrientation() {
-		return currentOrientation;
-	}
-	
+
 	public int getWayPointX() {
 		return wayPointX;
 	}
@@ -123,13 +102,15 @@ public class GUI extends JFrame implements ActionListener{
 	}
 	
 	public void setMazeGridColor(int x, int y, Color color) {
+		if(x < 0 || x >= MapConstants.MAP_WIDTH-1||y < 0 || y >= MapConstants.MAP_HEIGHT -1) return;
 		mazeGrids[x][y].setBackground(color);
 	}
 	
 	public void setMapGridColor(int x, int y, Color color) {
+		if(x < 0 || x >= MapConstants.MAP_WIDTH-1||y < 0 || y >= MapConstants.MAP_HEIGHT -1) return;
 		mapGrids[x][y].setBackground(color);
 	}
-	
+
 	private void initializeDisplayedPane(JPanel contentPane) {
 
 		/*
@@ -276,7 +257,7 @@ public class GUI extends JFrame implements ActionListener{
 		// Add control panel for finding fastest path.
 		JLabel[] ffpCtrlLabels = new JLabel[4];
 		ffpTextFields = new JTextField[4];
-		ffpButton = new JButton("Find fatest path");
+		ffpButton = new JButton("Find fastest path");
 		
 		if (RobotController.REAL_RUN) {
 			ffpButton.setEnabled(false);
@@ -378,16 +359,20 @@ public class GUI extends JFrame implements ActionListener{
 				mazeGrids[realX][realY].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
 				
 				maze.add(mazeGrids[realX][realY]);
-				if ((realX <= 2 & realY <= 2) || (realX >= 12 & realY >= 17)) {
+				// Indicate Start and Goal
+				if (realX == 1 & realY == 1) {
+					mazeGrids[realX][realY].setText("S");
+				}
+				if (realX == 13 && realY == 18) {
+					mazeGrids[realX][realY].setText("G");
+				}
+				//Draw start zone
+				if ((realX <= 2 & realY <= 2)) {
 					mazeGrids[realX][realY].setEnabled(false);
-					mazeGrids[realX][realY].setBackground(Color.ORANGE);
-					if (realX == 1 & realY == 1) {
-						mazeGrids[realX][realY].setText("S");
-					} else if (realX == 13 && realY == 18) {
-						mazeGrids[realX][realY].setText("G");
-					}
+					mazeGrids[realX][realY].setBackground(GOAL_START_ZONE_COLOR);
 				} else {
-					mazeGrids[realX][realY].setBackground(Color.BLACK);
+					// Set unexplored colour
+					mazeGrids[realX][realY].setBackground(UNEXPLORED_CELL_COLOR);
 				}
 			}
 		}
@@ -431,130 +416,110 @@ public class GUI extends JFrame implements ActionListener{
 			} else if (cmd.equals("ClearMap")) {
 				clearMapGrids();
 			} else if (cmd.equals("ExploreMaze")) {
-				clearMazeGrids();
-				if (!RobotController.REAL_RUN)
-					eraseWayPointForMapGrids(Map.getRealMapInstance());
-				eraseWayPointForMazeGrids(Map.getExplorationMap());
-				refreshExploreInput();
-				exploreButton.setEnabled(false);
-	        	RobotController.getInstance().exploreMaze();
+				if(!RobotController.REAL_RUN) {
+					if (!this.isIntExploreInput()) {
+						this.setStatus("invalid input for exploration");
+						this.setExploreBtnEnabled(true);
+						return;
+					}
+					gui.refreshExploreInput();
+					SyncObject.getSyncObject().SignalResetRobot();
+					update = null;
+					if(timerWorker != null){
+						timerWorker.stop();
+						timerWorker = null;
+					}
+
+					//TODO: Kill non update workers if they exist
+					if (!RobotController.REAL_RUN)
+						colourGridCell(Map.getRealMapInstance(), mapGrids, wayPointX, wayPointY);
+					wayPointX = -1;
+					wayPointY = -1;
+					SyncObject.getSyncObject().SignalExplorationStarted();
+				}
 			} else if (cmd.equals("FindFastestPath")) {
-	//			refreshFfpInput();
-				ffpButton.setEnabled(false);
-				if (!RobotController.REAL_RUN)
-					eraseWayPointForMapGrids(Map.getExplorationMap());
-				eraseWayPointForMazeGrids(Map.getExplorationMap());
-				resetRobotLocation(1,1,Orientation.UP);
-				RobotController.getInstance().fastestPath();
+				if(!RobotController.REAL_RUN) {
+					if (!gui.isIntFFPInput()) {
+						gui.setStatus("invalid input for finding fastest path");
+						gui.setFfpBtnEnabled(true);
+						return;
+					}
+					gui.refreshFfpInput();
+					ffpButton.setEnabled(false);
+					SyncObject.getSyncObject().SignalFastestPath();
+				}
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
-	
-	public void eraseWayPointForMapGrids(Map map) {
-		if (mapGrids[prevWayPointX][prevWayPointY].getBackground() == WAYPOINT_COLOR) {
-			if ((prevWayPointX <= 2 && prevWayPointY <= 2) || (prevWayPointX >= 12 && prevWayPointY >= 17))
-				mapGrids[prevWayPointX][prevWayPointY].setBackground(GOAL_START_ZONE_COLOR);
-			else if (map.getCell(prevWayPointX, prevWayPointY).isObstacle()) {
-				mapGrids[prevWayPointX][prevWayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevWayPointX, prevWayPointY).isSeen())
-				mapGrids[prevWayPointX][prevWayPointY].setBackground(UNEXPLORED_CELL_COLOR);
-			else mapGrids[prevWayPointX][prevWayPointY].setBackground(EMPTY_CELL_COLOR);
+
+	public void pollInBackground() {
+		if(pollingWorker == null) {
+			pollingWorker = new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground()  {
+					while (true) {
+						try {
+							if (update != null && timerWorker == null) {
+								startTimer();
+							}
+							update = SyncObject.getSyncObject().GetGUIUpdate();
+							DrawMap(update.getMap(), mazeGrids);
+							DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
+						}catch (Exception e){
+							System.out.println("Polling Worker: " + e.toString());
+						}
+					}
+				}
+			};
+			pollingWorker.execute();
 		}
 	}
-	
-	public void eraseWayPointForMazeGrids(Map map) {
-		if (mazeGrids[prevWayPointX][prevWayPointY].getBackground() == WAYPOINT_COLOR) {
-			if ((prevWayPointX <= 2 && prevWayPointY <= 2) || (prevWayPointX >= 12 && prevWayPointY >= 17))
-				mazeGrids[prevWayPointX][prevWayPointY].setBackground(GOAL_START_ZONE_COLOR);
-			else if (map.getCell(prevWayPointX, prevWayPointY).isObstacle()) {
-				mazeGrids[prevWayPointX][prevWayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevWayPointX, prevWayPointY).isSeen())
-				mazeGrids[prevWayPointX][prevWayPointY].setBackground(UNEXPLORED_CELL_COLOR);
-			else mazeGrids[prevWayPointX][prevWayPointY].setBackground(EMPTY_CELL_COLOR);
+
+	private void startTimer(){
+		TimerEvent timeActionListener;
+		if (RobotController.REAL_RUN) {
+			timeActionListener = new TimerEvent(RobotController.REAL_EXPLORE_TIME_LIMIT, SyncObject.getSyncObject()::HasExplorationFinished);
+
+		} else timeActionListener = new TimerEvent(GUI.exploreTimeLimit, SyncObject.getSyncObject()::HasExplorationFinished);
+		Timer exploringTimer = new Timer(1000, timeActionListener);
+		timeActionListener.setTimer(exploringTimer);
+		exploringTimer.start();
+	}
+
+	private void colourGridCell(Map map, JButton[][] grid, int i, int j){
+		if(i < 0 || j < 0 || i >= MapConstants.MAP_WIDTH || j >= MapConstants.MAP_HEIGHT) return;
+		if (i<=2 && j<= 2)
+			grid[i][j].setBackground(GOAL_START_ZONE_COLOR);
+		else if (!map.getCell(i, j).isSeen()) {
+			grid[i][j].setBackground(UNEXPLORED_CELL_COLOR);
+		} else if(i >= 12 && j >=17){
+			grid[i][j].setBackground(GOAL_START_ZONE_COLOR);
+		} else if (map.getCell(i, j).isObstacle()) {
+			grid[i][j].setBackground(OBSTACLE_CELL_COLOR);
+		} else {
+			grid[i][j].setBackground(EMPTY_CELL_COLOR);
 		}
 	}
-	
-	public void resetRobotLocation(int x, int y, Orientation o) {
-		if (x<=0 || y<=0 || x>=MapConstants.MAP_WIDTH-1 || y>=MapConstants.MAP_HEIGHT-1) {
-			System.out.println("Invalid robot position");
-			return;
-		}
-		Map map = Map.getExplorationMap();
-		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
-			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if ((i<=2 && j<= 2) || (i>=12 && j>=17))
-					mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-				else if (!map.getCell(i, j).isSeen()) {
-					mazeGrids[i][j].setBackground(UNEXPLORED_CELL_COLOR);
-				} else if (map.getCell(i, j).isObstacle()) {
-					mazeGrids[i][j].setBackground(OBSTACLE_CELL_COLOR);
-				} else mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-			}
-		}
-		for (int i=x-1; i<=x+1; i++) {
-			for (int j=y-1; j<=y+1; j++) {
-				mazeGrids[i][j].setBackground(ROBOT_COLOR);
-			}
-		}
-		int robotHeadX = x;
-		int robotHeadY = y;
-		switch(o) {
-			case UP:
-				robotHeadY++;
-				break;
-			case RIGHT:
-				robotHeadX++;
-				break;
-			case DOWN:
-				robotHeadY--;
-				break;
-			case LEFT:
-				robotHeadX--;
-				break;
-		}
-		IRobot robot = null;
-		if (!RobotController.REAL_RUN) {
-			robot = VirtualRobot.getInstance();
-		} else robot = RpiRobot.getInstance();
-		robot.setPosition(x, y);
-		robot.setOrientation(o);
-		robotPosition = new int[] {x,y};
-		currentOrientation = o;
-		
+
+	@Override
+	public void setVisible(boolean visible){
+		if(visible) this.pollInBackground();
+		super.setVisible(visible);
 	}
-	
+
+	/**
+	 * Erases simulation map and saves it via loadRealMapFromGUI
+	 */
 	public void clearMapGrids() {
 		for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
 			for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
-				if (! ((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
+				if (! ((x <= 2 && y <= 2)))
 					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 			}
 		}
 		MapLoader.loadRealMapFromGUI(mapGrids);
-	}
-	
-	public void clearMazeGrids() {
-		for (int x=0; x < MapConstants.MAP_WIDTH; x++) {
-			for (int y=0; y < MapConstants.MAP_HEIGHT; y++) {
-				if (! ((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
-					mazeGrids[x][y].setBackground(UNEXPLORED_CELL_COLOR);
-				else if (x <= 2 && y <= 2) {
-					mazeGrids[x][y].setBackground(ROBOT_COLOR);
-				} else mazeGrids[x][y].setBackground(GOAL_START_ZONE_COLOR);
-			}
-		}
-		mazeGrids[1][2].setBackground(ROBOT_HEAD_COLOR);
-		Map.getExplorationMap().clearMap();
-		robotPosition = new int[] {1,1};
-		currentOrientation = Orientation.UP;
-		IRobot robot;
-		if (!RobotController.REAL_RUN) {
-			robot = VirtualRobot.getInstance();
-		} else robot = RpiRobot.getInstance();
-		robot.setPosition(robotPosition[0], robotPosition[1]);
-		robot.setOrientation(currentOrientation);
 	}
 
 	public void setStatus(String message) {
@@ -565,20 +530,12 @@ public class GUI extends JFrame implements ActionListener{
 		timer.setText("Time left (sec): " + timeLeft);
 	}
 	
-	public String getTimerMessage () {
-		return timer.getText();
-	}
-	
 	public void setTimerMessage (String message) {
 		timer.setText(message);
 	}
 	
 	public void setCoverageUpdate (Float coverage) {
 		coverageRateUpdate.setText("Coverage (%): " + 	String.format("%.1f", coverage));
-	}
-	
-	public void setCoverageUpdate (String message) {
-		coverageRateUpdate.setText(message);
 	}
 	
 	/*
@@ -608,67 +565,26 @@ public class GUI extends JFrame implements ActionListener{
 			}
 			assert input != null;
 			switch (name) {
-				case "Robot Initial Position":
-					if (input.matches("[0-9]+,[0-9]+")) {
-						int index = input.indexOf(",");
-						int x = Integer.parseInt(input.substring(0, index));
-						int y = Integer.parseInt(input.substring(index + 1));
-						if (robotPosition == null) {
-							robotPosition = new int[]{x, y};
-							for (int i = x - 1; i <= x + 1; i++) {
-								for (int j = y - 1; j <= y + 1; j++) {
-									mazeGrids[i][j].setBackground(ROBOT_COLOR);
-								}
-							}
-							currentOrientation = Orientation.UP;
-							if (!RobotController.REAL_RUN) {
-								VirtualRobot.getInstance().setPosition(x, y);
-								VirtualRobot.getInstance().setOrientation(currentOrientation);
-							} else {
-								RpiRobot.getInstance().setPosition(x, y);
-								RpiRobot.getInstance().setOrientation(currentOrientation);
-							}
-							mazeGrids[robotPosition[0]][robotPosition[1] + 1].setBackground(ROBOT_HEAD_COLOR);
-						} else {
-							for (int i = robotPosition[0] - 1; i <= robotPosition[0] + 1; i++) {
-								for (int j = robotPosition[1] - 1; j <= robotPosition[1] + 1; j++) {
-									if ((i <= 2 && j <= 2) || (i >= 12 && j >= 17))
-										mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-									else
-										mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-								}
-							}
-							for (int i = x - 1; i <= x + 1; i++) {
-								for (int j = y - 1; j <= y + 1; j++) {
-									mazeGrids[i][j].setBackground(ROBOT_COLOR);
-								}
-							}
-							robotPosition[0] = x;
-							robotPosition[1] = y;
-						}
-					}
-
-					break;
 				case "Robot Explore Speed":
 					if (input.matches("[0-9]+")) {
 						int speed = Integer.parseInt(input);
-						((VirtualRobot) VirtualRobot.getInstance()).setSpeed(speed);
+						SyncObject.getSyncObject().settings.setRobotSpeed(speed);
 						ffpTextFields[0].setText(input);
-						MapProcessor.FORWARD_WEIGHT = 1f / speed;
-						MapProcessor.TURNING_WEIGHT = 2f / speed;
 					}
 
 					break;
 				case "Target Coverage":
 					if (input.matches("[0-9]+")) {
 						coverageRateUpdate.setText("Coverage (%): 0");
-						targetExplorePercentage = Integer.parseInt(input);
+						int targetExplorePercentage = Integer.parseInt(input);
+						SyncObject.getSyncObject().settings.setCoveragePercent(targetExplorePercentage);
 					}
 
 					break;
 				case "Exploration time limit":
 					if (input.matches("[0-9]+")) {
-						GUI.exploreTimeLimit = Integer.parseInt(input);
+						int exploreTimeLimit = Integer.parseInt(input);
+						SyncObject.getSyncObject().settings.setTimeLimit(exploreTimeLimit);
 						timer.setText("Time left (sec): " + input);
 					}
 					break;
@@ -682,38 +598,38 @@ public class GUI extends JFrame implements ActionListener{
 				case "WaypointX":
 					if (input.matches("[0-9]+")) {
 						int value = Integer.parseInt(input);
-						if (value > 14)
+						if (value > MapConstants.MAP_WIDTH-1)
 							return;
-						prevWayPointX = wayPointX;
-						prevWayPointY = wayPointY;
-						GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
-						if (!RobotController.REAL_RUN)
-							GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
+						if(!RobotController.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
 						wayPointX = value;
 						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if (!RobotController.REAL_RUN)
-							GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(!RobotController.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
+							SyncObject.getSyncObject().DefineWaypoint(new Coordinate(wayPointX, wayPointY));
+						}
+						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
+
 					}
 					break;
 				case "WaypointY":
 					if (input.matches("[0-9]+")) {
 						int value = Integer.parseInt(input);
-						if (value > 19)
+						if (value > MapConstants.MAP_HEIGHT - 1)
 							return;
-						prevWayPointX = wayPointX;
-						prevWayPointY = wayPointY;
-						GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
-						if (!RobotController.REAL_RUN)
-							GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
+						if(!RobotController.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
 						wayPointY = value;
 						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if (!RobotController.REAL_RUN)
-							GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(!RobotController.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
+							SyncObject.getSyncObject().DefineWaypoint(new Coordinate(wayPointX, wayPointY));
+						}
+						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
 					}
 					break;
 			}
 		}
-
 	}
 	
 	private void loadMapGrids() {
@@ -730,150 +646,58 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 	}
-	
-	public void updateRobotUI(RobotCommand robotAction) {
-		switch(robotAction) {
-			case TURN_LEFT:
-				turnRobotLeft(currentOrientation);
-				break;
-			case TURN_RIGHT:
-				turnRobotRight(currentOrientation);
-				break;
-			case MOVE_FORWARD:
-				moveRobotForward(currentOrientation);
-				break;
+
+	/**
+	 * Draws the full grid using the map
+	 * @param map - map to draw (This map is immutable, should be gotten from Sync Object)
+	 * @param grids - grid to draw on
+	 */
+	public void DrawMap(Map map, JButton[][] grids){
+		for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
+			for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
+				if(i != wayPointX || j != wayPointY) colourGridCell(map, grids, i, j);
+			}
 		}
+		UpdateCoverage(map);
 	}
-	
-	private void turnRobotLeft(Orientation orientation) {
-		currentOrientation = Orientation.getCounterClockwise(orientation);
-		switch(orientation) {
+
+	public void UpdateCoverage(Map map){
+		Float coverageRate = map.getNumSeen() *100f / 300f ;
+		gui.setCoverageUpdate(coverageRate);
+	}
+
+	//TODO: Call on update based on synchronisation object queue
+
+	/**
+	 * Draws robot on the UI based on its position and orientation
+	 * @param botPosition - Coordinate of robot
+	 * @param botOrientation - Orientation of robot
+	 */
+	public void DrawRobotOnUI(Coordinate botPosition, Orientation botOrientation){
+		if(botPosition.getX() <= 0 || botPosition.getX() >= MapConstants.MAP_WIDTH-1 || botPosition.getY() <= 0 || botPosition.getY() >= MapConstants.MAP_HEIGHT-1){
+			System.out.println("Invalid Position to draw!");
+			return;
+		}
+		for (int i=botPosition.getX()-1; i<=botPosition.getX()+1; i++) {
+			for (int j=botPosition.getY()-1; j<=botPosition.getY()+1; j++) {
+				mazeGrids[i][j].setBackground(ROBOT_COLOR);
+			}
+		}
+		switch(botOrientation){
 			case UP:
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case LEFT:
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
+				mazeGrids[botPosition.getX()][botPosition.getY()+1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case DOWN:
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
+				mazeGrids[botPosition.getX()][botPosition.getY()-1].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case RIGHT:
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
-				break;
-		}
-	}
-	
-	private void turnRobotRight(Orientation orientation) {
-		currentOrientation = Orientation.getClockwise(orientation);
-		switch(orientation) {
-			case UP:
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
+				mazeGrids[botPosition.getX()+1][botPosition.getY()].setBackground(ROBOT_HEAD_COLOR);
 				break;
 			case LEFT:
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case DOWN:
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case RIGHT:
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_COLOR);
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
+				mazeGrids[botPosition.getX()-1][botPosition.getY()].setBackground(ROBOT_HEAD_COLOR);
 				break;
 		}
 	}
-	
-	private void moveRobotForward(Orientation orientation) {
-		switch(orientation) {
-			case UP:
-				if (robotPosition[1] + 2 >= MapConstants.MAP_HEIGHT) {
-					System.out.println("Invalid move");
-					return;
-				}
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
-							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-					}
-				}
-				robotPosition[1] += 1;
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(ROBOT_COLOR);
-					}
-				}
-				mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case LEFT:
-				if (robotPosition[0] - 1 < 1) {
-					System.out.println("Invalid move");
-					return;
-				}
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
-							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-					}
-				}
-				robotPosition[0] -= 1;
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(ROBOT_COLOR);
-					}
-				}
-				mazeGrids[robotPosition[0]-1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case DOWN:
-				if (robotPosition[1] - 1 < 1) {
-					System.out.println("Invalid move");
-					return;
-				}
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
-							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-					}
-				}
-				robotPosition[1] -= 1;
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(ROBOT_COLOR);
-					}
-				}
-				mazeGrids[robotPosition[0]][robotPosition[1]-1].setBackground(ROBOT_HEAD_COLOR);
-				break;
-			case RIGHT:
-				if (robotPosition[0] + 2 >= MapConstants.MAP_WIDTH) {
-					System.out.println("Invalid move");
-					return;
-				}
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						if (!((i <= 2 && j <= 2) || (i >= 12 && j >= 17)))
-							mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
-						else mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-					}
-				}
-				robotPosition[0] += 1;
-				for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-					for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-						mazeGrids[i][j].setBackground(ROBOT_COLOR);
-					}
-				}
-				mazeGrids[robotPosition[0]+1][robotPosition[1]].setBackground(ROBOT_HEAD_COLOR);
-				break;
-		}
-	}
-	
 
 	public void refreshExploreInput() {
 		for (int i = 0; i < exploreTextFields.length; i++) {
@@ -940,10 +764,44 @@ public class GUI extends JFrame implements ActionListener{
 		
 		return true;
 	}
-	
-	public static void main(String[] args) {
-		GUI myGUI = GUI.getInstance();
-		myGUI.setVisible(true);
-		myGUI.refreshExploreInput();
+
+	class TimerEvent implements ActionListener {
+		int timeLimit;
+		int timeLeft;
+		Timer timer;
+		IExplorationStatus explorationStatus;
+
+		public TimerEvent(int timeLimit, IExplorationStatus explorationStatus) {
+			this.timeLimit = timeLimit;
+			timeLeft = timeLimit;
+			this.explorationStatus = explorationStatus;
+		}
+
+		public void setTimer(Timer timer) {
+			this.timer = timer;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			timeLeft--;
+			GUI.getInstance().setTimer(timeLeft);
+			if (timeLeft >= 0) {
+				if (timeLeft == 0) {
+					gui.setTimerMessage("Time out");
+					gui.setExploreBtnEnabled(true);
+					gui.setFfpBtnEnabled(true);
+					if (timer != null)
+						timer.stop();
+				} else if (explorationStatus.HasExplorationEnded()) {
+					gui.setTimerMessage(String.format("finish within time limit (%ds)", timeLimit - timeLeft));
+					gui.setExploreBtnEnabled(true);
+					gui.setFfpBtnEnabled(true);
+					if (timer != null)
+						timer.stop();
+				}
+
+			}
+
+		}
 	}
 }

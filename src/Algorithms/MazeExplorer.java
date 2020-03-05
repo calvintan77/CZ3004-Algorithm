@@ -1,6 +1,6 @@
 package Algorithms;
 
-import Simulator.IRobot;
+import Robot.IRobot;
 import utils.*;
 
 import utils.Map;

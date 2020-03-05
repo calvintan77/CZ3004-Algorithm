@@ -1,19 +1,19 @@
-package Simulator;
+package Robot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import Constants.SensorConstants;
-import Main.GUI;
+import connection.SyncObject;
 import utils.*;
 
 public class VirtualRobot implements IRobot {
 	private static VirtualRobot virtualRobot;
-	private int speed;
-	private Orientation o; // need to initialize 
-	private Coordinate position;
+	private Orientation o = Orientation.UP; // need to initialize
+	private Coordinate position = new Coordinate(1, 1);
 	private List<RobotCommand> fastestPathInstructions;
+	private Map map;
 
 	//Singleton strategy pattern
 	public static IRobot getInstance() {
@@ -24,10 +24,6 @@ public class VirtualRobot implements IRobot {
 
 	private VirtualRobot() {
 
-	}
-
-	public void setSpeed(int speed) {
-		this.speed = speed;
 	}
 
 	//return string in the structure: "left,front,front,front,right"
@@ -115,6 +111,7 @@ public class VirtualRobot implements IRobot {
 
 	@Override
 	public void doCommandWithSensor(RobotCommand cmd, Map map) {
+		if(this.map == null) this.map = map;
 		switch (cmd) {
 			case TURN_LEFT:
 				this.setOrientation(Orientation.getCounterClockwise(this.o));
@@ -141,12 +138,12 @@ public class VirtualRobot implements IRobot {
 		if(map != null){
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
 		}
+		SyncObject.getSyncObject().AddGUIUpdate(this.map, this.position, this.o);
 		try {
-			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / speed);    //int timePerStep = 1000/speed (ms)
+			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / SyncObject.getSyncObject().settings.getRobotSpeed());    //int timePerStep = 1000/speed (ms)
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		GUI.getInstance().updateRobotUI(cmd);
 	}
 
 	@Override

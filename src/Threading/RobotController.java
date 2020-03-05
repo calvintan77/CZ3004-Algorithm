@@ -1,4 +1,4 @@
-package Main;
+package Threading;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,23 +9,25 @@ import javax.swing.Timer;
 
 import Algorithms.MazeExplorer;
 import Constants.MapConstants;
-import RealRun.RpiRobot;
-import Simulator.IRobot;
-import Simulator.VirtualRobot;
+import GUI.GUI;
+import Robot.RpiRobot;
+import Robot.IRobot;
+import Robot.VirtualRobot;
+import connection.SyncObject;
 import utils.*;
 
 
 public class RobotController {
 	public static RobotController robotController;
 	public static final boolean REAL_RUN = false;
-	private static final int EXPLORE_TIME_LIMIT = 360;
-	private static final int FASTEST_PATH_TIME_LIMIT = 120;
+	public static final int REAL_EXPLORE_TIME_LIMIT = 360;
+	public static final int FASTEST_PATH_TIME_LIMIT = 120;
 	private static final int REAL_ROBOT_SPEED = 1;
 	private IRobot robot;
 	
 	private GUI gui;
 	
-	public static RobotController getInstance() {
+	/*public static RobotController getInstance() {
 		if (robotController == null) {
 			robotController = new RobotController();
 		}
@@ -58,8 +60,8 @@ public class RobotController {
 				try {
 					if (!REAL_RUN) {
 						robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.UP), null);
-						explorer.exploreMaze(Map.getExplorationMap(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
-					}else explorer.exploreMaze(Map.getExplorationMap(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
+						explorer.exploreMaze(Map.getExplorationMap(), SyncObject.getSyncObject().settings.getTimeLimit(), SyncObject.getSyncObject().settings.getCoveragePercent());
+					}else explorer.exploreMaze(Map.getExplorationMap(), REAL_EXPLORE_TIME_LIMIT, SyncObject.getSyncObject().settings.getCoveragePercent());
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw e;
@@ -74,19 +76,10 @@ public class RobotController {
 
 		};
 		if (REAL_RUN) {
-			timeActionListener = new ExploreTimeClass(EXPLORE_TIME_LIMIT, exploreMaze);
+			timeActionListener = new ExploreTimeClass(REAL_EXPLORE_TIME_LIMIT, exploreMaze);
 			
 		} else timeActionListener = new ExploreTimeClass(GUI.exploreTimeLimit, exploreMaze);
-		SwingWorker<Void, Void> updateCoverage = new SwingWorker<Void, Void>() {
-			@Override
-			protected Void doInBackground() throws Exception {
-				while (!(exploreMaze.isDone() || exploreMaze.isCancelled())) {
-					Float coverageRate = Map.getExplorationMap().getNumSeen() *100f / 300f ;
-					gui.setCoverageUpdate(coverageRate);
-				}
-				return null;
-			}
-		};
+
 
 		Timer exploringTimer = new Timer(1000, timeActionListener);
 		timeActionListener.setTimer(exploringTimer);
@@ -221,12 +214,12 @@ public class RobotController {
 			} 
 			
 		}
-		
-	}
+
+
 	
 	public static void main(String[] args) {
 		GUI myGui = GUI.getInstance();
 		myGui.setVisible(true);
 		myGui.refreshExploreInput();
-	}
+	}*/
 }

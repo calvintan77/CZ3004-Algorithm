@@ -1,6 +1,5 @@
 package utils;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,25 +8,17 @@ import java.util.stream.Collectors;
 
 import Constants.MapConstants;
 import Constants.SensorConstants;
-import Main.GUI;
+import GUI.GUI;
 
 public class Map {
 
 	private static final String MAP_FILE_PATH = "src/sample arena 3.txt";
 
-	private static Map explorationMap;
-	private static Map realMap; 	//this attribute is only used during simulation. 
+	private static Map realMap; 	//this attribute is only used during simulation.
 									//In real run, real map is not known in advanced
 	
 	private MapCell[][] mapCells;
 	private int numSquaresSeen = 0; // num of squares seen by robot
-	
-	//Singleton strategy pattern
-	public static Map getExplorationMap() {
-		if (explorationMap == null)
-			explorationMap = new Map();
-		return explorationMap;
-	}
 	
 	public static Map getRealMapInstance() {
 		if (realMap == null) {
@@ -365,6 +356,29 @@ public class Map {
 		return cloneMap;
 	}
 
+	/**
+	 * Literal clone of map
+	 * @return cloned map
+	 */
+	@Override
+	public Map clone() {
+		Map cloneMap = new Map();
+		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+				if (this.getCell(i, j).isSeen()) {
+					cloneMap.getCell(i, j).setSeen(true);
+				}
+				if(this.getCell(i, j).isObstacle()) {
+					cloneMap.setObstacle(new Coordinate(i, j));
+				}
+				if(i == 0 || i == MapConstants.MAP_WIDTH-1 || j == 0 || j == MapConstants.MAP_HEIGHT-1){
+					cloneMap.getCell(i,j).setVirtualWall(true);
+				}
+			}
+		}
+		cloneMap.initSeenSquares();
+		return cloneMap;
+	}
 	/**
 	 * Get the frontier of unseen nodes and set them to seen (assumes that there are no obstacles)
 	 */

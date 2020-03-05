@@ -99,18 +99,18 @@ public class AlgoClient{
         String message = sock.Receive(); 
         switch (Character.toString(message.charAt(0))) {   
             case EXPLORATION_START: 
-                SyncObject.SignalExplorationStarted();
+                SyncObject.getSyncObject().SignalExplorationStarted();
                 break;
             case SET_WAYPOINT:
                 String x = Character.toString(message.charAt(1));
                 String y = message.substring(2);
-                SyncObject.DefineWaypoint(new Coordinate(Integer.parseInt(x, 16), Integer.parseInt(y, 16)));
+                SyncObject.getSyncObject().DefineWaypoint(new Coordinate(Integer.parseInt(x, 16), Integer.parseInt(y, 16)));
                 break;
             case SENSOR:
                 List<Integer> sensorData = message.substring(1).chars()
                 .mapToObj(dat -> (dat == 'x') ? -1 : Integer.parseInt(Character.toString(dat)))
                 .collect(Collectors.toList());
-                SyncObject.AddSensorData(sensorData);
+                SyncObject.getSyncObject().AddSensorData(sensorData);
                 break;
         }
     }

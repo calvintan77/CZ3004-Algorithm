@@ -1,18 +1,11 @@
-package RealRun;
+package Robot;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 
 import Constants.MapConstants;
 import Constants.SensorConstants;
-import Simulator.IRobot;
 import connection.AlgoClient;
 import connection.SyncObject;
 import utils.*;
@@ -20,8 +13,8 @@ import utils.*;
 public class RpiRobot implements IRobot{
 	private static RpiRobot robot = null;
 
-	private Coordinate position;
-	private Orientation o;
+	private Coordinate position = new Coordinate(1,1);
+	private Orientation o = Orientation.UP;
 
 	public static IRobot getInstance(){
 		if (robot == null) {
@@ -37,7 +30,7 @@ public class RpiRobot implements IRobot{
 	@Override
 	public List<Integer> getSensorValues() {
 		try {
-			return SyncObject.GetSensorData();
+			return SyncObject.getSyncObject().GetSensorData();
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
@@ -74,6 +67,7 @@ public class RpiRobot implements IRobot{
 					break;
 			}
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
+			SyncObject.getSyncObject().AddGUIUpdate(map, this.position, this.o);
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
