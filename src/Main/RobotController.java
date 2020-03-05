@@ -21,7 +21,6 @@ public class RobotController {
 	private static final int EXPLORE_TIME_LIMIT = 360;
 	private static final int FASTEST_PATH_TIME_LIMIT = 120;
 	private static final int REAL_ROBOT_SPEED = 1;
-	private Timer exploringTimer, fastestPathTimer;
 	private IRobot robot;
 	
 	private GUI gui;
@@ -88,8 +87,8 @@ public class RobotController {
 				return null;
 			}
 		};
-		
-		exploringTimer = new Timer(1000, timeActionListener);
+
+		Timer exploringTimer = new Timer(1000, timeActionListener);
 		timeActionListener.setTimer(exploringTimer);
 		exploringTimer.start();
 		updateCoverage.execute();
@@ -142,7 +141,7 @@ public class RobotController {
 					for(GraphNode n: path){
 						if (!( (n.getX()==0 && n.getY()==0) || 
 							(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
-					    	gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
+					    	gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_COLOR);
 					}
 					
 					robot.setFastestPath(result.generateInstructions());
@@ -152,7 +151,7 @@ public class RobotController {
 							|| gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_HEAD_COLOR)
 							&& !( (n.getX()==0 && n.getY()==0) || 
 								(n.getX()==MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
-							gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
+							gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_COLOR);
 					}
 					if (wayPointX != 1 || wayPointY != 1) {
 						gui.setMazeGridColor(wayPointX, wayPointY, GUI.WAYPOINT_COLOR);
@@ -176,7 +175,7 @@ public class RobotController {
 			timeActionListener = new ExploreTimeClass(FASTEST_PATH_TIME_LIMIT, fastestPath);
 			
 		} else timeActionListener = new ExploreTimeClass(GUI.fastestPathTimeLimit, fastestPath);
-		fastestPathTimer = new Timer(1000, timeActionListener);
+		Timer fastestPathTimer = new Timer(1000, timeActionListener);
 		timeActionListener.setTimer(fastestPathTimer);
 		fastestPathTimer.start();
 		fastestPath.execute();

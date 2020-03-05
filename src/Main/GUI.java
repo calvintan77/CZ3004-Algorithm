@@ -42,7 +42,7 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color ROBOT_COLOR = Color.CYAN;
 	public static final Color ROBOT_HEAD_COLOR = Color.GRAY;
 	public static final Color UNEXPLORED_CELL_COLOR = Color.BLACK;
-	public static final Color FASTEST_PATH_CORLOR = Color.YELLOW;
+	public static final Color FASTEST_PATH_COLOR = Color.YELLOW;
 	public static final Color WAYPOINT_COLOR = Color.BLUE;
 	
 	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
@@ -52,7 +52,7 @@ public class GUI extends JFrame implements ActionListener{
 	private JButton exploreButton, ffpButton;
 	private int[] robotPosition;
 	private Orientation currentOrientation;
-	private int targetExplorePercentage, wayPointX, wayPointY, prevwayPointX, prevwayPointY;
+	private int targetExplorePercentage, wayPointX, wayPointY, prevWayPointX, prevWayPointY;
 	public static int exploreTimeLimit;
 	public static int fastestPathTimeLimit;
 	
@@ -235,18 +235,9 @@ public class GUI extends JFrame implements ActionListener{
 				exploreTextFields[i].setEditable(false);
 			}
 		}
-		
-		JPanel exploreInputPane = new JPanel(new GridLayout(4, 2));
-		
-		exploreInputPane.add(exploreCtrlLabels[0]);
-		exploreInputPane.add(exploreTextFields[0]);
-		exploreInputPane.add(exploreCtrlLabels[1]);
-		exploreInputPane.add(exploreTextFields[1]);
-		exploreInputPane.add(exploreCtrlLabels[2]);
-		exploreInputPane.add(exploreTextFields[2]);
-		exploreInputPane.add(exploreCtrlLabels[3]);
-		exploreInputPane.add(exploreTextFields[3]);
-		
+
+		JPanel exploreInputPane = InitInputPanel(exploreCtrlLabels, exploreTextFields);
+
 		if (!RobotController.REAL_RUN) {
 			exploreTextFields[0].setEditable(false);
 			exploreCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -307,16 +298,8 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 
-		JPanel ffpInputPane = new JPanel(new GridLayout(4, 2));
-		ffpInputPane.add(ffpCtrlLabels[0]);
-		ffpInputPane.add(ffpTextFields[0]);
-		ffpInputPane.add(ffpCtrlLabels[1]);
-		ffpInputPane.add(ffpTextFields[1]);
-		ffpInputPane.add(ffpCtrlLabels[2]);
-		ffpInputPane.add(ffpTextFields[2]);
-		ffpInputPane.add(ffpCtrlLabels[3]);
-		ffpInputPane.add(ffpTextFields[3]);
-		
+		JPanel ffpInputPane = InitInputPanel(ffpCtrlLabels, ffpTextFields);
+
 		if (!RobotController.REAL_RUN) {
 			ffpCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
@@ -412,6 +395,19 @@ public class GUI extends JFrame implements ActionListener{
 		contentPane.add(exploredMapPane, BorderLayout.WEST);
 	}
 
+	private JPanel InitInputPanel(JLabel[] ffpCtrlLabels, JTextField[] ffpTextFields) {
+		JPanel ffpInputPane = new JPanel(new GridLayout(4, 2));
+		ffpInputPane.add(ffpCtrlLabels[0]);
+		ffpInputPane.add(ffpTextFields[0]);
+		ffpInputPane.add(ffpCtrlLabels[1]);
+		ffpInputPane.add(ffpTextFields[1]);
+		ffpInputPane.add(ffpCtrlLabels[2]);
+		ffpInputPane.add(ffpTextFields[2]);
+		ffpInputPane.add(ffpCtrlLabels[3]);
+		ffpInputPane.add(ffpTextFields[3]);
+		return ffpInputPane;
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String cmd = e.getActionCommand();
@@ -457,26 +453,26 @@ public class GUI extends JFrame implements ActionListener{
 	}
 	
 	public void eraseWayPointForMapGrids(Map map) {
-		if (mapGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
-			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
-				mapGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
-			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
-				mapGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevwayPointX, prevwayPointY).isSeen())
-				mapGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
-			else mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+		if (mapGrids[prevWayPointX][prevWayPointY].getBackground() == WAYPOINT_COLOR) {
+			if ((prevWayPointX <= 2 && prevWayPointY <= 2) || (prevWayPointX >= 12 && prevWayPointY >= 17))
+				mapGrids[prevWayPointX][prevWayPointY].setBackground(GOAL_START_ZONE_COLOR);
+			else if (map.getCell(prevWayPointX, prevWayPointY).isObstacle()) {
+				mapGrids[prevWayPointX][prevWayPointY].setBackground(OBSTACLE_CELL_COLOR);
+			} else if (!map.getCell(prevWayPointX, prevWayPointY).isSeen())
+				mapGrids[prevWayPointX][prevWayPointY].setBackground(UNEXPLORED_CELL_COLOR);
+			else mapGrids[prevWayPointX][prevWayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
 	}
 	
 	public void eraseWayPointForMazeGrids(Map map) {
-		if (mazeGrids[prevwayPointX][prevwayPointY].getBackground() == WAYPOINT_COLOR) {
-			if ((prevwayPointX <= 2 && prevwayPointY <= 2) || (prevwayPointX >= 12 && prevwayPointY >= 17))
-				mazeGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
-			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
-				mazeGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevwayPointX, prevwayPointY).isSeen())
-				mazeGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
-			else mazeGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
+		if (mazeGrids[prevWayPointX][prevWayPointY].getBackground() == WAYPOINT_COLOR) {
+			if ((prevWayPointX <= 2 && prevWayPointY <= 2) || (prevWayPointX >= 12 && prevWayPointY >= 17))
+				mazeGrids[prevWayPointX][prevWayPointY].setBackground(GOAL_START_ZONE_COLOR);
+			else if (map.getCell(prevWayPointX, prevWayPointY).isObstacle()) {
+				mazeGrids[prevWayPointX][prevWayPointY].setBackground(OBSTACLE_CELL_COLOR);
+			} else if (!map.getCell(prevWayPointX, prevWayPointY).isSeen())
+				mazeGrids[prevWayPointX][prevWayPointY].setBackground(UNEXPLORED_CELL_COLOR);
+			else mazeGrids[prevWayPointX][prevWayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
 	}
 	
@@ -607,103 +603,114 @@ public class GUI extends JFrame implements ActionListener{
 			String input = null;
 			try {
 				input = doc.getText(0, doc.getLength());
-			} catch (BadLocationException ex) {}
-			if (name.equals("Robot Initial Position")) {
-				if (input.matches("[0-9]+,[0-9]+")) {
-					int index = input.indexOf(",");
-					int x = Integer.parseInt(input.substring(0, index));
-					int y = Integer.parseInt(input.substring(index + 1));
-					if (robotPosition == null) {
-						robotPosition = new int[] {x,y};
-						for (int i=x-1; i<=x+1; i++) {
-							for (int j=y-1; j<=y+1; j++) {
-								mazeGrids[i][j].setBackground(ROBOT_COLOR);
+			} catch (BadLocationException ex) {
+				System.out.println(ex.toString());
+			}
+			assert input != null;
+			switch (name) {
+				case "Robot Initial Position":
+					if (input.matches("[0-9]+,[0-9]+")) {
+						int index = input.indexOf(",");
+						int x = Integer.parseInt(input.substring(0, index));
+						int y = Integer.parseInt(input.substring(index + 1));
+						if (robotPosition == null) {
+							robotPosition = new int[]{x, y};
+							for (int i = x - 1; i <= x + 1; i++) {
+								for (int j = y - 1; j <= y + 1; j++) {
+									mazeGrids[i][j].setBackground(ROBOT_COLOR);
+								}
 							}
-						}
-						currentOrientation = Orientation.UP;
-						if (!RobotController.REAL_RUN) {
-							VirtualRobot.getInstance().setPosition(x,y);
-							VirtualRobot.getInstance().setOrientation(currentOrientation);
+							currentOrientation = Orientation.UP;
+							if (!RobotController.REAL_RUN) {
+								VirtualRobot.getInstance().setPosition(x, y);
+								VirtualRobot.getInstance().setOrientation(currentOrientation);
+							} else {
+								RpiRobot.getInstance().setPosition(x, y);
+								RpiRobot.getInstance().setOrientation(currentOrientation);
+							}
+							mazeGrids[robotPosition[0]][robotPosition[1] + 1].setBackground(ROBOT_HEAD_COLOR);
 						} else {
-							RpiRobot.getInstance().setPosition(x, y);
-							RpiRobot.getInstance().setOrientation(currentOrientation);
-						}
-						mazeGrids[robotPosition[0]][robotPosition[1]+1].setBackground(ROBOT_HEAD_COLOR);
-					} else {
-						for (int i=robotPosition[0]-1; i<=robotPosition[0]+1; i++) {
-							for (int j=robotPosition[1]-1; j<=robotPosition[1]+1; j++) {
-								if ((i<=2 && j<=2) || (i>=12 && j>=17))
-									mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-								else
-									mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+							for (int i = robotPosition[0] - 1; i <= robotPosition[0] + 1; i++) {
+								for (int j = robotPosition[1] - 1; j <= robotPosition[1] + 1; j++) {
+									if ((i <= 2 && j <= 2) || (i >= 12 && j >= 17))
+										mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
+									else
+										mazeGrids[i][j].setBackground(EMPTY_CELL_COLOR);
+								}
 							}
-						}
-						for (int i=x-1; i<=x+1; i++) {
-							for (int j=y-1; j<=y+1; j++) {
-								mazeGrids[i][j].setBackground(ROBOT_COLOR);
+							for (int i = x - 1; i <= x + 1; i++) {
+								for (int j = y - 1; j <= y + 1; j++) {
+									mazeGrids[i][j].setBackground(ROBOT_COLOR);
+								}
 							}
+							robotPosition[0] = x;
+							robotPosition[1] = y;
 						}
-						robotPosition[0] = x;
-						robotPosition[1] = y;
 					}
-				}
-				
-			} else if (name.equals("Robot Explore Speed")) {
-				if (input.matches("[0-9]+")) {
-					int speed = Integer.parseInt(input);
-					((VirtualRobot) VirtualRobot.getInstance()).setSpeed(speed);
-					ffpTextFields[0].setText(input);
-					MapProcessor.FORWARD_WEIGHT = 1f/speed;
-					MapProcessor.TURNING_WEIGHT = 2f/speed;
-				}
-				
-			} else if (name.equals("Target Coverage")) {
-				if (input.matches("[0-9]+")) {
-					coverageRateUpdate.setText("Coverage (%): 0");
-					targetExplorePercentage = Integer.parseInt(input);
-				}
-				
-			} else if (name.equals("Exploration time limit")) {
-				if (input.matches("[0-9]+")) {
-					GUI.exploreTimeLimit = Integer.parseInt(input);
-					timer.setText("Time left (sec): " + input);
-				}
-			} else if (name.equals("Robot FFP Time Limit")) {
-				if (input.matches("[0-9]+")) {
-					coverageRateUpdate.setText("");
-					timer.setText("Time left (sec): " + input);
-					fastestPathTimeLimit = Integer.parseInt(input);
-				} 
-			} else if (name.equals("WaypointX")) {
-				if (input.matches("[0-9]+")) {
-					int value = Integer.parseInt(input);
-					if (value > 14)
-						return;
-					prevwayPointX = wayPointX;
-					prevwayPointY = wayPointY;
-					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
-					if (!RobotController.REAL_RUN)
-						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
-					wayPointX = value;
-					GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-					if (!RobotController.REAL_RUN)
-						GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-				}
-			} else if (name.equals("WaypointY")) {				
-				if (input.matches("[0-9]+")) {
-					int value = Integer.parseInt(input);
-					if (value > 19)
-						return;
-					prevwayPointX = wayPointX;
-					prevwayPointY = wayPointY;
-					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
-					if (!RobotController.REAL_RUN)
-						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
-					wayPointY = value;
-					GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-					if (!RobotController.REAL_RUN)
-						GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-				}
+
+					break;
+				case "Robot Explore Speed":
+					if (input.matches("[0-9]+")) {
+						int speed = Integer.parseInt(input);
+						((VirtualRobot) VirtualRobot.getInstance()).setSpeed(speed);
+						ffpTextFields[0].setText(input);
+						MapProcessor.FORWARD_WEIGHT = 1f / speed;
+						MapProcessor.TURNING_WEIGHT = 2f / speed;
+					}
+
+					break;
+				case "Target Coverage":
+					if (input.matches("[0-9]+")) {
+						coverageRateUpdate.setText("Coverage (%): 0");
+						targetExplorePercentage = Integer.parseInt(input);
+					}
+
+					break;
+				case "Exploration time limit":
+					if (input.matches("[0-9]+")) {
+						GUI.exploreTimeLimit = Integer.parseInt(input);
+						timer.setText("Time left (sec): " + input);
+					}
+					break;
+				case "Robot FFP Time Limit":
+					if (input.matches("[0-9]+")) {
+						coverageRateUpdate.setText("");
+						timer.setText("Time left (sec): " + input);
+						fastestPathTimeLimit = Integer.parseInt(input);
+					}
+					break;
+				case "WaypointX":
+					if (input.matches("[0-9]+")) {
+						int value = Integer.parseInt(input);
+						if (value > 14)
+							return;
+						prevWayPointX = wayPointX;
+						prevWayPointY = wayPointY;
+						GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
+						if (!RobotController.REAL_RUN)
+							GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+						wayPointX = value;
+						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if (!RobotController.REAL_RUN)
+							GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+					}
+					break;
+				case "WaypointY":
+					if (input.matches("[0-9]+")) {
+						int value = Integer.parseInt(input);
+						if (value > 19)
+							return;
+						prevWayPointX = wayPointX;
+						prevWayPointY = wayPointY;
+						GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
+						if (!RobotController.REAL_RUN)
+							GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
+						wayPointY = value;
+						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if (!RobotController.REAL_RUN)
+							GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+					}
+					break;
 			}
 		}
 
@@ -913,12 +920,12 @@ public class GUI extends JFrame implements ActionListener{
 				return false;
 			}
 		}
-		
+
 		if (!exploreInput[3].matches("[0-9]+")) {
 			return false;
 		}
-		
-		
+
+
 		return true;
 	}
 

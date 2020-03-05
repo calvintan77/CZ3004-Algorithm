@@ -80,8 +80,7 @@ public class AStarAlgo {
         public double getEstimatedWeight(GraphNode destination){
         	if(!destination.isVirtual()) return weight + graphNode.getEuclideanDistanceTo(destination) * MapProcessor.FORWARD_WEIGHT;
         	Optional<Double> heuristic = destination.getNeighbours().stream().map(x -> graphNode.getEuclideanDistanceTo(x.getKey())).min(Double::compare);
-            if(heuristic.isPresent()) return weight + heuristic.get() * MapProcessor.FORWARD_WEIGHT;
-            return weight;
+            return heuristic.map(aDouble -> weight + aDouble * MapProcessor.FORWARD_WEIGHT).orElseGet(() -> weight);
         }
         public double getWeight(){
             return weight;

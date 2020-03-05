@@ -47,7 +47,7 @@ public class RpiRobot implements IRobot{
 	@Override
 	public void doCommandWithSensor (RobotCommand command, Map map) {
 		try {
-			AlgoClient.GetInstance().SendMove(command, Map.generateMapDescriptor(map), this.o, this.position);
+			AlgoClient.GetInstance().SendMove(command, MapLoader.generateMapDescriptor(map), this.o, this.position);
 			switch (command) {
 				case TURN_LEFT:
 					this.setOrientation(Orientation.getCounterClockwise(this.o));
