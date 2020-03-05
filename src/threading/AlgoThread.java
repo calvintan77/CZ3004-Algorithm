@@ -37,6 +37,7 @@ public class AlgoThread implements  Runnable {
         explorer.exploreMaze(explorationMap, SyncObject.getSyncObject().settings.getTimeLimit(), SyncObject.getSyncObject().settings.getCoveragePercent());
         // Notify UI that exploration completed
         SyncObject.getSyncObject().SignalExplorationFinished();
+        MapLoader.saveMap(explorationMap, "mds.txt");
         Orientation o = robot.getOrientation();
         Coordinate c = robot.getPosition();
         while (true) {
@@ -74,6 +75,7 @@ public class AlgoThread implements  Runnable {
         }
         // Notify UI that exploration completed
         SyncObject.getSyncObject().SignalExplorationFinished();
+        MapLoader.saveMap(explorationMap, "mds.txt");
         // Calibrate for Fastest Path
         robot.Calibrate(explorationMap);
         // Get waypoint

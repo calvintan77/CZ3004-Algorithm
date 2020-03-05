@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MazeExplorer {
-	private AbstractRobot robot;
+	private final AbstractRobot robot;
 	private static final double BUFFER = 1.5  * (1000000000);
 
 	public MazeExplorer(AbstractRobot r){

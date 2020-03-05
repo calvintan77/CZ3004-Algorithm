@@ -9,7 +9,10 @@ import javax.swing.*;
 import java.io.*;
 import java.math.BigInteger;
 
+//TODO: Partial MDF is wrong 0s in front will be ignored when doing radix conversion
 public class MapLoader {
+    private static final int MDS1_LENGTH = 76;
+    private static final int MDS2_LENGTH = 75;
     public static String convertHexToBinaryString(String hex) {
         String newHexString = "F"+hex;
         return new BigInteger(newHexString, 16).toString(2).substring(4);
@@ -18,11 +21,7 @@ public class MapLoader {
     public static String convertBinaryToHexString(String binary, int hexStringLength) {
         String hexString = new BigInteger(binary, 2).toString(16);
         int paddingSpace = hexStringLength - hexString.length();
-        return "0".repeat(Math.max(0, paddingSpace)) + hexString;
-    }
-
-    public static String convertBinaryToHexString(String binary) {
-        return convertBinaryToHexString(binary, binary.length());
+        return hexString + "0".repeat(Math.max(0, paddingSpace));
     }
 
     public static void saveMap(Map map, String savePath) {
@@ -58,8 +57,8 @@ public class MapLoader {
             int padding = 4 - (b2MapDescriptor.length()%4);
             b2MapDescriptor.append("0".repeat(padding));
         }
-        String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
-        String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
+        String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString(), MDS1_LENGTH);
+        String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString(), MDS2_LENGTH);
         return new MapTuple(h1MapDescriptor, h2MapDescriptor);
     }
 
@@ -76,6 +75,7 @@ public class MapLoader {
                 }
             }
         }
+        //Saves map to file
         MapLoader.saveMap(map, "src/inputMap.txt");
     }
 
