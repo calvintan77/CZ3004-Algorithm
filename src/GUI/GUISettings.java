@@ -21,6 +21,7 @@ public class GUISettings {
         return temp;
     }
 
+    //TODO: Calibrate the weights accordingly
     public void setRobotSpeed(int robotSpeed) {
         lock.writeLock().lock();
         try {

@@ -1,12 +1,10 @@
 package connection;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import utils.Coordinate;
-import utils.Map;
 import utils.MapTuple;
 import utils.Orientation;
 import utils.RobotCommand;
@@ -19,7 +17,9 @@ public class AlgoClient{
     private static final String EXPLORATION_START = "3";
     private static final String SET_WAYPOINT = "4";
     private static final String SENSOR = "5";
-    private static final String CALIBRATION = "6"; 
+    private static final String CALIBRATION = "6";
+    private static final String RPI_IP = "192.168.9.9";
+    private static final int PORT = 9999;
 
     TCPSocket sock; 
     private AlgoClient(TCPSocket sock) { 
@@ -28,7 +28,7 @@ public class AlgoClient{
 
     public static AlgoClient GetInstance(){
         if(instance == null){
-            instance = new AlgoClient(new TCPSocket("192.168.9.9", 9999));
+            instance = new AlgoClient(new TCPSocket(RPI_IP, PORT));
         }
         return instance;
     }
@@ -39,8 +39,7 @@ public class AlgoClient{
         int i = 0; 
         for (RobotCommand command : ls) { 
             if (command == RobotCommand.MOVE_FORWARD) { 
-                i++; 
-                continue; 
+                i++;
             } else {
                 if (i != 0) { 
                     if (i > 16) { 
@@ -99,18 +98,18 @@ public class AlgoClient{
         String message = sock.Receive(); 
         switch (Character.toString(message.charAt(0))) {   
             case EXPLORATION_START: 
-                SyncObject.getSyncObject().SignalExplorationStarted();
+                SyncObject.getSyncObject().SignalExplorationStart();
                 break;
             case SET_WAYPOINT:
                 String x = Character.toString(message.charAt(1));
                 String y = message.substring(2);
-                SyncObject.getSyncObject().DefineWaypoint(new Coordinate(Integer.parseInt(x, 16), Integer.parseInt(y, 16)));
+                SyncObject.getSyncObject().SetWaypoint(new Coordinate(Integer.parseInt(x, 16), Integer.parseInt(y, 16)));
                 break;
             case SENSOR:
                 List<Integer> sensorData = message.substring(1).chars()
                 .mapToObj(dat -> (dat == 'x') ? -1 : Integer.parseInt(Character.toString(dat)))
                 .collect(Collectors.toList());
-                SyncObject.getSyncObject().AddSensorData(sensorData);
+                SyncObject.getSyncObject().SetSensorData(sensorData);
                 break;
         }
     }

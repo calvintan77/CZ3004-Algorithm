@@ -60,11 +60,6 @@ public class Map {
 		}
 		this.getCell(x, y).setSeen(true);
 		this.numSquaresSeen++;
-		//TODO: Don't mix responsibilities here
-		if (this.getCell(x, y).isObstacle())
-			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.OBSTACLE_CELL_COLOR);
-		else if (!((x <= 2 && y <= 2) || (x >= 12 && y >= 17)))
-			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.EMPTY_CELL_COLOR);
 	}
 	
 	public MapCell getCell(int x, int y) {

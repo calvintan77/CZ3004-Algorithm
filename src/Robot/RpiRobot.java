@@ -11,19 +11,10 @@ import connection.SyncObject;
 import utils.*;
 
 public class RpiRobot implements IRobot{
-	private static RpiRobot robot = null;
-
 	private Coordinate position = new Coordinate(1,1);
 	private Orientation o = Orientation.UP;
 
-	public static IRobot getInstance(){
-		if (robot == null) {
-			robot = new RpiRobot();
-		}
-		return robot;
-	}
-
-	private RpiRobot(){
+	public RpiRobot(){
 
 	}
 	
@@ -67,7 +58,7 @@ public class RpiRobot implements IRobot{
 					break;
 			}
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
-			SyncObject.getSyncObject().AddGUIUpdate(map, this.position, this.o);
+			SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
@@ -288,6 +279,7 @@ public class RpiRobot implements IRobot{
 		}
 	}
 
+	//TODO: Decide on whether to display it here
 	@Override
 	public void setFastestPath(List<RobotCommand> cmds) {
 		AlgoClient.GetInstance().sendFastestPath(cmds);

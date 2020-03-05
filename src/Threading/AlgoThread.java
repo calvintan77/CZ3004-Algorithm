@@ -1,97 +1,109 @@
 package Threading;
 
+import Algorithms.FastestPathFinder;
 import Algorithms.MazeExplorer;
-import Constants.MapConstants;
-import GUI.GUI;
+import Constants.RobotConstants;
 import Robot.IRobot;
 import Robot.RpiRobot;
 import Robot.VirtualRobot;
 import connection.SyncObject;
 import utils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class AlgoThread implements  Runnable {
     private Thread t;
     public void run(){
-        IRobot robot = RobotController.REAL_RUN? RpiRobot.getInstance() : VirtualRobot.getInstance();
+        try {
+            if (RobotConstants.REAL_RUN) {
+                RealRun();
+            } else {
+                SimulationRun();
+            }
+        }catch (Exception e){
+            System.out.println("AlgoThread: " + e.toString());
+        }
+    }
+
+    private void SimulationRun() throws InterruptedException{
+        IRobot robot = new VirtualRobot();
         Map explorationMap = new Map();
         MazeExplorer explorer = new MazeExplorer();
         explorer.setRobot(robot);
+        SyncObject.getSyncObject().IsExplorationStarted();
+        // Initial state packet
+        SyncObject.getSyncObject().SetGUIUpdate(explorationMap, robot.getPosition(), robot.getOrientation());
+        // Explore the maze
+        explorer.exploreMaze(explorationMap, SyncObject.getSyncObject().settings.getTimeLimit(), SyncObject.getSyncObject().settings.getCoveragePercent());
+        // Notify UI that exploration completed
+        SyncObject.getSyncObject().SignalExplorationFinished();
+        Orientation o = robot.getOrientation();
+        Coordinate c = robot.getPosition();
+        while(true) {
+            robot.setPosition(c.getX(), c.getY());
+            robot.setOrientation(o);
+            // Wait for button press
+            SyncObject.getSyncObject().IsFastestPathStart();
+            // Get waypoint
+            Coordinate waypoint = getWaypoint();
+
+            //Prepare algo for fastest path
+            List<RobotCommand> fastestPathInstructions = new FastestPathFinder(explorationMap).GetFastestPath(robot, waypoint);
+            robot.setFastestPath(fastestPathInstructions);
+            robot.doFastestPath(true);
+        }
+    }
+
+    private void RealRun(){
+        IRobot robot = new RpiRobot();
+        Map explorationMap = new Map();
+        MazeExplorer explorer = new MazeExplorer();
+        explorer.setRobot(robot);
+        // Real exploration, wait for signal from android
         try {
-            SyncObject.getSyncObject().HasExplorationStarted();
+            SyncObject.getSyncObject().IsExplorationStarted();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // Initial state packet
-        SyncObject.getSyncObject().AddGUIUpdate(explorationMap, robot.getPosition(), robot.getOrientation());
+        // Initial state packet to GUI
+        SyncObject.getSyncObject().SetGUIUpdate(explorationMap, robot.getPosition(), robot.getOrientation());
         // Explore the maze
-        explorer.exploreMaze(explorationMap, SyncObject.getSyncObject().settings.getTimeLimit(), SyncObject.getSyncObject().settings.getCoveragePercent());
-        SyncObject.getSyncObject().SetExplorationFinished();
-        // Calibrate for FP
-        robot.Calibrate(explorationMap);
-        // Wait for button if virtual run
-        if(!RobotController.REAL_RUN){
-            try {
-                SyncObject.getSyncObject().HasFastestPathStarted();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try {
+            explorer.exploreMaze(explorationMap, RobotConstants.REAL_EXPLORE_TIME_LIMIT, RobotConstants.REAL_EXPLORE_COVERAGE);
+        }catch(Exception e){
+            System.out.println("RealAlgoThread: " + e.toString());
         }
+        // Notify UI that exploration completed
+        SyncObject.getSyncObject().SignalExplorationFinished();
+        // Calibrate for Fastest Path
+        robot.Calibrate(explorationMap);
         // Get waypoint
+        Coordinate waypoint = getWaypoint();
+        //Prepare algo for fastest path
+        List<RobotCommand> fastestPathInstructions = new FastestPathFinder(explorationMap).GetFastestPath(robot, waypoint);
+        robot.setFastestPath(fastestPathInstructions);
+    }
+
+    private Coordinate getWaypoint(){
         Coordinate waypoint = null;
         try {
             waypoint = SyncObject.getSyncObject().GetWaypoint();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        }catch(Exception e){
+            System.out.println("Get Waypoint: " + e.toString());
         }
         if(waypoint == null){
             waypoint = new Coordinate(1,1);
         }
-        //Prepare algo for fastest path
-        try{
-            // Set up a blocked path
-            if (explorationMap.getSeenPercentage() < 100) {
-                explorationMap = explorationMap.CloneWithUnseenAsObstacles();
-            }
-            ShortestPath result;
-            // Find a path to the goal
-            do {
-                Graph graph = new Graph(explorationMap, waypoint.getX(), waypoint.getY());
-                result = graph.GetShortestPath();
-                if (result == null) {
-                    System.out.println("Unable to find path through waypoint");
-                    graph = new Graph(explorationMap, 1, 1);
-                    result = graph.GetShortestPath();
-                }
-                if (result == null) {
-                    explorationMap.expandSearchSpace();
-                }
-            }while (result == null && !explorationMap.getAllUnseen().isEmpty());
-            // Prepare for fastest path
-            List<RobotCommand> fastestPathInstructions = new ArrayList<>();
-            // Prepare Orientation
-            if (result.isStartingOrientationHorizontal()) {
-                fastestPathInstructions.addAll(robot.prepareOrientationCmds(Orientation.RIGHT));
-            } else {
-                fastestPathInstructions.addAll(robot.prepareOrientationCmds(Orientation.UP));
-            }
-            //TODO: Figure out how to draw path
-//            List<GraphNode> path = result.getPath();
-//            for(GraphNode n: path){
-//                if (!( (n.getX()==0 && n.getY()==0) ||
-//                        (n.getX()== MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
-//                    gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_COLOR);
-//            }
-            // Prepare Instructions
-            fastestPathInstructions.addAll(result.generateInstructions());
-            robot.setFastestPath(fastestPathInstructions);
-            if(!RobotController.REAL_RUN) robot.doFastestPath(true);
-        } catch (Exception e) {
-        //					e.printStackTrace();
-            System.out.println("Unable to find fastest path");
-        }
+        return waypoint;
+    }
+
+    public void interrupt(){
+        t.interrupt();
+    }
+
+    public boolean isAlive(){
+        if(t == null) return false;
+        return t.isAlive();
     }
 
     public void start(){

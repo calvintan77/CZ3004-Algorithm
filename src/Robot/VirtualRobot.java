@@ -9,20 +9,11 @@ import connection.SyncObject;
 import utils.*;
 
 public class VirtualRobot implements IRobot {
-	private static VirtualRobot virtualRobot;
 	private Orientation o = Orientation.UP; // need to initialize
 	private Coordinate position = new Coordinate(1, 1);
 	private List<RobotCommand> fastestPathInstructions;
-	private Map map;
 
-	//Singleton strategy pattern
-	public static IRobot getInstance() {
-		if (virtualRobot == null)
-			virtualRobot = new VirtualRobot();
-		return virtualRobot;
-	}
-
-	private VirtualRobot() {
+	public VirtualRobot() {
 
 	}
 
@@ -110,8 +101,7 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void doCommandWithSensor(RobotCommand cmd, Map map) {
-		if(this.map == null) this.map = map;
+	public void doCommandWithSensor(RobotCommand cmd, Map map) throws InterruptedException {
 		switch (cmd) {
 			case TURN_LEFT:
 				this.setOrientation(Orientation.getCounterClockwise(this.o));
@@ -138,12 +128,9 @@ public class VirtualRobot implements IRobot {
 		if(map != null){
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
 		}
-		SyncObject.getSyncObject().AddGUIUpdate(this.map, this.position, this.o);
-		try {
-			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / SyncObject.getSyncObject().settings.getRobotSpeed());    //int timePerStep = 1000/speed (ms)
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
+		Thread.sleep(cmd == RobotCommand.MOVE_FORWARD? (int)(1000*MapProcessor.FORWARD_WEIGHT) :
+				(int)(1000*MapProcessor.TURNING_WEIGHT));    //int timePerStep = 1000/speed (ms)
 	}
 
 	@Override
@@ -281,7 +268,7 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void prepareOrientation(List<RobotCommand> cmds, Map map) {
+	public void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException {
 		for(RobotCommand cmd: cmds){
 			doCommandWithSensor(cmd, map);
 		}
@@ -293,8 +280,9 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void doFastestPath(boolean toGoalZone) {
+	public void doFastestPath(boolean toGoalZone) throws InterruptedException {
 		if(this.fastestPathInstructions == null) return;
+		if(toGoalZone) SyncObject.getSyncObject().SetFastestPath(fastestPathInstructions, this.position, this.o);
 		for(RobotCommand cmd: this.fastestPathInstructions){
 			doCommandWithSensor(cmd, null);
 		}

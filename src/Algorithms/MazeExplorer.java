@@ -39,7 +39,7 @@ public class MazeExplorer {
 	 * @param map: the given map which we are doing exploration on - start point is assumed to be (1,1) 
 	 * @param timeLimit: the time (in seconds) which we have to explore the maze 
 	 */
-	public void exploreMaze(Map map, long timeLimit, int targetCoverage) { 
+	public void exploreMaze(Map map, long timeLimit, int targetCoverage) throws InterruptedException{
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
 

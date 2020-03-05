@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -18,7 +19,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import Constants.MapConstants;
-import Threading.RobotController;
+import Constants.RobotConstants;
 import connection.SyncObject;
 import utils.*;
 
@@ -48,7 +49,6 @@ public class GUI extends JFrame implements ActionListener{
 	private Timer timerWorker;
 	private int wayPointX = -1;
 	private int wayPointY = -1;
-	public static int exploreTimeLimit;
 	public static int fastestPathTimeLimit;
 	
 	public static GUI getInstance() {
@@ -129,7 +129,7 @@ public class GUI extends JFrame implements ActionListener{
 				int realY = 19-x;
 				mapGrids[realX][realY] = new JButton();
 				
-				if (RobotController.REAL_RUN) {
+				if (RobotConstants.REAL_RUN) {
 					mapGrids[realX][realY].setEnabled(false);
 					mapGrids[realX][realY].setBackground(ROBOT_HEAD_COLOR);
 				} else {
@@ -152,14 +152,14 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 		
-		if (!RobotController.REAL_RUN) {
+		if (!RobotConstants.REAL_RUN) {
 			loadMapGrids();
 		}
 		
 		mapPane.add(map);
 		JButton loadMap = new JButton("Load");
 		
-		if (RobotController.REAL_RUN) {
+		if (RobotConstants.REAL_RUN) {
 			loadMap.setEnabled(false);
 		} else {
 			loadMap.setActionCommand("LoadMap");
@@ -168,7 +168,7 @@ public class GUI extends JFrame implements ActionListener{
 		
 		JButton clearMap = new JButton("Clear");
 		
-		if (RobotController.REAL_RUN) {
+		if (RobotConstants.REAL_RUN) {
 			clearMap.setEnabled(false);
 		} else {
 			clearMap.setActionCommand("ClearMap");
@@ -199,7 +199,7 @@ public class GUI extends JFrame implements ActionListener{
 		exploreTextFields = new JTextField[4];
 		exploreButton = new JButton("Explore");
 		
-		if (RobotController.REAL_RUN) {
+		if (RobotConstants.REAL_RUN) {
 			exploreButton.setEnabled(false);
 		} else {
 			exploreButton.setActionCommand("ExploreMaze");
@@ -212,14 +212,14 @@ public class GUI extends JFrame implements ActionListener{
 		exploreCtrlLabels[3] = new JLabel("Time limit (sec): ");
 		for (int i = 0; i < 4; i++) {
 			exploreTextFields[i] = new JTextField(10);
-			if (RobotController.REAL_RUN) {
+			if (RobotConstants.REAL_RUN) {
 				exploreTextFields[i].setEditable(false);
 			}
 		}
 
 		JPanel exploreInputPane = InitInputPanel(exploreCtrlLabels, exploreTextFields);
 
-		if (!RobotController.REAL_RUN) {
+		if (!RobotConstants.REAL_RUN) {
 			exploreTextFields[0].setEditable(false);
 			exploreCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[0].setText("1,1");
@@ -259,7 +259,7 @@ public class GUI extends JFrame implements ActionListener{
 		ffpTextFields = new JTextField[4];
 		ffpButton = new JButton("Find fastest path");
 		
-		if (RobotController.REAL_RUN) {
+		if (RobotConstants.REAL_RUN) {
 			ffpButton.setEnabled(false);
 		} else {
 			ffpButton.setActionCommand("FindFastestPath");
@@ -274,14 +274,14 @@ public class GUI extends JFrame implements ActionListener{
 		
 		for (int i = 0; i < ffpTextFields.length; i++) {
 			ffpTextFields[i] = new JTextField(10);
-			if (RobotController.REAL_RUN) {
+			if (RobotConstants.REAL_RUN) {
 				ffpTextFields[i].setEditable(false);
 			}
 		}
 
 		JPanel ffpInputPane = InitInputPanel(ffpCtrlLabels, ffpTextFields);
 
-		if (!RobotController.REAL_RUN) {
+		if (!RobotConstants.REAL_RUN) {
 			ffpCtrlLabels[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[0].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			ffpTextFields[0].setEditable(false);
@@ -376,6 +376,7 @@ public class GUI extends JFrame implements ActionListener{
 				}
 			}
 		}
+		DrawRobotOnUI(new Coordinate(1,1), Orientation.UP);
 		exploredMapPane.add(maze);
 		contentPane.add(exploredMapPane, BorderLayout.WEST);
 	}
@@ -416,29 +417,36 @@ public class GUI extends JFrame implements ActionListener{
 			} else if (cmd.equals("ClearMap")) {
 				clearMapGrids();
 			} else if (cmd.equals("ExploreMaze")) {
-				if(!RobotController.REAL_RUN) {
+				if(!RobotConstants.REAL_RUN) {
 					if (!this.isIntExploreInput()) {
 						this.setStatus("invalid input for exploration");
 						this.setExploreBtnEnabled(true);
 						return;
 					}
 					gui.refreshExploreInput();
-					SyncObject.getSyncObject().SignalResetRobot();
-					update = null;
+					if(update != null){
+						SyncObject.getSyncObject().SignalResetRobot();
+						update = null;
+					}
 					if(timerWorker != null){
 						timerWorker.stop();
 						timerWorker = null;
 					}
 
-					//TODO: Kill non update workers if they exist
-					if (!RobotController.REAL_RUN)
-						colourGridCell(Map.getRealMapInstance(), mapGrids, wayPointX, wayPointY);
+					if (!RobotConstants.REAL_RUN) {
+						DrawMap(Map.getRealMapInstance(), mapGrids);
+						if(wayPointX < 0 || wayPointX > MapConstants.MAP_WIDTH-1 || wayPointY < 0 || wayPointY > MapConstants.MAP_HEIGHT - 1){
+							colourGridCell(Map.getRealMapInstance(), mapGrids, 1, 1);
+						}else {
+							colourGridCell(Map.getRealMapInstance(), mapGrids, wayPointX, wayPointY);
+						}
+					}
 					wayPointX = -1;
 					wayPointY = -1;
-					SyncObject.getSyncObject().SignalExplorationStarted();
+					SyncObject.getSyncObject().SignalExplorationStart();
 				}
 			} else if (cmd.equals("FindFastestPath")) {
-				if(!RobotController.REAL_RUN) {
+				if(!RobotConstants.REAL_RUN) {
 					if (!gui.isIntFFPInput()) {
 						gui.setStatus("invalid input for finding fastest path");
 						gui.setFfpBtnEnabled(true);
@@ -446,7 +454,8 @@ public class GUI extends JFrame implements ActionListener{
 					}
 					gui.refreshFfpInput();
 					ffpButton.setEnabled(false);
-					SyncObject.getSyncObject().SignalFastestPath();
+					SyncObject.getSyncObject().SignalFastestPathStart();
+					ffpButton.setEnabled(true);
 				}
 			}
 		} catch (Exception ex) {
@@ -465,7 +474,20 @@ public class GUI extends JFrame implements ActionListener{
 								startTimer();
 							}
 							update = SyncObject.getSyncObject().GetGUIUpdate();
+							//Draw Map
 							DrawMap(update.getMap(), mazeGrids);
+							List<Coordinate> path = SyncObject.getSyncObject().GetFastestPathSquares();
+							//Draw Path
+							if(path != null){
+								DrawMap(Map.getRealMapInstance(), mapGrids);
+								for(Coordinate c: path){
+									setMapGridColor(c.getX(), c.getY(), FASTEST_PATH_COLOR);
+									setMazeGridColor(c.getX(), c.getY(), FASTEST_PATH_COLOR);
+								}
+							}
+							setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+							setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+							//Draw Robot
 							DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
 						}catch (Exception e){
 							System.out.println("Polling Worker: " + e.toString());
@@ -479,13 +501,12 @@ public class GUI extends JFrame implements ActionListener{
 
 	private void startTimer(){
 		TimerEvent timeActionListener;
-		if (RobotController.REAL_RUN) {
-			timeActionListener = new TimerEvent(RobotController.REAL_EXPLORE_TIME_LIMIT, SyncObject.getSyncObject()::HasExplorationFinished);
-
-		} else timeActionListener = new TimerEvent(GUI.exploreTimeLimit, SyncObject.getSyncObject()::HasExplorationFinished);
-		Timer exploringTimer = new Timer(1000, timeActionListener);
-		timeActionListener.setTimer(exploringTimer);
-		exploringTimer.start();
+		if (RobotConstants.REAL_RUN) {
+			timeActionListener = new TimerEvent(RobotConstants.REAL_EXPLORE_TIME_LIMIT, () -> SyncObject.getSyncObject().IsExplorationFinished());
+		} else timeActionListener = new TimerEvent(SyncObject.getSyncObject().settings.getTimeLimit(), () -> SyncObject.getSyncObject().IsExplorationFinished());
+		timerWorker = new Timer(1000, timeActionListener);
+		timeActionListener.setTimer(timerWorker);
+		timerWorker.start();
 	}
 
 	private void colourGridCell(Map map, JButton[][] grid, int i, int j){
@@ -601,12 +622,12 @@ public class GUI extends JFrame implements ActionListener{
 						if (value > MapConstants.MAP_WIDTH-1)
 							return;
 						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
-						if(!RobotController.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
+						if(!RobotConstants.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
 						wayPointX = value;
 						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(!RobotController.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(!RobotConstants.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
 						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
-							SyncObject.getSyncObject().DefineWaypoint(new Coordinate(wayPointX, wayPointY));
+							SyncObject.getSyncObject().SetWaypoint(new Coordinate(wayPointX, wayPointY));
 						}
 						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
 
@@ -618,12 +639,12 @@ public class GUI extends JFrame implements ActionListener{
 						if (value > MapConstants.MAP_HEIGHT - 1)
 							return;
 						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
-						if(!RobotController.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
+						if(!RobotConstants.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
 						wayPointY = value;
 						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(!RobotController.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+						if(!RobotConstants.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
 						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
-							SyncObject.getSyncObject().DefineWaypoint(new Coordinate(wayPointX, wayPointY));
+							SyncObject.getSyncObject().SetWaypoint(new Coordinate(wayPointX, wayPointY));
 						}
 						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
 					}
