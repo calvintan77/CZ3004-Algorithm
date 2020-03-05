@@ -41,7 +41,7 @@ public class MapCell {
 		this.isSeen = status; 
 	}
 	
-	public boolean getSeen() {
+	public boolean isSeen() {
 		return this.isSeen;
 	}
 	

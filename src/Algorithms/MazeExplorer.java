@@ -68,15 +68,15 @@ public class MazeExplorer {
 				
 			}
 		}
-		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getExploredPercent() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
+		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getSeenPercentage() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
 		
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored
 		// enqueue all unseen cells
 		List<MapCell> unseen = map.getAllUnseen();
-		while (map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit) {
+		while (map.getSeenPercentage() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit) {
 			// shortest path to unseen
 			// fuck doing fp in java
-			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::getSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 			try {
 				List<Coordinate> start = new LinkedList<>();
 				start.add(robot.getPosition());
@@ -92,14 +92,14 @@ public class MazeExplorer {
 				}
 				robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
 				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
-					if(!(map.getExploredPercent() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
+					if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
-					long numUnseen = unseen.stream().filter(x -> !x.getSeen()).count();
+					long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 					if (numUnseen != unseen.size()) break;
 					robot.doCommandWithSensor(cmd, map);
 				}
 				weight = getPathToStart(map).getWeight();
-				unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
+				unseen = unseen.stream().filter(x -> !x.isSeen()).collect(Collectors.toList());
 			} catch (Exception e) {
 				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
 				HashMap<MapCell, Orientation> candidates = new HashMap<>();
@@ -122,17 +122,17 @@ public class MazeExplorer {
 					robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
 					// Loop over commands until discover new unseen
 					for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
-						if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
+						if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
 						if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition()))
 							break;
-						long numUnseen = unseen.stream().filter(x -> !x.getSeen()).count();
+						long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 						if (numUnseen != unseen.size()) break;
 						robot.doCommandWithSensor(cmd, map);
 					}
 					// See edge case cell
 					robot.prepareOrientation(robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination()))), map);
 					weight = getPathToStart(map).getWeight();
-					unseen = unseen.stream().filter(x -> !x.getSeen()).collect(Collectors.toList());
+					unseen = unseen.stream().filter(x -> !x.isSeen()).collect(Collectors.toList());
 				} catch (Exception e2) {
 					System.out.println("Unable to access cell, cutting losses");
 					break;
@@ -143,8 +143,8 @@ public class MazeExplorer {
 		// path back to start position
 		try {
 			ShortestPath toStartingPoint;
-			if(!(map.getExploredPercent() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) {
-				toStartingPoint = getPathToStart(map.clone());
+			if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) {
+				toStartingPoint = getPathToStart(map.CloneWithUnseenAsObstacles());
 			}else {
 				toStartingPoint = getPathToStart(map);
 			}

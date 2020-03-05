@@ -17,7 +17,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -28,10 +27,7 @@ import Constants.MapConstants;
 import RealRun.RpiRobot;
 import Simulator.IRobot;
 import Simulator.VirtualRobot;
-import utils.Map;
-import utils.MapProcessor;
-import utils.Orientation;
-import utils.RobotCommand;
+import utils.*;
 
 
 public class GUI extends JFrame implements ActionListener{
@@ -435,14 +431,14 @@ public class GUI extends JFrame implements ActionListener{
 				CardLayout cardLayout = (CardLayout) (cardPanel.getLayout());
 				cardLayout.show(cardPanel, (String) cb.getSelectedItem());
 			} else if (cmd.equals("LoadMap")) {
-				Map.getRealMapInstance().loadMap(mapGrids);
+				MapLoader.loadRealMapFromGUI(mapGrids);
 			} else if (cmd.equals("ClearMap")) {
 				clearMapGrids();
 			} else if (cmd.equals("ExploreMaze")) {
 				clearMazeGrids();
 				if (!RobotController.REAL_RUN)
 					eraseWayPointForMapGrids(Map.getRealMapInstance());
-				eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+				eraseWayPointForMazeGrids(Map.getExplorationMap());
 				refreshExploreInput();
 				exploreButton.setEnabled(false);
 	        	RobotController.getInstance().exploreMaze();
@@ -450,8 +446,8 @@ public class GUI extends JFrame implements ActionListener{
 	//			refreshFfpInput();
 				ffpButton.setEnabled(false);
 				if (!RobotController.REAL_RUN)
-					eraseWayPointForMapGrids(Map.getExploredMapInstance());
-				eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+					eraseWayPointForMapGrids(Map.getExplorationMap());
+				eraseWayPointForMazeGrids(Map.getExplorationMap());
 				resetRobotLocation(1,1,Orientation.UP);
 				RobotController.getInstance().fastestPath();
 			}
@@ -466,7 +462,7 @@ public class GUI extends JFrame implements ActionListener{
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
 			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevwayPointX, prevwayPointY).getSeen())
+			} else if (!map.getCell(prevwayPointX, prevwayPointY).isSeen())
 				mapGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
 			else mapGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
@@ -478,7 +474,7 @@ public class GUI extends JFrame implements ActionListener{
 				mazeGrids[prevwayPointX][prevwayPointY].setBackground(GOAL_START_ZONE_COLOR);
 			else if (map.getCell(prevwayPointX, prevwayPointY).isObstacle()) {
 				mazeGrids[prevwayPointX][prevwayPointY].setBackground(OBSTACLE_CELL_COLOR);
-			} else if (!map.getCell(prevwayPointX, prevwayPointY).getSeen())
+			} else if (!map.getCell(prevwayPointX, prevwayPointY).isSeen())
 				mazeGrids[prevwayPointX][prevwayPointY].setBackground(UNEXPLORED_CELL_COLOR);
 			else mazeGrids[prevwayPointX][prevwayPointY].setBackground(EMPTY_CELL_COLOR);
 		}
@@ -489,12 +485,12 @@ public class GUI extends JFrame implements ActionListener{
 			System.out.println("Invalid robot position");
 			return;
 		}
-		Map map = Map.getExploredMapInstance();
+		Map map = Map.getExplorationMap();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				if ((i<=2 && j<= 2) || (i>=12 && j>=17))
 					mazeGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-				else if (!map.getCell(i, j).getSeen()) {
+				else if (!map.getCell(i, j).isSeen()) {
 					mazeGrids[i][j].setBackground(UNEXPLORED_CELL_COLOR);
 				} else if (map.getCell(i, j).isObstacle()) {
 					mazeGrids[i][j].setBackground(OBSTACLE_CELL_COLOR);
@@ -540,7 +536,7 @@ public class GUI extends JFrame implements ActionListener{
 					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 			}
 		}
-		Map.getRealMapInstance().loadMap(mapGrids);
+		MapLoader.loadRealMapFromGUI(mapGrids);
 	}
 	
 	public void clearMazeGrids() {
@@ -554,7 +550,7 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 		mazeGrids[1][2].setBackground(ROBOT_HEAD_COLOR);
-		Map.getExploredMapInstance().clearMap();
+		Map.getExplorationMap().clearMap();
 		robotPosition = new int[] {1,1};
 		currentOrientation = Orientation.UP;
 		IRobot robot;
@@ -685,7 +681,7 @@ public class GUI extends JFrame implements ActionListener{
 						return;
 					prevwayPointX = wayPointX;
 					prevwayPointY = wayPointY;
-					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
 					if (!RobotController.REAL_RUN)
 						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
 					wayPointX = value;
@@ -700,7 +696,7 @@ public class GUI extends JFrame implements ActionListener{
 						return;
 					prevwayPointX = wayPointX;
 					prevwayPointY = wayPointY;
-					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExploredMapInstance());
+					GUI.getInstance().eraseWayPointForMazeGrids(Map.getExplorationMap());
 					if (!RobotController.REAL_RUN)
 						GUI.getInstance().eraseWayPointForMapGrids(Map.getRealMapInstance());
 					wayPointY = value;
@@ -719,7 +715,7 @@ public class GUI extends JFrame implements ActionListener{
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				if ((i<=2 && j<=2) || (i>=12 && j>=17))
 					mapGrids[i][j].setBackground(GOAL_START_ZONE_COLOR);
-				else if (map.getCell(i, j).getSeen()) {
+				else if (map.getCell(i, j).isSeen()) {
 					if (map.getCell(i, j).isObstacle()) 
 						mapGrids[i][j].setBackground(OBSTACLE_CELL_COLOR);
 					else mapGrids[i][j].setBackground(EMPTY_CELL_COLOR);

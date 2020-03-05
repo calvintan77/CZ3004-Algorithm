@@ -1,19 +1,11 @@
 package utils;
 
-import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.swing.JButton;
 
 import Constants.MapConstants;
 import Constants.SensorConstants;
@@ -23,26 +15,24 @@ public class Map {
 
 	private static final String MAP_FILE_PATH = "src/sample arena 3.txt";
 
-	private static Map exploredMap;
+	private static Map explorationMap;
 	private static Map realMap; 	//this attribute is only used during simulation. 
 									//In real run, real map is not known in advanced
 	
 	private MapCell[][] mapCells;
-	private int numSquaresExplored; // have exploredPercent and count so we don't waste time
+	private int numSquaresSeen = 0; // num of squares seen by robot
 	
 	//Singleton strategy pattern
-	public static Map getExploredMapInstance() {
-		if (exploredMap == null)
-			exploredMap = new Map();
-		return exploredMap;
+	public static Map getExplorationMap() {
+		if (explorationMap == null)
+			explorationMap = new Map();
+		return explorationMap;
 	}
 	
 	public static Map getRealMapInstance() {
 		if (realMap == null) {
-			/*
-			 * Code to load real Map
-			 */
-			realMap = loadMapFromFile(MAP_FILE_PATH);
+			// load real map
+			realMap = MapLoader.loadMapFromFile(MAP_FILE_PATH);
 			
 		}
 		return realMap;
@@ -50,7 +40,6 @@ public class Map {
 	
 	public Map() {
 		mapCells = new MapCell[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
-		this.numSquaresExplored = 0;
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
 				mapCells[i][j] = new MapCell(i, j);
@@ -62,13 +51,24 @@ public class Map {
 			}
 		}
 	}
+
+	public void initSeenSquares(){
+		this.numSquaresSeen = 0;
+		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
+			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
+				if(this.getCell(i, j).isSeen()){
+					this.numSquaresSeen += 1;
+				}
+			}
+		}
+	}
 	
 	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
-		if (this.getCell(x,y) == null || this.getCell(x, y).getSeen()) { // defensive check
+		if (this.getCell(x,y) == null || this.getCell(x, y).isSeen()) { // defensive check
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
-		this.numSquaresExplored++;
+		this.numSquaresSeen++;
 		//TODO: Don't mix responsibilities here
 		if (this.getCell(x, y).isObstacle())
 			GUI.getInstance().getMazeGrids()[x][y].setBackground(GUI.OBSTACLE_CELL_COLOR);
@@ -88,172 +88,40 @@ public class Map {
 		return getCell(c.getX(), c.getY());
 	}
 	
-	
-	// marks a given cell as a virtual wall - defensive check not given here, caller has to do 
-	public void markVirtualWall(int x, int y) { 
-		this.getCell(x, y).setVirtualWall(true);
-	}
-	
-	public float getExploredPercent() {
-		return (float) this.numSquaresExplored / 3f;
-	}
-	
-	public static String convertHexToBinaryString(String hex) {
-		String newHexString = "F"+hex;
-		return new BigInteger(newHexString, 16).toString(2).substring(4);
-	}
-	
-	public static String convertBinaryToHexString(String binary, int hexStringLength) {
-		String hexString = new BigInteger(binary, 2).toString(16);
-		int paddingSpace = hexStringLength - hexString.length();
-		StringBuilder paddedHexString = new StringBuilder();
-		for (int i=0; i<paddingSpace; i++) {
-			paddedHexString.append("0");
-		}
-		paddedHexString.append(hexString);
-		return paddedHexString.toString();
-	}
-	
-	public static String convertBinaryToHexString(String binary) {
-		String hexString = new BigInteger(binary, 2).toString(16);
-		int paddingSpace = binary.length() / 4 - hexString.length();
-		StringBuilder paddedHexString = new StringBuilder();
-		for (int i=0; i<paddingSpace; i++) {
-			paddedHexString.append("0");
-		}
-		paddedHexString.append(hexString);
-		return paddedHexString.toString();
-	}
-	
-	public static void saveMap(Map map, String savePath) {
-		MapTuple tup = generateMapDescriptor(map);		
-		File mapFile = new File(savePath);
-
-		try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
-			mapFileWriter.write(tup.GetP1());
-			mapFileWriter.newLine();
-			mapFileWriter.write(tup.GetP2());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static MapTuple generateMapDescriptor(Map map) {
-		StringBuilder b1MapDescriptor = new StringBuilder();
-		StringBuilder b2MapDescriptor = new StringBuilder();
-		b1MapDescriptor.append("11");
-		for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-			for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-				if (map.getCell(i, j).getSeen()) {
-					b1MapDescriptor.append("1");
-					if (map.getCell(i, j).isObstacle())
-						b2MapDescriptor.append("1");
-					else b2MapDescriptor.append("0");
-				} else b1MapDescriptor.append("0");
-			}
-		}
-		b1MapDescriptor.append("11");
-
-		if (b2MapDescriptor.length() % 4 != 0) {
-			int padding = 4 - (b2MapDescriptor.length()%4);
-			for (int i=0; i<padding; i++) {
-				b2MapDescriptor.append("0");
-			}
-		}
-		String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
-		String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
-		return new MapTuple(h1MapDescriptor, h2MapDescriptor);
-	}
-	
-
-	public void loadMap(JButton[][] mapGrids) {
-		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
-			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
-				if (mapGrids[x][y].getBackground() == GUI.OBSTACLE_CELL_COLOR) {
-					mapCells[x][y].setObstacleStatus(true);
-				} else if (mapGrids[x][y].getBackground() == GUI.EMPTY_CELL_COLOR
-						|| mapGrids[x][y].getBackground() == GUI.GOAL_START_ZONE_COLOR){
-					mapCells[x][y].setObstacleStatus(false);
-				}
-			}
-		}
-		Map.saveMap(Map.getRealMapInstance(), "src/inputMap.txt");
+	public float getSeenPercentage() {
+		return (float) this.numSquaresSeen / 3f;
 	}
 
-	public void clearMap() {
-		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
-			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
-				if (x<=2 && y<=2) {
-					mapCells[x][y].setSeen(true);
-				} else {
-					mapCells[x][y].clear();
-				}
-				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
-					mapCells[x][y].setVirtualWall(true);
-			}
-		}
-		this.numSquaresExplored = 9;
-	}
 	
-	public static Map loadMapFromFile(String filePath) {
-		Map resultMap = new Map();
-		File mapFile = new File(filePath);
-		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
-			String h1MapDescriptor = mapFileReader.readLine();
-			String h2MapDescriptor = mapFileReader.readLine();
-			String b1MapDescriptor = convertHexToBinaryString(h1MapDescriptor);
-			String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
-			int stringIndex = 0;
-			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-				for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-					if (b1MapDescriptor.charAt(j*MapConstants.MAP_WIDTH+i+2) == '0')
-						continue;
-					resultMap.getCell(i, j).setSeen(true);
-					if (b2MapDescriptor.charAt(stringIndex) == '0') {
-						resultMap.getCell(i, j).setObstacleStatus(false);
-					} else resultMap.getCell(i, j).setObstacleStatus(true);
-					stringIndex++;
-				}
-			}
-		} catch (Exception e){
-			e.printStackTrace();
-		}
-		return resultMap;
+	public int getNumSeen() {
+		return this.numSquaresSeen;
 	}
-	
-	public int getNumExplored() {
-		return this.numSquaresExplored;
-	}
-	
-	public void updateExploredPercentage() {
-		numSquaresExplored = 0;
-		for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-			for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (mapCells[i][j].getSeen())
-					numSquaresExplored++;
-			}
-		}
-	}
-	
-	// unelegant way of getting unseen 
+
+	/**
+	 * Searches all cells to find unseen
+	 * @return unseen cells
+	 */
 	public List<MapCell> getAllUnseen() {
 		List<MapCell> arr = new ArrayList<MapCell>(); 
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).getSeen()) {
+				if (!this.getCell(i, j).isSeen()) {
 					arr.add(this.getCell(i, j));
 				}
 			}
 		}
 		return arr; 
 	}
-	
-	// unelegant way of getting seen 
+
+	/**
+	 * Searches all cells to get seen cells
+	 * @return seen cells
+	 */
 	public List<MapCell> getAllSeen() {
 		List<MapCell> arr = new ArrayList<MapCell>(); 
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (this.getCell(i, j).getSeen()) {
+				if (this.getCell(i, j).isSeen()) {
 					arr.add(this.getCell(i, j));
 				}
 			}
@@ -262,7 +130,8 @@ public class Map {
 	}
 	
 	/**
-	 * @param values: list of string values to update in format of l,f,f,f,r 
+	 * Takes a list of sensor readings and updates the map
+	 * @param values: list of string values to update in format of Left(long),Front Left,Front Middle,Front Right,Right
 	 **/
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
 		switch (o) { 
@@ -298,7 +167,7 @@ public class Map {
 	}
 	
 	/** 
-	 * updates value based on a single sensor 
+	 * Updates map based on a single sensor
 	 * @param value: sensor's readings 
 	 * @param maxValue: max sensor reading 
 	 * @param sensorPos: actual sensor position
@@ -344,16 +213,17 @@ public class Map {
 	}
 	
 	/**
-	 * set c to be obstacle and surrounding to be virtual walls 
-	 * @param c
+	 * set c to be an obstacle and seen, and surrounding 3x3 is set as virtual walls.
+	 * @param c - coordinate of obstacle
 	 */
 	public void setObstacle(Coordinate c) {
 		setObstacle(c, true);
 	}
 	
 	/**
-	 * set c to be obstacle and surrounding to be virtual walls 
-	 * @param c
+	 * set c to be an obstacle and set seen if markSeen is true, and surrounding 3x3 is set as virtual walls.
+	 * @param c - coordinate of obstacle
+	 * @param markSeen - whether to mark cell as seen
 	 */
 	public void setObstacle(Coordinate c, boolean markSeen) {
 		if(this.getCell(c) == null) return;
@@ -373,8 +243,8 @@ public class Map {
 	}
 	
 	/**
-	 * unset c to be obstacle and surrounding to be virtual walls 
-	 * @param c
+	 * unset c from being an obstacle, and remove surrounding virtual walls if no other obstacles exist
+	 * @param c - coordinate to unset
 	 */
 	public void unsetObstacle(Coordinate c) {
 		if(this.getCell(c) == null) return;
@@ -383,8 +253,8 @@ public class Map {
 			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
 				if (i != 0 && i != 14 && j != 0 && j != 19 && 
 						this.getCell(i, j) != null && 
-						this.getCell(i, j).getSeen() &&
-						!this.getAdjacent(this.getCell(i, j)).stream().anyMatch(x -> x.isObstacle()&&x.getSeen())) {
+						this.getCell(i, j).isSeen() &&
+						!this.getAdjacent(this.getCell(i, j)).stream().anyMatch(x -> x.isObstacle()&&x.isSeen())) {
 					this.getCell(i, j).setVirtualWall(false);
 				}
 			}
@@ -392,9 +262,9 @@ public class Map {
 	}
 	
 	/**
-	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
-	 * @param m
-	 * @return
+	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles (Only UP/DOWN/LEFT/RIGHT)
+	 * @param m - cell to find neighbours from
+	 * @return List of neighbours
 	 */
 	public HashMap<String, MapCell> getNeighbours(MapCell m) {
 		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
@@ -459,9 +329,9 @@ public class Map {
 	}
 	
 	/**
-	 * returns a list of valid neighbouring cells - ie, not virtual wall, not obstacles
-	 * @param m
-	 * @return
+	 * returns a list of all adjacent cells (in a 3x3 grid)
+	 * @param m - cell to get adjacent of
+	 * @return list of adjacent cells
 	 */
 	public List<MapCell> getAdjacent(MapCell m) {
 		List<MapCell> cells = new ArrayList<>();
@@ -475,12 +345,16 @@ public class Map {
 		}
 		return cells;
 	}
-	
-	public Map clone() {
+
+	/**
+	 * Creates a new map with unseen cells as obstacles
+	 * @return new map with unseen cells as obstacles
+	 */
+	public Map CloneWithUnseenAsObstacles() {
 		Map cloneMap = new Map();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).getSeen()) {
+				if (!this.getCell(i, j).isSeen()) {
 					cloneMap.setObstacle(new Coordinate(i,j), false);
 				} else cloneMap.getCell(i, j).setSeen(true);
 				if(this.getCell(i, j).isObstacle()) {
@@ -490,31 +364,32 @@ public class Map {
 		}
 		return cloneMap;
 	}
-	
+
+	/**
+	 * Get the frontier of unseen nodes and set them to seen (assumes that there are no obstacles)
+	 */
 	public void expandSearchSpace() {
-		List<Coordinate> seenNeighbours = getAllSeen().stream().map(this::getAdjacent).flatMap(Collection::stream).filter(x -> !x.getSeen()).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		List<Coordinate> seenNeighbours = getAllSeen().stream().map(this::getAdjacent).flatMap(Collection::stream).filter(x -> !x.isSeen()).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 		for(Coordinate c:seenNeighbours) {
 			this.getCell(c).setSeen(true);
 			unsetObstacle(c);
 		}
 	}
-	
-	
-	
-	public static void main(String[] args) {
-		File mapFile = new File(MAP_FILE_PATH);
-		try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
-			String h1MapDescriptor = mapFileReader.readLine();
-			String h2MapDescriptor = mapFileReader.readLine();
-			String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
-//			System.out.println(b2MapDescriptor);
-//			System.out.println(b2MapDescriptor.length());
-			System.out.println(h2MapDescriptor);
-			System.out.println(convertBinaryToHexString(b2MapDescriptor));
-		} catch (Exception e){
-			e.printStackTrace();
+
+	/**
+	 * Resets the map
+	 */
+	public void clearMap() {
+		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
+			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
+				this.getCell(x, y).clear();
+				if (x<=2 && y<=2) {
+					this.getCell(x, y).setSeen(true);
+				}
+				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
+					this.getCell(x, y).setVirtualWall(true);
+			}
 		}
+		this.initSeenSquares();
 	}
-	
-	
 }

@@ -1,7 +1,6 @@
 package utils;
 
 import java.util.Collection;
-import java.util.List;
 
 public class UtilityFunc {
 	
@@ -12,7 +11,7 @@ public class UtilityFunc {
 	 */
 	public static Collection<MapCell> removeUnseen(Collection<MapCell> coll) { 
 		for(MapCell m : coll) {
-			if (!m.getSeen()) {
+			if (!m.isSeen()) {
 				coll.remove(m);
 			}
 		}

@@ -12,11 +12,7 @@ import Constants.MapConstants;
 import RealRun.RpiRobot;
 import Simulator.IRobot;
 import Simulator.VirtualRobot;
-import utils.Graph;
-import utils.GraphNode;
-import utils.Map;
-import utils.Orientation;
-import utils.ShortestPath;
+import utils.*;
 
 
 public class RobotController {
@@ -63,13 +59,13 @@ public class RobotController {
 				try {
 					if (!REAL_RUN) {
 						robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.UP), null);
-						explorer.exploreMaze(Map.getExploredMapInstance(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
-					}else explorer.exploreMaze(Map.getExploredMapInstance(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
+						explorer.exploreMaze(Map.getExplorationMap(), GUI.exploreTimeLimit, gui.getTargetExplorePercent());
+					}else explorer.exploreMaze(Map.getExplorationMap(), EXPLORE_TIME_LIMIT, gui.getTargetExplorePercent());
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw e;
 				}
-				Map.saveMap(Map.getExploredMapInstance(), "src/exploredMap.txt");
+				MapLoader.saveMap(Map.getExplorationMap(), "src/exploredMap.txt");
 				return null;
 			}
 			@Override
@@ -86,7 +82,7 @@ public class RobotController {
 			@Override
 			protected Void doInBackground() throws Exception {
 				while (!(exploreMaze.isDone() || exploreMaze.isCancelled())) {
-					Float coverageRate = Map.getExploredMapInstance().getNumExplored() *100f / 300f ;
+					Float coverageRate = Map.getExplorationMap().getNumSeen() *100f / 300f ;
 					gui.setCoverageUpdate(coverageRate);
 				}
 				return null;
@@ -119,9 +115,9 @@ public class RobotController {
 					int wayPointX = gui.getWayPointX();
 					int wayPointY = gui.getWayPointY();
 					Map exploredMap = null;
-					if (Map.getExploredMapInstance().getExploredPercent() < 100) {
-						exploredMap = Map.getExploredMapInstance().clone();
-					} else exploredMap = Map.getExploredMapInstance();
+					if (Map.getExplorationMap().getSeenPercentage() < 100) {
+						exploredMap = Map.getExplorationMap().CloneWithUnseenAsObstacles();
+					} else exploredMap = Map.getExplorationMap();
 					ShortestPath result;
 					do {
 						Graph graph = new Graph(exploredMap, wayPointX, wayPointY);
