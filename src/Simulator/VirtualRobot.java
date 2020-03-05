@@ -13,6 +13,7 @@ public class VirtualRobot implements IRobot {
 	private int speed;
 	private Orientation o; // need to initialize 
 	private Coordinate position;
+	private List<RobotCommand> fastestPathInstructions;
 
 	//Singleton strategy pattern
 	public static IRobot getInstance() {
@@ -290,10 +291,15 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void doFastestPath(List<RobotCommand> cmds) {
-		for(RobotCommand cmd: cmds){
+	public void setFastestPath(List<RobotCommand> cmds) {
+		this.fastestPathInstructions = cmds;
+	}
+
+	@Override
+	public void doFastestPath(boolean toGoalZone) {
+		if(this.fastestPathInstructions == null) return;
+		for(RobotCommand cmd: this.fastestPathInstructions){
 			doCommandWithSensor(cmd, null);
 		}
 	}
-	
 }

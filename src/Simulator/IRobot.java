@@ -16,5 +16,6 @@ public interface IRobot {
 	public void setOrientation(Orientation o);
 	public HashMap<MapCell, Orientation> getSensorVisibilityCandidates(Map map, MapCell cell);
 	public boolean Calibrate(Map m); 
-	public void doFastestPath(List<RobotCommand> cmds);
+	public void setFastestPath(List<RobotCommand> cmds);
+	public void doFastestPath(boolean toGoalZone);
 }

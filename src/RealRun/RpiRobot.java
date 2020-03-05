@@ -211,7 +211,7 @@ public class RpiRobot implements IRobot{
 
 	/**
 	 * Method to calibrate the actual robot against given corners/walls
-	 * @param Map: the current seen map at this timestep
+	 * @param m: the current seen map at this timestep
 	 * @return: void but arduino will do command 
 	 */
 	public boolean Calibrate(Map m) { 	
@@ -243,7 +243,7 @@ public class RpiRobot implements IRobot{
 		}
 
 		toSend.addAll(prepareOrientationCmds(o));
-		// TODO: set docommand here later 
+		AlgoClient.GetInstance().SendCalibrate(toSend);
 		return true; 
 	}
 
@@ -295,7 +295,14 @@ public class RpiRobot implements IRobot{
 	}
 
 	@Override
-	public void doFastestPath(List<RobotCommand> cmds) {
+	public void setFastestPath(List<RobotCommand> cmds) {
 		AlgoClient.GetInstance().sendFastestPath(cmds);
+	}
+
+	@Override
+	public void doFastestPath(boolean toGoalZone) {
+		if(!toGoalZone){
+			AlgoClient.GetInstance().StartFastestPath();
+		}
 	}
 }

@@ -3,7 +3,6 @@ package Main;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.Scanner;
 
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
@@ -16,9 +15,7 @@ import Simulator.VirtualRobot;
 import utils.Graph;
 import utils.GraphNode;
 import utils.Map;
-import utils.MapCell;
 import utils.Orientation;
-import utils.RobotCommand;
 import utils.ShortestPath;
 
 
@@ -152,8 +149,8 @@ public class RobotController {
 					    	gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_CORLOR);
 					}
 					
-					robot.doFastestPath(result.generateInstructions());
-					
+					robot.setFastestPath(result.generateInstructions());
+					robot.doFastestPath(true);
 					for(GraphNode n: path){
 						if (!(gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_COLOR
 							|| gui.getMazeGridColor(n.getX(), n.getY()) == GUI.ROBOT_HEAD_COLOR)

@@ -14,7 +14,8 @@ import utils.RobotCommand;
 public class AlgoClient{ 
     private static AlgoClient instance;
     private static final String MOVE = "0"; 
-    private static final String FASTEST_PATH = "1"; 
+    private static final String FASTEST_PATH = "1";
+    private static final String START_FASTEST_PATH = "2";
     private static final String EXPLORATION_START = "3";
     private static final String SET_WAYPOINT = "4";
     private static final String SENSOR = "5";
@@ -61,6 +62,10 @@ public class AlgoClient{
             i = 0; 
         } 
         sock.Send(builder.toString());
+    }
+
+    public void StartFastestPath(){
+        sock.Send(START_FASTEST_PATH);
     }
 
     public void SendMove(RobotCommand command, MapTuple map, Orientation o, Coordinate c) { 

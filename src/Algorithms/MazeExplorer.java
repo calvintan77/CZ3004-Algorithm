@@ -5,7 +5,6 @@ import utils.*;
 
 import utils.Map;
 
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -150,11 +149,10 @@ public class MazeExplorer {
 				toStartingPoint = getPathToStart(map);
 			}
 			// Set orientation to face the right way to go to start
-			robot.prepareOrientation(robot.prepareOrientationCmds(toStartingPoint.getStartingOrientation()), map);
-			// go back to start
-			for(RobotCommand cmd: toStartingPoint.generateInstructions()){
-				robot.doCommandWithSensor(cmd, map);
-			}
+			List<RobotCommand> prepOrientation = robot.prepareOrientationCmds(toStartingPoint.getStartingOrientation());
+			prepOrientation.addAll(toStartingPoint.generateInstructions());
+			robot.setFastestPath(prepOrientation);
+			robot.doFastestPath(false);
 			// Prepare for FP to goalzone
 			robot.getPosition().setFacing(Coordinate.Facing.NONE);
 		} catch (Exception e) {
