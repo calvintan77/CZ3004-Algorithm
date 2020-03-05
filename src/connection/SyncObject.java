@@ -8,31 +8,32 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import GUI.GUISettings;
-import GUI.GUIUpdate;
-import Threading.AlgoThread;
+import gui.GUISettings;
+import gui.GUIUpdate;
+import maze.Map;
+import threading.AlgoThread;
 import utils.*;
 
 public class SyncObject{
     private static SyncObject instance;
-    private Semaphore isWaypointAvailable = new Semaphore(0);
-    private Semaphore hasExplorationStarted = new Semaphore(0);
-    private Semaphore isSensorDataAvailable = new Semaphore(0);
-    private Semaphore hasGUIUpdate = new Semaphore(0);
-    private Lock lockGUIUpdate = new ReentrantLock();
+    private final Semaphore isWaypointAvailable = new Semaphore(0);
+    private final Semaphore hasExplorationStarted = new Semaphore(0);
+    private final Semaphore isSensorDataAvailable = new Semaphore(0);
+    private final Semaphore hasGUIUpdate = new Semaphore(0);
+    private final Lock lockGUIUpdate = new ReentrantLock();
     private Map prevMap;
     // Only for virtual runs
-    private Semaphore startFastestPath = new Semaphore(0);
+    private final Semaphore startFastestPath = new Semaphore(0);
     // Only for virtual runs
-    private Semaphore resetRobot = new Semaphore(0);
+    private final Semaphore resetRobot = new Semaphore(0);
     // Only for virtual runs
-    private Lock lockExploreStatus = new ReentrantLock();
+    private final Lock lockExploreStatus = new ReentrantLock();
     private boolean hasExplorationFinished = false;
     // Only for virtual runs
-    private Lock lockFastestPath = new ReentrantLock();
+    private final Lock lockFastestPath = new ReentrantLock();
     private List<Coordinate> fastestPathSquares;
 
-    public GUISettings settings = new GUISettings();
+    public final GUISettings settings = new GUISettings();
 
     //Waypoint
     private Coordinate waypoint;
@@ -137,7 +138,7 @@ public class SyncObject{
     private void ResetAll(){
         isWaypointAvailable.drainPermits();
         waypoint = null;
-        hasExplorationStarted.drainPermits();;
+        hasExplorationStarted.drainPermits();
         isSensorDataAvailable.drainPermits();
         // Only for virtual runs
         startFastestPath.drainPermits();

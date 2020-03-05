@@ -1,8 +1,8 @@
-package Algorithms;
+package algorithms;
 
-import utils.GraphNode;
+import path.GraphNode;
 import utils.MapProcessor;
-import utils.ShortestPath;
+import path.ShortestPath;
 
 import java.util.*;
 
@@ -71,7 +71,7 @@ public class AStarAlgo {
      */
     private static class AStarNode {
         private double weight;
-        private GraphNode graphNode;
+        private final GraphNode graphNode;
         private AStarNode parent = null;
         public AStarNode(double weight, GraphNode graphNode){
             this.graphNode = graphNode;

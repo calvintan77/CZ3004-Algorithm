@@ -1,7 +1,9 @@
 package utils;
 
-import Constants.MapConstants;
-import GUI.GUI;
+import constants.MapConstants;
+import gui.GUI;
+import maze.Map;
+import maze.MapTuple;
 
 import javax.swing.*;
 import java.io.*;
@@ -16,12 +18,7 @@ public class MapLoader {
     public static String convertBinaryToHexString(String binary, int hexStringLength) {
         String hexString = new BigInteger(binary, 2).toString(16);
         int paddingSpace = hexStringLength - hexString.length();
-        StringBuilder paddedHexString = new StringBuilder();
-        for (int i=0; i<paddingSpace; i++) {
-            paddedHexString.append("0");
-        }
-        paddedHexString.append(hexString);
-        return paddedHexString.toString();
+        return "0".repeat(Math.max(0, paddingSpace)) + hexString;
     }
 
     public static String convertBinaryToHexString(String binary) {
@@ -32,7 +29,7 @@ public class MapLoader {
         MapTuple tup = generateMapDescriptor(map);
         File mapFile = new File(savePath);
 
-        try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile));){
+        try (BufferedWriter mapFileWriter = new BufferedWriter(new FileWriter(mapFile))){
             mapFileWriter.write(tup.GetP1());
             mapFileWriter.newLine();
             mapFileWriter.write(tup.GetP2());
@@ -59,9 +56,7 @@ public class MapLoader {
 
         if (b2MapDescriptor.length() % 4 != 0) {
             int padding = 4 - (b2MapDescriptor.length()%4);
-            for (int i=0; i<padding; i++) {
-                b2MapDescriptor.append("0");
-            }
+            b2MapDescriptor.append("0".repeat(padding));
         }
         String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString());
         String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString());
@@ -87,7 +82,7 @@ public class MapLoader {
     public static Map loadMapFromFile(String filePath) {
         Map resultMap = new Map();
         File mapFile = new File(filePath);
-        try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile));){
+        try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile))){
             String h1MapDescriptor = mapFileReader.readLine();
             String h2MapDescriptor = mapFileReader.readLine();
             String b1MapDescriptor = convertHexToBinaryString(h1MapDescriptor);

@@ -10,13 +10,13 @@ public class TCPSocket {
 
     public TCPSocket(String ip, int port) { 
         while (true) {
-        try { 
-            this.conn = new Socket(ip, port);
-            this.pw = new PrintWriter(conn.getOutputStream()); 
-            this.bw = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            break; 
-        } catch (Exception e) { 
-            continue; 
+            try {
+                this.conn = new Socket(ip, port);
+                this.pw = new PrintWriter(conn.getOutputStream());
+                this.bw = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                break;
+            } catch (Exception e) {
+                System.out.println("TCPSocket: " + e.toString());
             }
         } 
     }

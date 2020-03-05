@@ -1,8 +1,8 @@
 package utils;
 
 public class Coordinate {
-    private int X;
-    private int Y;
+    private final int X;
+    private final int Y;
     private Facing facing = Facing.NONE;
 
     public int getX() {
@@ -35,7 +35,8 @@ public class Coordinate {
         HORIZONTAL, VERTICAL, NONE
     }
 
-    public boolean equals(Object o) { 
+    public boolean equals(Object o) {
+        if(!(o instanceof Coordinate)) return false;
         Coordinate cor = (Coordinate) o;
         return this.X == cor.getX() && this.Y == cor.getY();
     }

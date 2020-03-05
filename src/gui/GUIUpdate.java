@@ -1,13 +1,13 @@
-package GUI;
+package gui;
 
 import utils.Coordinate;
-import utils.Map;
+import maze.Map;
 import utils.Orientation;
 
 public class GUIUpdate {
-    private Map map;
-    private Coordinate robotPos;
-    private Orientation orientation;
+    private final Map map;
+    private final Coordinate robotPos;
+    private final Orientation orientation;
 
     public GUIUpdate(Map map, Coordinate robotPos, Orientation orientation) {
         this.map = map;

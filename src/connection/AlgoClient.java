@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import utils.Coordinate;
-import utils.MapTuple;
+import maze.MapTuple;
 import utils.Orientation;
 import utils.RobotCommand;
 
@@ -21,7 +21,7 @@ public class AlgoClient{
     private static final String RPI_IP = "192.168.9.9";
     private static final int PORT = 9999;
 
-    TCPSocket sock; 
+    final TCPSocket sock;
     private AlgoClient(TCPSocket sock) { 
         this.sock = sock; 
     }
@@ -58,8 +58,7 @@ public class AlgoClient{
                 i -= 16;
             }
             builder.append(Integer.toHexString(i)); 
-            i = 0; 
-        } 
+        }
         sock.Send(builder.toString());
     }
 

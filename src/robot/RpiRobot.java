@@ -1,16 +1,18 @@
-package Robot;
+package robot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import Constants.MapConstants;
-import Constants.SensorConstants;
+import constants.MapConstants;
+import constants.SensorConstants;
 import connection.AlgoClient;
 import connection.SyncObject;
+import maze.Map;
+import maze.MapCell;
 import utils.*;
 
-public class RpiRobot implements IRobot{
+public class RpiRobot implements AbstractRobot {
 	private Coordinate position = new Coordinate(1,1);
 	private Orientation o = Orientation.UP;
 
@@ -87,7 +89,7 @@ public class RpiRobot implements IRobot{
 	@Override
 	public List<RobotCommand> prepareOrientationCmds(Orientation target) {
 		// Orientation update
-		List<RobotCommand> avaiCommands = new ArrayList<RobotCommand>(); 
+		List<RobotCommand> avaiCommands = new ArrayList<>();
 		if (this.getOrientation() != target) {
 			int rightTurns = this.getOrientation().getRightTurns(target);
 			if (rightTurns > 0) {
@@ -196,8 +198,8 @@ public class RpiRobot implements IRobot{
 
 	/**
 	 * Method to calibrate the actual robot against given corners/walls
-	 * @param m: the current seen map at this timestep
-	 * @return: void but arduino will do command 
+	 * @param m - the current seen map at this timestep
+	 * @return void but arduino will do command
 	 */
 	public boolean Calibrate(Map m) { 	
 		// get distances to nearest 4 walls
@@ -209,7 +211,7 @@ public class RpiRobot implements IRobot{
 		if (available.size() == 0) {
 			return false; 
 		}
-		List<RobotCommand> toSend = new ArrayList<RobotCommand>(); 
+		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
 		Orientation temp = Orientation.getClockwise(o);
 		if(available.contains(this.o)) { 
@@ -235,10 +237,10 @@ public class RpiRobot implements IRobot{
 	/**
 	 * method to return available calibrations 
 	 * @param m: current map state 
-	 * @return: list of available orientations to take 
+	 * @return list of available orientations to take
 	 */
 	public List<Orientation> getAvailableCalibrations(Map m) { 
-		List<Orientation> available = new ArrayList<Orientation>(); 
+		List<Orientation> available = new ArrayList<>();
 		// check all configs from robot's own internal xy 
 		for (Orientation o : Orientation.values()) { 
 			if (canCalibrate(o, m)) { 

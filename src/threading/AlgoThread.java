@@ -1,11 +1,12 @@
-package Threading;
+package threading;
 
-import Algorithms.FastestPathFinder;
-import Algorithms.MazeExplorer;
-import Constants.RobotConstants;
-import Robot.IRobot;
-import Robot.RpiRobot;
-import Robot.VirtualRobot;
+import algorithms.FastestPathFinder;
+import algorithms.MazeExplorer;
+import constants.RobotConstants;
+import maze.Map;
+import robot.AbstractRobot;
+import robot.RpiRobot;
+import robot.VirtualRobot;
 import connection.SyncObject;
 import utils.*;
 
@@ -26,10 +27,9 @@ public class AlgoThread implements  Runnable {
     }
 
     private void SimulationRun() throws InterruptedException{
-        IRobot robot = new VirtualRobot();
+        AbstractRobot robot = new VirtualRobot();
         Map explorationMap = new Map();
-        MazeExplorer explorer = new MazeExplorer();
-        explorer.setRobot(robot);
+        MazeExplorer explorer = new MazeExplorer(robot);
         SyncObject.getSyncObject().IsExplorationStarted();
         // Initial state packet
         SyncObject.getSyncObject().SetGUIUpdate(explorationMap, robot.getPosition(), robot.getOrientation());
@@ -39,7 +39,7 @@ public class AlgoThread implements  Runnable {
         SyncObject.getSyncObject().SignalExplorationFinished();
         Orientation o = robot.getOrientation();
         Coordinate c = robot.getPosition();
-        while(true) {
+        while (true) {
             robot.setPosition(c.getX(), c.getY());
             robot.setOrientation(o);
             // Wait for button press
@@ -55,10 +55,9 @@ public class AlgoThread implements  Runnable {
     }
 
     private void RealRun(){
-        IRobot robot = new RpiRobot();
+        AbstractRobot robot = new RpiRobot();
         Map explorationMap = new Map();
-        MazeExplorer explorer = new MazeExplorer();
-        explorer.setRobot(robot);
+        MazeExplorer explorer = new MazeExplorer(robot);
         // Real exploration, wait for signal from android
         try {
             SyncObject.getSyncObject().IsExplorationStarted();

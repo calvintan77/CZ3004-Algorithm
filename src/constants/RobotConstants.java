@@ -1,7 +1,4 @@
-package Constants;
-
-import GUI.GUI;
-import Robot.IRobot;
+package constants;
 
 
 public class RobotConstants {

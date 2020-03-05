@@ -1,4 +1,4 @@
-package Threading;
+package threading;
 
 import connection.SyncObject;
 

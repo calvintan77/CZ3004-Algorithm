@@ -1,4 +1,4 @@
-package utils;
+package maze;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import Constants.MapConstants;
-import Constants.SensorConstants;
-import GUI.GUI;
+import constants.MapConstants;
+import constants.SensorConstants;
+import utils.Coordinate;
+import utils.MapLoader;
+import utils.Orientation;
 
 public class Map {
 
@@ -17,7 +19,7 @@ public class Map {
 	private static Map realMap; 	//this attribute is only used during simulation.
 									//In real run, real map is not known in advanced
 	
-	private MapCell[][] mapCells;
+	private final MapCell[][] mapCells;
 	private int numSquaresSeen = 0; // num of squares seen by robot
 	
 	public static Map getRealMapInstance() {
@@ -88,7 +90,7 @@ public class Map {
 	 * @return unseen cells
 	 */
 	public List<MapCell> getAllUnseen() {
-		List<MapCell> arr = new ArrayList<MapCell>(); 
+		List<MapCell> arr = new ArrayList<>();
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
 				if (!this.getCell(i, j).isSeen()) {
@@ -104,7 +106,7 @@ public class Map {
 	 * @return seen cells
 	 */
 	public List<MapCell> getAllSeen() {
-		List<MapCell> arr = new ArrayList<MapCell>(); 
+		List<MapCell> arr = new ArrayList<>();
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
 				if (this.getCell(i, j).isSeen()) {
@@ -119,7 +121,7 @@ public class Map {
 	 * Takes a list of sensor readings and updates the map
 	 * @param values: list of string values to update in format of Left(long),Front Left,Front Middle,Front Right,Right
 	 **/
-	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) { 
+	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) {
 		switch (o) { 
 			case UP: 
 				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
@@ -217,9 +219,7 @@ public class Map {
 		if(markSeen) this.markCellSeen(c.getX(), c.getY());
 		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
 			for (int j = c.getY() - 1; j <= c.getY() + 1; j++) {
-				if (i == c.getX() && j == c.getY()) {
-					continue;
-				} else {
+				if (i != c.getX() || j != c.getY()) {
 					if (this.getCell(i, j) != null) {
 						this.getCell(i, j).setVirtualWall(true);
 					}
@@ -240,7 +240,7 @@ public class Map {
 				if (i != 0 && i != 14 && j != 0 && j != 19 && 
 						this.getCell(i, j) != null && 
 						this.getCell(i, j).isSeen() &&
-						!this.getAdjacent(this.getCell(i, j)).stream().anyMatch(x -> x.isObstacle()&&x.isSeen())) {
+						this.getAdjacent(this.getCell(i, j)).stream().noneMatch(x -> x.isObstacle()&&x.isSeen())) {
 					this.getCell(i, j).setVirtualWall(false);
 				}
 			}
@@ -253,7 +253,7 @@ public class Map {
 	 * @return List of neighbours
 	 */
 	public HashMap<String, MapCell> getNeighbours(MapCell m) {
-		HashMap<String, MapCell> map = new HashMap<String, MapCell>(); 
+		HashMap<String, MapCell> map = new HashMap<>();
 		
 		switch (m.x) {
 			case 0: {// left most row
@@ -383,22 +383,5 @@ public class Map {
 			this.getCell(c).setSeen(true);
 			unsetObstacle(c);
 		}
-	}
-
-	/**
-	 * Resets the map
-	 */
-	public void clearMap() {
-		for (int x=0; x<MapConstants.MAP_WIDTH; x++) {
-			for (int y=0; y<MapConstants.MAP_HEIGHT; y++) {
-				this.getCell(x, y).clear();
-				if (x<=2 && y<=2) {
-					this.getCell(x, y).setSeen(true);
-				}
-				if (x==0 || y==0 || x==MapConstants.MAP_WIDTH-1 || y==MapConstants.MAP_HEIGHT-1)
-					this.getCell(x, y).setVirtualWall(true);
-			}
-		}
-		this.initSeenSquares();
 	}
 }

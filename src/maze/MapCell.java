@@ -1,24 +1,16 @@
-package utils;
-
-import java.util.ArrayList;
-import java.util.List;
+package maze;
 
 public class MapCell {
 
 	private boolean isObstacle;
 	private boolean isVirtualWall;
 	private boolean isSeen; 
-	public int x; // changed to public for convenience
-	public int y; 
+	public final int x; // changed to public for convenience
+	public final int y;
 	
 	public MapCell(int x, int y) {
 		this.x = x;
 		this.y = y; 
-	}
-	
-	public MapCell(Coordinate arr) {
-		this.x = arr.getX();
-		this.y = arr.getY();
 	}
 	
 	public boolean isObstacle() {
@@ -43,12 +35,6 @@ public class MapCell {
 	
 	public boolean isSeen() {
 		return this.isSeen;
-	}
-	
-	public void clear() {
-		this.isSeen = false;
-		this.isVirtualWall = false;
-		this.isObstacle = false;
 	}
 	
 	public String toString() {

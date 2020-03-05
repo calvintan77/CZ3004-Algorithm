@@ -1,4 +1,4 @@
-package GUI;
+package gui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -18,9 +18,10 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-import Constants.MapConstants;
-import Constants.RobotConstants;
+import constants.MapConstants;
+import constants.RobotConstants;
 import connection.SyncObject;
+import maze.Map;
 import utils.*;
 
 
@@ -39,7 +40,10 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color FASTEST_PATH_COLOR = Color.YELLOW;
 	public static final Color WAYPOINT_COLOR = Color.BLUE;
 	
-	private JPanel displayedPane, mapPane, settingPane, exploredMapPane;
+	private final JPanel displayedPane;
+	private JPanel mapPane;
+	private JPanel settingPane;
+	private JPanel exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
 	private JButton[][] mapGrids, mazeGrids;
 	private JTextField[] exploreTextFields, ffpTextFields;
@@ -85,22 +89,6 @@ public class GUI extends JFrame implements ActionListener{
 		return displayedPane;
 	}
 	
-	public JButton[][] getMazeGrids() {
-		return mazeGrids;
-	}
-
-	public int getWayPointX() {
-		return wayPointX;
-	}
-	
-	public int getWayPointY() {
-		return wayPointY;
-	}
-	
-	public Color getMazeGridColor(int x, int y) {
-		return mazeGrids[x][y].getBackground();
-	}
-	
 	public void setMazeGridColor(int x, int y, Color color) {
 		if(x < 0 || x >= MapConstants.MAP_WIDTH-1||y < 0 || y >= MapConstants.MAP_HEIGHT -1) return;
 		mazeGrids[x][y].setBackground(color);
@@ -123,10 +111,10 @@ public class GUI extends JFrame implements ActionListener{
 		map.setLayout(new GridLayout(MapConstants.MAP_HEIGHT, MapConstants.MAP_WIDTH));
 		map.setPreferredSize(new Dimension(450, 600));
 		mapGrids = new JButton[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
-		for (int x = 0; x < MapConstants.MAP_HEIGHT; x++) {
-			for (int y = 0; y < MapConstants.MAP_WIDTH; y++) {
-				int realX = y;
-				int realY = 19-x;
+		for (int y = 0; y < MapConstants.MAP_HEIGHT; y++) {
+			for (int x = 0; x < MapConstants.MAP_WIDTH; x++) {
+				int realX = x;
+				int realY = 19-y;
 				mapGrids[realX][realY] = new JButton();
 				
 				if (RobotConstants.REAL_RUN) {
@@ -186,7 +174,7 @@ public class GUI extends JFrame implements ActionListener{
 		// Add control switch (combo box).
 		settingPane = new JPanel(new BorderLayout());
 		settingPane.setBorder(new EmptyBorder(50, 20, 50, 20));
-		String comboBoxItems[] = { EXPLORATION, FASTEST_PATH };
+		String[] comboBoxItems = { EXPLORATION, FASTEST_PATH };
 		JComboBox cbCtrlSwitch = new JComboBox(comboBoxItems);
 		cbCtrlSwitch.setFont(new Font("Tahoma", Font.BOLD, 16));
 		cbCtrlSwitch.setEditable(false);
@@ -465,9 +453,9 @@ public class GUI extends JFrame implements ActionListener{
 
 	public void pollInBackground() {
 		if(pollingWorker == null) {
-			pollingWorker = new SwingWorker<Void, Void>() {
+			pollingWorker = new SwingWorker<>() {
 				@Override
-				protected Void doInBackground()  {
+				protected Void doInBackground() {
 					while (true) {
 						try {
 							if (update != null && timerWorker == null) {
@@ -478,9 +466,9 @@ public class GUI extends JFrame implements ActionListener{
 							DrawMap(update.getMap(), mazeGrids);
 							List<Coordinate> path = SyncObject.getSyncObject().GetFastestPathSquares();
 							//Draw Path
-							if(path != null){
+							if (path != null) {
 								DrawMap(Map.getRealMapInstance(), mapGrids);
-								for(Coordinate c: path){
+								for (Coordinate c : path) {
 									setMapGridColor(c.getX(), c.getY(), FASTEST_PATH_COLOR);
 									setMazeGridColor(c.getX(), c.getY(), FASTEST_PATH_COLOR);
 								}
@@ -489,7 +477,7 @@ public class GUI extends JFrame implements ActionListener{
 							setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
 							//Draw Robot
 							DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
-						}catch (Exception e){
+						} catch (Exception e) {
 							System.out.println("Polling Worker: " + e.toString());
 						}
 					}
@@ -511,9 +499,9 @@ public class GUI extends JFrame implements ActionListener{
 
 	private void colourGridCell(Map map, JButton[][] grid, int i, int j){
 		if(i < 0 || j < 0 || i >= MapConstants.MAP_WIDTH || j >= MapConstants.MAP_HEIGHT) return;
-		if (i<=2 && j<= 2)
+		if (i<=2 && j<= 2) {
 			grid[i][j].setBackground(GOAL_START_ZONE_COLOR);
-		else if (!map.getCell(i, j).isSeen()) {
+		}else if (map == null || !map.getCell(i, j).isSeen()) {
 			grid[i][j].setBackground(UNEXPLORED_CELL_COLOR);
 		} else if(i >= 12 && j >=17){
 			grid[i][j].setBackground(GOAL_START_ZONE_COLOR);
@@ -576,7 +564,7 @@ public class GUI extends JFrame implements ActionListener{
 		}
 
 		private void update(DocumentEvent e) {
-			Document doc = (Document) e.getDocument();
+			Document doc = e.getDocument();
 			String name = (String) doc.getProperty("name");
 			String input = null;
 			try {
@@ -621,16 +609,7 @@ public class GUI extends JFrame implements ActionListener{
 						int value = Integer.parseInt(input);
 						if (value > MapConstants.MAP_WIDTH-1)
 							return;
-						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
-						if(!RobotConstants.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
-						wayPointX = value;
-						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(!RobotConstants.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
-							SyncObject.getSyncObject().SetWaypoint(new Coordinate(wayPointX, wayPointY));
-						}
-						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
-
+						setWaypoint(value, wayPointY);
 					}
 					break;
 				case "WaypointY":
@@ -638,19 +617,36 @@ public class GUI extends JFrame implements ActionListener{
 						int value = Integer.parseInt(input);
 						if (value > MapConstants.MAP_HEIGHT - 1)
 							return;
-						GUI.getInstance().colourGridCell(update.getMap(), mazeGrids, wayPointX, wayPointY);
-						if(!RobotConstants.REAL_RUN) GUI.getInstance().colourGridCell(update.getMap(), mapGrids, wayPointX, wayPointY);
-						wayPointY = value;
-						GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(!RobotConstants.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
-						if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
-							SyncObject.getSyncObject().SetWaypoint(new Coordinate(wayPointX, wayPointY));
-						}
-						DrawRobotOnUI(update.getRobotPos(), update.getOrientation());
+						setWaypoint(wayPointX, value);
 					}
 					break;
 			}
 		}
+	}
+
+	private void setWaypoint(int x, int y){
+		Map map;
+		Coordinate pos;
+		Orientation o;
+		if(update == null){
+			map = null;
+			pos = new Coordinate(1,1);
+			o = Orientation.UP;
+		}else{
+			map = update.getMap();
+			pos = update.getRobotPos();
+			o = update.getOrientation();
+		}
+		GUI.getInstance().colourGridCell(map, mazeGrids, wayPointX, wayPointY);
+		if(!RobotConstants.REAL_RUN) GUI.getInstance().colourGridCell(map, mapGrids, wayPointX, wayPointY);
+		wayPointX = x;
+		wayPointY = y;
+		GUI.getInstance().setMazeGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+		if(!RobotConstants.REAL_RUN) GUI.getInstance().setMapGridColor(wayPointX, wayPointY, WAYPOINT_COLOR);
+		if(wayPointX > 0 && wayPointX < MapConstants.MAP_WIDTH-1 && wayPointY > 0 && wayPointY < MapConstants.MAP_HEIGHT -1){
+			SyncObject.getSyncObject().SetWaypoint(new Coordinate(wayPointX, wayPointY));
+		}
+		DrawRobotOnUI(pos, o);
 	}
 	
 	private void loadMapGrids() {
@@ -721,8 +717,8 @@ public class GUI extends JFrame implements ActionListener{
 	}
 
 	public void refreshExploreInput() {
-		for (int i = 0; i < exploreTextFields.length; i++) {
-			exploreTextFields[i].setText(exploreTextFields[i].getText());
+		for (JTextField exploreTextField : exploreTextFields) {
+			exploreTextField.setText(exploreTextField.getText());
 		}
 	}
 	
@@ -766,12 +762,7 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 
-		if (!exploreInput[3].matches("[0-9]+")) {
-			return false;
-		}
-
-
-		return true;
+		return exploreInput[3].matches("[0-9]+");
 	}
 
 	public boolean isIntFFPInput() {
@@ -786,11 +777,11 @@ public class GUI extends JFrame implements ActionListener{
 		return true;
 	}
 
-	class TimerEvent implements ActionListener {
-		int timeLimit;
+	static class TimerEvent implements ActionListener {
+		final int timeLimit;
 		int timeLeft;
 		Timer timer;
-		IExplorationStatus explorationStatus;
+		final IExplorationStatus explorationStatus;
 
 		public TimerEvent(int timeLimit, IExplorationStatus explorationStatus) {
 			this.timeLimit = timeLimit;

@@ -1,33 +1,22 @@
-package Algorithms;
+package algorithms;
 
-import Robot.IRobot;
+import maze.MapCell;
+import path.GraphNode;
+import path.ShortestPath;
+import robot.AbstractRobot;
 import utils.*;
 
-import utils.Map;
+import maze.Map;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MazeExplorer {
-	private static MazeExplorer mazeExplorer;
-	private static IRobot robot;
+	private AbstractRobot robot;
 	private static final double BUFFER = 1.5  * (1000000000);
-	// private Map map; 	
-	public static MazeExplorer getInstance() {
-		if (mazeExplorer == null) {
-			mazeExplorer = new MazeExplorer();
-		}
-		return mazeExplorer;
-	}
-	
-	// a maze explorer is tied to 1 robot; inelegant way to tie them together because of the way we get instance...
-	public void setRobot(IRobot r) {
-		MazeExplorer.robot = r; 
-	}
-	
-	// no defensive checks - caller calls at own risk 
-	public IRobot getRobot() {
-		return MazeExplorer.robot; 
+
+	public MazeExplorer(AbstractRobot r){
+		this.robot = r;
 	}
 
 	// explore given map within given time limit - iter 
@@ -65,7 +54,7 @@ public class MazeExplorer {
 			try {
 				weight = getPathToStart(map).getWeight();
 			}catch (Exception e) {
-				
+				System.out.println("MazeExplorer: " + e.toString());
 			}
 		}
 		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getSeenPercentage() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
@@ -78,12 +67,7 @@ public class MazeExplorer {
 			// fuck doing fp in java
 			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 			try {
-				List<Coordinate> start = new LinkedList<>();
-				start.add(robot.getPosition());
-				switch (robot.getOrientation()) {
-					case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
-					case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
-				}
+				List<Coordinate> start = GetStartingCoords();
 				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
 				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 				// Orientation update
@@ -106,13 +90,7 @@ public class MazeExplorer {
 				unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
 				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y, candidates.get(cell).isAligned(true) ? Coordinate.Facing.HORIZONTAL : Coordinate.Facing.VERTICAL)).collect(Collectors.toList());
 				try {
-					List<Coordinate> start = new LinkedList<>();
-					start.add(robot.getPosition());
-					//The shortest path should consider the start orientation
-					switch (robot.getOrientation()) {
-						case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
-						case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
-					}
+					List<Coordinate> start = GetStartingCoords();
 					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
 					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 					// Orientation update
@@ -156,17 +134,22 @@ public class MazeExplorer {
 			// Prepare for FP to goalzone
 			robot.getPosition().setFacing(Coordinate.Facing.NONE);
 		} catch (Exception e) {
-			
+			System.out.println("MazeExplorer: " + e.toString());
 		}
 	}
-	
-	private ShortestPath getPathToStart(Map map) throws Exception {
+
+	private List<Coordinate> GetStartingCoords(){
 		List<Coordinate> start = new LinkedList<>();
 		start.add(robot.getPosition());
 		switch (robot.getOrientation()) {
 			case UP:case DOWN: start.get(0).setFacing(Coordinate.Facing.VERTICAL); break;
 			case LEFT: case RIGHT: start.get(0).setFacing(Coordinate.Facing.HORIZONTAL); break;
 		}
+		return start;
+	}
+	
+	private ShortestPath getPathToStart(Map map) throws Exception {
+		List<Coordinate> start = GetStartingCoords();
 		List<Coordinate> end = new LinkedList<>();
 		end.add(new Coordinate(1,1));
 		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);

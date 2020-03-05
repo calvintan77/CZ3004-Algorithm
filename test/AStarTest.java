@@ -1,8 +1,8 @@
-import Algorithms.AStarAlgo;
+import algorithms.AStarAlgo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import utils.GraphNode;
-import utils.ShortestPath;
+import path.GraphNode;
+import path.ShortestPath;
 
 
 public class AStarTest {

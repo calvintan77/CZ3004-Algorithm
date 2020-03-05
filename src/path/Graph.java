@@ -1,15 +1,16 @@
-package utils;
+package path;
 
-import Algorithms.AStarAlgo;
+import algorithms.AStarAlgo;
+import utils.MapProcessor;
 
 import java.util.*;
 
 
 public class Graph {
-    private GraphNode start;
-    private GraphNode waypointHoriz;
-    private GraphNode waypointVert;
-    private GraphNode end;
+    private final GraphNode start;
+    private final GraphNode waypointHoriz;
+    private final GraphNode waypointVert;
+    private final GraphNode end;
 
     /**
      * This is the constructor from Map
@@ -17,7 +18,7 @@ public class Graph {
      * @param waypointX - X coord of waypoint
      * @param waypointY - Y coord of waypoint
      */
-    public Graph(Map map, int waypointX, int waypointY){
+    public Graph(maze.Map map, int waypointX, int waypointY){
         this(MapProcessor.ProcessMapForFastestPath(map, waypointX, waypointY));
     }
 

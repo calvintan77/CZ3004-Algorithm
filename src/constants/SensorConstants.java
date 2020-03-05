@@ -1,4 +1,4 @@
-package Constants;
+package constants;
 
 public class SensorConstants {
 	public static final int SHORT_RANGE = 3;

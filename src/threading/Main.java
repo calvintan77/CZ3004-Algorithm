@@ -1,10 +1,10 @@
-package Threading;
+package threading;
 
-import Constants.RobotConstants;
-import GUI.GUI;
+import constants.RobotConstants;
+import gui.GUI;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         // Start UI Thread
         GUI.getInstance().setVisible(true);
         GUI.getInstance().refreshExploreInput();
@@ -19,7 +19,7 @@ public class Main {
         //Reset Simulation
         if(!RobotConstants.REAL_RUN){
             ResetThread resetThread = new ResetThread(algoThread);
-            resetThread.run();
+            resetThread.start();
         }
         while(true);
     }

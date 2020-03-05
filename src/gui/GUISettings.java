@@ -1,4 +1,4 @@
-package GUI;
+package gui;
 
 import utils.MapProcessor;
 
@@ -6,13 +6,14 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class GUISettings {
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private int RobotSpeed = 10;
     private int coveragePercent = 100;
     private int timeLimit = 360;
 
     public GUISettings() {
     }
+
 
     public int getRobotSpeed() {
         lock.readLock().lock();

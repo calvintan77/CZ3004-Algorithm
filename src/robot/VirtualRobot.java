@@ -1,14 +1,16 @@
-package Robot;
+package robot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import Constants.SensorConstants;
+import constants.SensorConstants;
 import connection.SyncObject;
+import maze.Map;
+import maze.MapCell;
 import utils.*;
 
-public class VirtualRobot implements IRobot {
+public class VirtualRobot implements AbstractRobot {
 	private Orientation o = Orientation.UP; // need to initialize
 	private Coordinate position = new Coordinate(1, 1);
 	private List<RobotCommand> fastestPathInstructions;
@@ -164,7 +166,6 @@ public class VirtualRobot implements IRobot {
 			}
 		}
 		return cmds;
-
 	}
 
 	@Override

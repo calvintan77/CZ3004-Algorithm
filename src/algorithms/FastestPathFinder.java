@@ -1,13 +1,16 @@
-package Algorithms;
+package algorithms;
 
-import Robot.IRobot;
+import maze.Map;
+import path.Graph;
+import path.ShortestPath;
+import robot.AbstractRobot;
 import utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FastestPathFinder {
-    private Map map;
+    private final Map map;
     public FastestPathFinder(Map map){        // Set up a blocked path
         if (map.getSeenPercentage() < 100) {
             this.map = map.CloneWithUnseenAsObstacles();
@@ -16,7 +19,7 @@ public class FastestPathFinder {
         }
     }
 
-    public List<RobotCommand> GetFastestPath(IRobot robot, Coordinate waypoint){
+    public List<RobotCommand> GetFastestPath(AbstractRobot robot, Coordinate waypoint){
         try{
             ShortestPath result;
             // Find a path to the goal
@@ -50,7 +53,7 @@ public class FastestPathFinder {
         return null;
     }
 
-    private List<RobotCommand> GenerateCommands(ShortestPath result, IRobot robot){
+    private List<RobotCommand> GenerateCommands(ShortestPath result, AbstractRobot robot){
         // Prepare for fastest path
         List<RobotCommand> fastestPathInstructions = new ArrayList<>();
         // Prepare Orientation
