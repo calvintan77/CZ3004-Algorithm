@@ -89,9 +89,13 @@ public class RpiRobot implements AbstractRobot {
 	@Override
 	public List<RobotCommand> prepareOrientationCmds(Orientation target) {
 		// Orientation update
+		return prepareAnyOrientation(this.o, target);
+	}
+
+	private List<RobotCommand> prepareAnyOrientation(Orientation from, Orientation target){
 		List<RobotCommand> avaiCommands = new ArrayList<>();
-		if (this.getOrientation() != target) {
-			int rightTurns = this.getOrientation().getRightTurns(target);
+		if (from != target) {
+			int rightTurns = from.getRightTurns(target);
 			if (rightTurns > 0) {
 				for (int i = 0; i < rightTurns; i++) {
 					avaiCommands.add(RobotCommand.TURN_RIGHT);
@@ -102,7 +106,7 @@ public class RpiRobot implements AbstractRobot {
 				}
 			}
 		}
-		return avaiCommands; 
+		return avaiCommands;
 	}
 
 	@Override
@@ -206,30 +210,34 @@ public class RpiRobot implements AbstractRobot {
 		// check xy to see if we are at start 
 		// yes; send calibrate over 
 		// no: check 
-		// check in front/right/down/left order 
+		// check in front/right/down/left order
+		Orientation orient = this.o;
 		List<Orientation> available = getAvailableCalibrations(m);
 		if (available.size() == 0) {
 			return false; 
 		}
 		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
-		Orientation temp = Orientation.getClockwise(o);
+		Orientation temp = Orientation.getClockwise(this.o);
 		if(available.contains(this.o)) { 
 			toSend.add(RobotCommand.CALIBRATE);
 		} else if (available.contains(Orientation.getClockwise(temp))) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getClockwise(temp)));
+			toSend.addAll(prepareAnyOrientation(orient, Orientation.getClockwise(temp)));
+			orient = Orientation.getClockwise(temp);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
 		if(available.contains(temp)) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getClockwise(temp)));
+			toSend.addAll(prepareAnyOrientation(orient, temp));
+			orient = temp;
 			toSend.add(RobotCommand.CALIBRATE);
-		} else if (available.contains(Orientation.getCounterClockwise(o))) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getCounterClockwise(o)));
+		} else if (available.contains(Orientation.getCounterClockwise(this.o))) {
+			toSend.addAll(prepareAnyOrientation(orient, Orientation.getCounterClockwise(this.o)));
+			orient = Orientation.getCounterClockwise(this.o);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
-		toSend.addAll(prepareOrientationCmds(o));
+		toSend.addAll(prepareAnyOrientation(orient, this.o));
 		AlgoClient.GetInstance().SendCalibrate(toSend);
 		return true; 
 	}
