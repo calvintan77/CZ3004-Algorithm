@@ -9,20 +9,7 @@ import javax.swing.*;
 import java.io.*;
 import java.math.BigInteger;
 
-//TODO: Partial MDF is wrong 0s in front will be ignored when doing radix conversion
 public class MapLoader {
-    private static final int MDS1_LENGTH = 76;
-    private static final int MDS2_LENGTH = 75;
-    public static String convertHexToBinaryString(String hex) {
-        String newHexString = "F"+hex;
-        return new BigInteger(newHexString, 16).toString(2).substring(4);
-    }
-
-    public static String convertBinaryToHexString(String binary, int hexStringLength) {
-        String hexString = new BigInteger(binary, 2).toString(16);
-        int paddingSpace = hexStringLength - hexString.length();
-        return hexString + "0".repeat(Math.max(0, paddingSpace));
-    }
 
     public static void saveMap(Map map, String savePath) {
         MapTuple tup = generateMapDescriptor(map);
@@ -37,29 +24,46 @@ public class MapLoader {
         }
     }
 
-    public static MapTuple generateMapDescriptor(Map map) {
+    public static MapTuple generateMapDescriptor(Map map){
+        // Initialise explored hex counter
+        int counter1 = 3;
+        int digit1 = 2;
+        // Initialise map content hex counter
+        int counter2 = 0;
+        int digit2 = 0;
         StringBuilder b1MapDescriptor = new StringBuilder();
         StringBuilder b2MapDescriptor = new StringBuilder();
-        b1MapDescriptor.append("11");
         for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
             for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
+                // Increment hex counter for exploration
+                digit1++;
                 if (map.getCell(i, j).isSeen()) {
-                    b1MapDescriptor.append("1");
+                    // Increment hex counter for seen cell
+                    digit2++;
+                    counter1 = (counter1 << 1) + 1;
                     if (map.getCell(i, j).isObstacle())
-                        b2MapDescriptor.append("1");
-                    else b2MapDescriptor.append("0");
-                } else b1MapDescriptor.append("0");
+                        counter2 = (counter2 << 1) + 1;
+                    else{
+                        counter2 = (counter2 << 1);
+                    }
+                } else{
+                    counter1 = (counter1 << 1);
+                }
+                if(digit1 == 4){
+                    digit1 = 0;
+                    b1MapDescriptor.append(Integer.toHexString(counter1));
+                    counter1 = 0;
+                }
+                if(digit2 == 4){
+                    digit2 = 0;
+                    b2MapDescriptor.append(Integer.toHexString(counter2));
+                    counter2 = 0;
+                }
             }
         }
-        b1MapDescriptor.append("11");
-
-        if (b2MapDescriptor.length() % 4 != 0) {
-            int padding = 4 - (b2MapDescriptor.length()%4);
-            b2MapDescriptor.append("0".repeat(padding));
-        }
-        String h1MapDescriptor = convertBinaryToHexString(b1MapDescriptor.toString(), MDS1_LENGTH);
-        String h2MapDescriptor = convertBinaryToHexString(b2MapDescriptor.toString(), MDS2_LENGTH);
-        return new MapTuple(h1MapDescriptor, h2MapDescriptor);
+        b1MapDescriptor.append(Integer.toHexString((counter1 << 2) + 3));
+        if(digit2 != 0) b2MapDescriptor.append(Integer.toHexString((counter2 << (4-digit2))));
+        return new MapTuple(b1MapDescriptor.toString(), b2MapDescriptor.toString());
     }
 
 
@@ -79,30 +83,35 @@ public class MapLoader {
         MapLoader.saveMap(map, "src/inputMap.txt");
     }
 
-    public static Map loadMapFromFile(String filePath) {
+    public static Map loadMapFromFile(String filePath){
         Map resultMap = new Map();
         File mapFile = new File(filePath);
-        try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile))){
-            String h1MapDescriptor = mapFileReader.readLine();
-            String h2MapDescriptor = mapFileReader.readLine();
-            String b1MapDescriptor = convertHexToBinaryString(h1MapDescriptor);
-            String b2MapDescriptor = convertHexToBinaryString(h2MapDescriptor);
-            int stringIndex = 0;
-            for (int j=0; j < MapConstants.MAP_HEIGHT; j++) {
-                for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
-                    if (b1MapDescriptor.charAt(j*MapConstants.MAP_WIDTH+i+2) == '0')
-                        continue;
-                    resultMap.getCell(i, j).setSeen(true);
-                    if (b2MapDescriptor.charAt(stringIndex) == '0') {
-                        resultMap.getCell(i, j).setObstacleStatus(false);
-                    } else resultMap.getCell(i, j).setObstacleStatus(true);
-                    stringIndex++;
+        try (BufferedReader mapFileReader = new BufferedReader(new FileReader(mapFile))) {
+            BigInteger h1MapDescriptor = new BigInteger(mapFileReader.readLine(), 16);
+            BigInteger h2MapDescriptor = new BigInteger(mapFileReader.readLine(), 16);
+            h1MapDescriptor = h1MapDescriptor.shiftRight(2);
+            int squares = MapConstants.MAP_HEIGHT * MapConstants.MAP_WIDTH;
+            for(int i = squares-1; i >= 0; i--){
+                if(h1MapDescriptor.testBit(0)){
+                    resultMap.markCellSeen(getX(i), getY(i));
+                    if(h2MapDescriptor.testBit(0)){
+                        resultMap.setObstacle(new Coordinate(getX(i), getY(i)));
+                    }
+                    h2MapDescriptor = h2MapDescriptor.shiftRight(1);
                 }
+                h1MapDescriptor = h1MapDescriptor.shiftRight(1);
             }
-            resultMap.initSeenSquares();
-        } catch (Exception e){
-            e.printStackTrace();
+        }catch(Exception e){
+            System.out.println("Exception on map loading: " + e.toString());
         }
         return resultMap;
+    }
+
+    private static int getX(int i){
+        return i % MapConstants.MAP_WIDTH;
+    }
+
+    private static int getY(int i){
+        return i / MapConstants.MAP_WIDTH;
     }
 }
