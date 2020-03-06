@@ -1,32 +1,22 @@
-package Simulator;
+package robot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import Constants.SensorConstants;
-import Main.GUI;
+import constants.SensorConstants;
+import connection.SyncObject;
+import maze.Map;
+import maze.MapCell;
 import utils.*;
 
-public class VirtualRobot implements IRobot {
-	private static VirtualRobot virtualRobot;
-	private int speed;
-	private Orientation o; // need to initialize 
-	private Coordinate position;
+public class VirtualRobot implements AbstractRobot {
+	private Orientation o = Orientation.UP; // need to initialize
+	private Coordinate position = new Coordinate(1, 1);
+	private List<RobotCommand> fastestPathInstructions;
 
-	//Singleton strategy pattern
-	public static IRobot getInstance() {
-		if (virtualRobot == null)
-			virtualRobot = new VirtualRobot();
-		return virtualRobot;
-	}
+	public VirtualRobot() {
 
-	private VirtualRobot() {
-
-	}
-
-	public void setSpeed(int speed) {
-		this.speed = speed;
 	}
 
 	//return string in the structure: "left,front,front,front,right"
@@ -113,7 +103,7 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void doCommandWithSensor(RobotCommand cmd, Map map) {
+	public void doCommandWithSensor(RobotCommand cmd, Map map) throws InterruptedException {
 		switch (cmd) {
 			case TURN_LEFT:
 				this.setOrientation(Orientation.getCounterClockwise(this.o));
@@ -140,12 +130,9 @@ public class VirtualRobot implements IRobot {
 		if(map != null){
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
 		}
-		try {
-			Thread.sleep((cmd == RobotCommand.MOVE_FORWARD? 1000 : 2000) / speed);    //int timePerStep = 1000/speed (ms)
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		GUI.getInstance().updateRobotUI(cmd);
+		SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
+		Thread.sleep(cmd == RobotCommand.MOVE_FORWARD? (int)(1000*MapProcessor.FORWARD_WEIGHT) :
+				(int)(1000*MapProcessor.TURNING_WEIGHT));    //int timePerStep = 1000/speed (ms)
 	}
 
 	@Override
@@ -179,7 +166,6 @@ public class VirtualRobot implements IRobot {
 			}
 		}
 		return cmds;
-
 	}
 
 	@Override
@@ -283,17 +269,23 @@ public class VirtualRobot implements IRobot {
 	}
 
 	@Override
-	public void prepareOrientation(List<RobotCommand> cmds, Map map) {
+	public void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException {
 		for(RobotCommand cmd: cmds){
 			doCommandWithSensor(cmd, map);
 		}
 	}
 
 	@Override
-	public void doFastestPath(List<RobotCommand> cmds) {
-		for(RobotCommand cmd: cmds){
+	public void setFastestPath(List<RobotCommand> cmds) {
+		this.fastestPathInstructions = cmds;
+	}
+
+	@Override
+	public void doFastestPath(boolean toGoalZone) throws InterruptedException {
+		if(this.fastestPathInstructions == null) return;
+		if(toGoalZone) SyncObject.getSyncObject().SetFastestPath(fastestPathInstructions, this.position, this.o);
+		for(RobotCommand cmd: this.fastestPathInstructions){
 			doCommandWithSensor(cmd, null);
 		}
 	}
-	
 }

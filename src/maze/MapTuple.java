@@ -1,7 +1,8 @@
-package utils;
+package maze;
 
 public class MapTuple { 
-    private String p1, p2; 
+    private final String p1;
+    private final String p2;
     public MapTuple(String p1, String p2) { 
         this.p1 = p1;
         this.p2 = p2;

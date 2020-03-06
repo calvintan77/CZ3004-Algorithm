@@ -1,8 +1,8 @@
-package Algorithms;
+package algorithms;
 
-import utils.GraphNode;
+import path.GraphNode;
 import utils.MapProcessor;
-import utils.ShortestPath;
+import path.ShortestPath;
 
 import java.util.*;
 
@@ -71,7 +71,7 @@ public class AStarAlgo {
      */
     private static class AStarNode {
         private double weight;
-        private GraphNode graphNode;
+        private final GraphNode graphNode;
         private AStarNode parent = null;
         public AStarNode(double weight, GraphNode graphNode){
             this.graphNode = graphNode;
@@ -80,8 +80,7 @@ public class AStarAlgo {
         public double getEstimatedWeight(GraphNode destination){
         	if(!destination.isVirtual()) return weight + graphNode.getEuclideanDistanceTo(destination) * MapProcessor.FORWARD_WEIGHT;
         	Optional<Double> heuristic = destination.getNeighbours().stream().map(x -> graphNode.getEuclideanDistanceTo(x.getKey())).min(Double::compare);
-            if(heuristic.isPresent()) return weight + heuristic.get() * MapProcessor.FORWARD_WEIGHT;
-            return weight;
+            return heuristic.map(aDouble -> weight + aDouble * MapProcessor.FORWARD_WEIGHT).orElseGet(() -> weight);
         }
         public double getWeight(){
             return weight;

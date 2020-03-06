@@ -7,7 +7,7 @@ public enum RobotCommand {
 	TURN_LEFT("L"), TURN_RIGHT("R"), MOVE_FORWARD("M"), CALIBRATE("C"); 
 
 	private String letter;
-	private static Map<String, RobotCommand> map = new HashMap<>();
+	private static final Map<String, RobotCommand> map = new HashMap<>();
 
 	RobotCommand(String letter){
 		this.letter = letter;

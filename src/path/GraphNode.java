@@ -1,4 +1,4 @@
-package utils;
+package path;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,18 +12,18 @@ public class GraphNode {
     /**
      * Coordinates of the node
      */
-    private int x;
-    private int y;
+    private final int x;
+    private final int y;
     /**
      * Orientation of the node (True = Horizontal, False = Vertical)
      */
-    private boolean isHorizontal;
+    private final boolean isHorizontal;
 
     private boolean isVirtual = false;
     /**
      * List of neighbours and the weights to get to them.
      */
-    private HashMap<GraphNode, Float> neighbours;
+    private final HashMap<GraphNode, Float> neighbours;
 
     /**
      * Constructor for node

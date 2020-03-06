@@ -1,6 +1,9 @@
 package utils;
 
-import Constants.MapConstants;
+import constants.MapConstants;
+import maze.Map;
+import maze.MapCell;
+import path.GraphNode;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -41,7 +44,7 @@ public class MapProcessor {
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
                 MapCell cell = map.getCell(i,j);
-                if(cell.isObstacle() || cell.isVirtualWall() || !cell.getSeen()){
+                if(cell.isObstacle() || cell.isVirtualWall() || !cell.isSeen()){
                     continue;
                 }
 
@@ -68,29 +71,25 @@ public class MapProcessor {
         }
         //Format Start Zone
         GraphNode start = new GraphNode(0,0, true, true);
-        for(Coordinate st: StartingPoints){
-            if(graph[st.getX()][st.getY()][0] != null){
-                if(st.getFacing() == Coordinate.Facing.NONE){
-                    ConnectNodesWithZero(graph, start, st);
-                }
-                else{
-                    ConnectGraphNodeWithZero(graph, start, st, st.getFacing() == Coordinate.Facing.HORIZONTAL);
-                }
-            }
-        }
+        ConnectNodesWithNode(StartingPoints, graph, start);
 
         //Format End Zone
         GraphNode end = new GraphNode(14,19, true, true);
-        for(Coordinate ed: EndingPoints){
-            if(graph[ed.getX()][ed.getY()][0] != null) {
-                if(ed.getFacing() == Coordinate.Facing.NONE) {
-                    ConnectNodesWithZero(graph, end, ed);
-                } else{
-                    ConnectGraphNodeWithZero(graph, end, ed, ed.getFacing() == Coordinate.Facing.HORIZONTAL);
+        ConnectNodesWithNode(EndingPoints, graph, end);
+        return Arrays.asList(start, end, graph[waypoint.getX()][waypoint.getY()][0], graph[waypoint.getX()][waypoint.getY()][1]);
+    }
+
+    private static void ConnectNodesWithNode(List<Coordinate> NodesCoords, GraphNode[][][] graph, GraphNode node) {
+        for(Coordinate st: NodesCoords){
+            if(graph[st.getX()][st.getY()][0] != null){
+                if(st.getFacing() == Coordinate.Facing.NONE){
+                    ConnectNodesWithZero(graph, node, st);
+                }
+                else{
+                    ConnectGraphNodeWithZero(graph, node, st, st.getFacing() == Coordinate.Facing.HORIZONTAL);
                 }
             }
         }
-        return Arrays.asList(start, end, graph[waypoint.getX()][waypoint.getY()][0], graph[waypoint.getX()][waypoint.getY()][1]);
     }
 
     private static void ConnectNodesWithZero(GraphNode[][][] graph, GraphNode node1, Coordinate node2) {

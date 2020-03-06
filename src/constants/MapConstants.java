@@ -1,4 +1,4 @@
-package Constants;
+package constants;
 
 public class MapConstants {
 	public static final int MAP_WIDTH = 15;

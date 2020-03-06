@@ -1,4 +1,8 @@
-package utils;
+package path;
+
+import utils.Coordinate;
+import utils.Orientation;
+import utils.RobotCommand;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -7,8 +11,8 @@ import java.util.List;
  * Class to represent shortest path result
  */
 public class ShortestPath{
-    private double weight;
-    private List<GraphNode> path;
+    private final double weight;
+    private final List<GraphNode> path;
 
     public ShortestPath(double weight, List<GraphNode> path) {
         this.weight = weight;
@@ -99,9 +103,9 @@ public class ShortestPath{
         // Unfortunate neutral case
         if(path.size() == 1) return isStartingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
         if(isStartingOrientationHorizontal()){
-            return path.get(1+compensation).getX() > path.get(0+compensation).getX() ? Orientation.RIGHT : Orientation.LEFT;
+            return path.get(1+compensation).getX() > path.get(compensation).getX() ? Orientation.RIGHT : Orientation.LEFT;
         }else{
-            return path.get(1+compensation).getY() > path.get(0+compensation).getY() ? Orientation.UP : Orientation.DOWN;
+            return path.get(1+compensation).getY() > path.get(compensation).getY() ? Orientation.UP : Orientation.DOWN;
         }
     }
 

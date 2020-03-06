@@ -1,43 +1,29 @@
-package RealRun;
+package robot;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 
-import Constants.MapConstants;
-import Constants.SensorConstants;
-import Simulator.IRobot;
+import constants.MapConstants;
+import constants.SensorConstants;
 import connection.AlgoClient;
 import connection.SyncObject;
+import maze.Map;
+import maze.MapCell;
 import utils.*;
 
-public class RpiRobot implements IRobot{
-	private static RpiRobot robot = null;
+public class RpiRobot implements AbstractRobot {
+	private Coordinate position = new Coordinate(1,1);
+	private Orientation o = Orientation.UP;
 
-	private Coordinate position;
-	private Orientation o;
-
-	public static IRobot getInstance(){
-		if (robot == null) {
-			robot = new RpiRobot();
-		}
-		return robot;
-	}
-
-	private RpiRobot(){
+	public RpiRobot(){
 
 	}
 	
 	@Override
 	public List<Integer> getSensorValues() {
 		try {
-			return SyncObject.GetSensorData();
+			return SyncObject.getSyncObject().GetSensorData();
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
@@ -47,7 +33,7 @@ public class RpiRobot implements IRobot{
 	@Override
 	public void doCommandWithSensor (RobotCommand command, Map map) {
 		try {
-			AlgoClient.GetInstance().SendMove(command, Map.generateMapDescriptor(map), this.o, this.position);
+			AlgoClient.GetInstance().SendMove(command, MapLoader.generateMapDescriptor(map), this.o, this.position);
 			switch (command) {
 				case TURN_LEFT:
 					this.setOrientation(Orientation.getCounterClockwise(this.o));
@@ -74,6 +60,7 @@ public class RpiRobot implements IRobot{
 					break;
 			}
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
+			SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
@@ -102,7 +89,7 @@ public class RpiRobot implements IRobot{
 	@Override
 	public List<RobotCommand> prepareOrientationCmds(Orientation target) {
 		// Orientation update
-		List<RobotCommand> avaiCommands = new ArrayList<RobotCommand>(); 
+		List<RobotCommand> avaiCommands = new ArrayList<>();
 		if (this.getOrientation() != target) {
 			int rightTurns = this.getOrientation().getRightTurns(target);
 			if (rightTurns > 0) {
@@ -211,8 +198,8 @@ public class RpiRobot implements IRobot{
 
 	/**
 	 * Method to calibrate the actual robot against given corners/walls
-	 * @param Map: the current seen map at this timestep
-	 * @return: void but arduino will do command 
+	 * @param m - the current seen map at this timestep
+	 * @return void but arduino will do command
 	 */
 	public boolean Calibrate(Map m) { 	
 		// get distances to nearest 4 walls
@@ -224,7 +211,7 @@ public class RpiRobot implements IRobot{
 		if (available.size() == 0) {
 			return false; 
 		}
-		List<RobotCommand> toSend = new ArrayList<RobotCommand>(); 
+		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
 		Orientation temp = Orientation.getClockwise(o);
 		if(available.contains(this.o)) { 
@@ -243,17 +230,17 @@ public class RpiRobot implements IRobot{
 		}
 
 		toSend.addAll(prepareOrientationCmds(o));
-		// TODO: set docommand here later 
+		AlgoClient.GetInstance().SendCalibrate(toSend);
 		return true; 
 	}
 
 	/**
 	 * method to return available calibrations 
 	 * @param m: current map state 
-	 * @return: list of available orientations to take 
+	 * @return list of available orientations to take
 	 */
 	public List<Orientation> getAvailableCalibrations(Map m) { 
-		List<Orientation> available = new ArrayList<Orientation>(); 
+		List<Orientation> available = new ArrayList<>();
 		// check all configs from robot's own internal xy 
 		for (Orientation o : Orientation.values()) { 
 			if (canCalibrate(o, m)) { 
@@ -294,8 +281,16 @@ public class RpiRobot implements IRobot{
 		}
 	}
 
+	//TODO: Decide on whether to display it here
 	@Override
-	public void doFastestPath(List<RobotCommand> cmds) {
+	public void setFastestPath(List<RobotCommand> cmds) {
 		AlgoClient.GetInstance().sendFastestPath(cmds);
+	}
+
+	@Override
+	public void doFastestPath(boolean toGoalZone) {
+		if(!toGoalZone){
+			AlgoClient.GetInstance().StartFastestPath();
+		}
 	}
 }

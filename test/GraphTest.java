@@ -1,15 +1,19 @@
+import maze.Map;
+import maze.MapCell;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import Constants.MapConstants;
-import Main.GUI;
+import constants.MapConstants;
+import path.Graph;
+import path.GraphNode;
+import path.ShortestPath;
 import utils.*;
 
 
 
 public class GraphTest {
     @Test
-    public void ThreeByThreeMiddleBlockedLoop() throws Exception {
+    public void ThreeByThreeMiddleBlockedLoop() {
         GraphNode g1 = new GraphNode(1, 1, false, true);
         GraphNode g2 = new GraphNode(1, 2, false, true);
         GraphNode g3 = new GraphNode(1, 3, false, true);
@@ -54,7 +58,7 @@ public class GraphTest {
     }
 
     @Test
-    public void ThreeByThree() throws Exception {
+    public void ThreeByThree() {
         GraphNode g1 = new GraphNode(1,1,false);
         GraphNode g2 = new GraphNode(1,2,false);
         GraphNode g3 = new GraphNode(1,3,false);
