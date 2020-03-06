@@ -2,6 +2,7 @@ package threading;
 
 import algorithms.FastestPathFinder;
 import algorithms.MazeExplorer;
+import connection.AlgoClient;
 import constants.RobotConstants;
 import maze.Map;
 import robot.AbstractRobot;
@@ -60,11 +61,14 @@ public class AlgoThread implements  Runnable {
         Map explorationMap = new Map();
         MazeExplorer explorer = new MazeExplorer(robot);
         // Real exploration, wait for signal from android
+        System.out.println("Waiting for exploration to start");
+        robot.Calibrate(explorationMap);
         try {
             SyncObject.getSyncObject().IsExplorationStarted();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("Received Signal");
         // Initial state packet to GUI
         SyncObject.getSyncObject().SetGUIUpdate(explorationMap, robot.getPosition(), robot.getOrientation());
         // Explore the maze

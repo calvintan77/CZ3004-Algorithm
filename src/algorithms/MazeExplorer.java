@@ -48,7 +48,7 @@ public class MazeExplorer {
 			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation),map);
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
-			if (robot.getPosition().equals(new Coordinate(14, 19))) { 
+			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
 				robot.Calibrate(map); 
 			}
 			try {
