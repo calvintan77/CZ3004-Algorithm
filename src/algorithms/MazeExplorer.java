@@ -42,7 +42,7 @@ public class MazeExplorer {
 		robot.doCommandWithSensor(RobotCommand.TURN_RIGHT, map);
 		double weight = 0;
 		// Initial Right Wall Hug
-		do { 
+		do {
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
@@ -51,7 +51,7 @@ public class MazeExplorer {
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
-				robot.Calibrate(map); 
+				robot.Calibrate(map);
 			}
 			try {
 				weight = getPathToStart(map).getWeight();
@@ -60,11 +60,11 @@ public class MazeExplorer {
 			}
 		}
 		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getSeenPercentage() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
-		
+
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored
 		// enqueue all unseen cells
 		List<MapCell> unseen = map.getAllUnseen();
-		FindCells: while (map.getSeenPercentage() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit) {
+		while (!ExitCondition(map, weight, startTime, targetCoverage, tLimit)) {
 			try {
 				ShortestPath toUnexploredPoint = GetShortestPathToFrontier(map, unseen);
 				if(toUnexploredPoint != null){
@@ -75,8 +75,13 @@ public class MazeExplorer {
 					unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
 					toUnexploredPoint = GetShortestPathToCandidates(map, candidates);
 					if(DoShortestPathWithSensor(toUnexploredPoint, map, unseen, weight, startTime, targetCoverage, tLimit)) {
-						System.out.println("Preparing: " + candidates.get(map.getCell(toUnexploredPoint.getDestination())).name());
-						robot.prepareOrientation(robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination()))), map);
+						for(RobotCommand command: robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination())))){
+							long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
+							if (numUnseen != unseen.size()){
+								break;
+							}
+							robot.doCommandWithSensor(command, map);
+						}
 					}
 				}
 				weight = getPathToStart(map).getWeight();
@@ -93,9 +98,6 @@ public class MazeExplorer {
 				toStartingPoint = getPathToStart(map.CloneWithUnseenAsObstacles());
 			}else {
 				toStartingPoint = getPathToStart(map);
-			}
-			for(GraphNode node: toStartingPoint.getPath()){
-				System.out.println(node);
 			}
 			// Set orientation to face the right way to go to start
 			List<RobotCommand> prepOrientation = robot.prepareOrientationCmds(toStartingPoint.getStartingOrientation());
