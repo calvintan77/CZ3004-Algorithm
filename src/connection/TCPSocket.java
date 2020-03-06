@@ -1,19 +1,20 @@
 package connection;
 
 import java.net.*;
-import java.io.*; 
+import java.io.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TCPSocket { 
     private Socket conn; 
-    private PrintWriter pw; 
-    private BufferedReader bw; 
-
-    public TCPSocket(String ip, int port) { 
+    private DataOutputStream dos;
+    private BufferedReader br;
+    public TCPSocket(String ip, int port) {
         while (true) {
             try {
                 this.conn = new Socket(ip, port);
-                this.pw = new PrintWriter(conn.getOutputStream());
-                this.bw = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                this.dos = new DataOutputStream(conn.getOutputStream());
+                this.br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 break;
             } catch (Exception e) {
                 System.out.println("TCPSocket: " + e.toString());
@@ -21,18 +22,23 @@ public class TCPSocket {
         } 
     }
 
-    public void Send(String message) { 
-        this.pw.println(message);
+    public void Send(String message){
+        System.out.println("Attempt to send: " + message);
+        try {
+            this.dos.writeBytes(message + "\n");
+        }catch(Exception e){
+            System.out.println("Socket Write Exception: " + e.toString());
+        }
     }
 
-    public String Receive() throws IOException { 
-        return this.bw.readLine();
+    public String Receive() throws IOException {
+        return this.br.readLine();
     }
 
     public void Close() { 
         try { 
-        this.pw.close();
-        this.bw.close();
+        this.dos.close();
+        this.br.close();
         this.conn.close();
         } catch (Exception e) {
             System.out.println(e.toString());

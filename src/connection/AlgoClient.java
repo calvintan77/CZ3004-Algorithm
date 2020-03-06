@@ -94,9 +94,13 @@ public class AlgoClient{
     }
     
     public void HandleIncoming() throws IOException { 
-        String message = sock.Receive(); 
+        String message = sock.Receive();
+        System.out.println("Handler: " + message);
+        if(message.length() == 0) return;
+        System.out.println(message.charAt(0));
         switch (Character.toString(message.charAt(0))) {   
-            case EXPLORATION_START: 
+            case EXPLORATION_START:
+                System.out.println("Detect explroation started");
                 SyncObject.getSyncObject().SignalExplorationStart();
                 break;
             case SET_WAYPOINT:

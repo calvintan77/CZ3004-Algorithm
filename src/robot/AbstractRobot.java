@@ -20,4 +20,5 @@ public interface AbstractRobot {
 	boolean Calibrate(Map m);
 	void setFastestPath(List<RobotCommand> cmds);
 	void doFastestPath(boolean toGoalZone) throws InterruptedException;
+	boolean canCalibrate(Orientation o, Map m);
 }

@@ -288,4 +288,9 @@ public class VirtualRobot implements AbstractRobot {
 			doCommandWithSensor(cmd, null);
 		}
 	}
+
+	@Override
+	public boolean canCalibrate(Orientation o, Map m) {
+		return true;
+	}
 }
