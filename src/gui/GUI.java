@@ -683,8 +683,6 @@ public class GUI extends JFrame implements ActionListener{
 		gui.setCoverageUpdate(coverageRate);
 	}
 
-	//TODO: Call on update based on synchronisation object queue
-
 	/**
 	 * Draws robot on the UI based on its position and orientation
 	 * @param botPosition - Coordinate of robot
