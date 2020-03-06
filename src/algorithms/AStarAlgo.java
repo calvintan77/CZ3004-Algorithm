@@ -14,7 +14,7 @@ public class AStarAlgo {
      * @return ShortestPath object containing path length and List of nodes as path
      * @throws Exception - unable to find path from source to destination
      */
-    public static ShortestPath AStarSearch(GraphNode source, GraphNode destination) throws Exception {
+    public static ShortestPath AStarSearch(GraphNode source, GraphNode destination){
         PriorityQueue<AStarNode> toExplore = new PriorityQueue<>(10,
                 Comparator.comparingDouble((node) -> node.getEstimatedWeight(destination)));
         HashMap<GraphNode, AStarNode> explored = new HashMap<>();
@@ -46,7 +46,7 @@ public class AStarAlgo {
             }
         }
 
-        throw new Exception();
+        return null;
     }
 
     /**
