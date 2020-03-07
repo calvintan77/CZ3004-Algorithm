@@ -41,9 +41,7 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color WAYPOINT_COLOR = Color.BLUE;
 	
 	private final JPanel displayedPane;
-	private JPanel mapPane;
 	private JPanel settingPane;
-	private JPanel exploredMapPane;
 	private JLabel status, timer, coverageRateUpdate;
 	private JButton[][] mapGrids, mazeGrids;
 	private JTextField[] exploreTextFields, ffpTextFields;
@@ -105,38 +103,36 @@ public class GUI extends JFrame implements ActionListener{
 		 * Add right panel: the reference map and two control buttons
 		 * (load/clear).
 		 */
-		mapPane = new JPanel(new FlowLayout());
+		JPanel mapPane = new JPanel(new FlowLayout());
 		mapPane.setPreferredSize(new Dimension(450, 650));
 		JPanel map = new JPanel();
 		map.setLayout(new GridLayout(MapConstants.MAP_HEIGHT, MapConstants.MAP_WIDTH));
 		map.setPreferredSize(new Dimension(450, 600));
 		mapGrids = new JButton[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
-		for (int y = 0; y < MapConstants.MAP_HEIGHT; y++) {
+		for (int y = MapConstants.MAP_HEIGHT - 1; y >= 0; y--) {
 			for (int x = 0; x < MapConstants.MAP_WIDTH; x++) {
-				int realX = x;
-				int realY = 19-y;
-				mapGrids[realX][realY] = new JButton();
+				mapGrids[x][y] = new JButton();
 				
 				if (RobotConstants.REAL_RUN) {
-					mapGrids[realX][realY].setEnabled(false);
-					mapGrids[realX][realY].setBackground(ROBOT_HEAD_COLOR);
+					mapGrids[x][y].setEnabled(false);
+					mapGrids[x][y].setBackground(ROBOT_HEAD_COLOR);
 				} else {
-					mapGrids[realX][realY].setActionCommand("ToggleObstacleAt " + realX + "," + realY);
-					mapGrids[realX][realY].addActionListener(this);
-					mapGrids[realX][realY].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
-					mapGrids[realX][realY].setBackground(EMPTY_CELL_COLOR);
-					if ((realX <= 2 & realY <= 2) || (realX >= 12 & realY >= 17)) {
-						mapGrids[realX][realY].setEnabled(false);
-						mapGrids[realX][realY].setBackground(Color.ORANGE);
-						if (realX == 1 && realY == 1) {
-							mapGrids[realX][realY].setText("S");
-						} else if (realX == 13 && realY == 18) {
-							mapGrids[realX][realY].setText("G");
+					mapGrids[x][y].setActionCommand("ToggleObstacleAt " + x + "," + y);
+					mapGrids[x][y].addActionListener(this);
+					mapGrids[x][y].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
+					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
+					if ((x <= 2 & y <= 2) || (x >= 12 & y >= 17)) {
+						mapGrids[x][y].setEnabled(false);
+						mapGrids[x][y].setBackground(Color.ORANGE);
+						if (x == 1 && y == 1) {
+							mapGrids[x][y].setText("S");
+						} else if (x == 13 && y == 18) {
+							mapGrids[x][y].setText("G");
 						}
 					}
 				}
 				
-				map.add(mapGrids[realX][realY]);
+				map.add(mapGrids[x][y]);
 			}
 		}
 		
@@ -175,7 +171,7 @@ public class GUI extends JFrame implements ActionListener{
 		settingPane = new JPanel(new BorderLayout());
 		settingPane.setBorder(new EmptyBorder(50, 20, 50, 20));
 		String[] comboBoxItems = { EXPLORATION, FASTEST_PATH };
-		JComboBox cbCtrlSwitch = new JComboBox(comboBoxItems);
+		JComboBox<String> cbCtrlSwitch = new JComboBox<String>(comboBoxItems);
 		cbCtrlSwitch.setFont(new Font("Tahoma", Font.BOLD, 16));
 		cbCtrlSwitch.setEditable(false);
 		cbCtrlSwitch.addActionListener(this);
@@ -332,35 +328,33 @@ public class GUI extends JFrame implements ActionListener{
 		/*
 		 * Add left panel: the maze panel.
 		 */
-		exploredMapPane = new JPanel(new FlowLayout());
+		JPanel exploredMapPane = new JPanel(new FlowLayout());
 		exploredMapPane.setPreferredSize(new Dimension(500, 650));
 		JPanel maze = new JPanel();
 		maze.setLayout(new GridLayout(MapConstants.MAP_HEIGHT, MapConstants.MAP_WIDTH));
 		maze.setPreferredSize(new Dimension(450, 600));
 		mazeGrids = new JButton[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT];
-		for (int x = 0; x < MapConstants.MAP_HEIGHT; x++) {
-			for (int y = 0; y < MapConstants.MAP_WIDTH; y++) {
-				int realX = y;
-				int realY = 19-x;
-				mazeGrids[realX][realY] = new JButton();
-				mazeGrids[realX][realY].setEnabled(false);
-				mazeGrids[realX][realY].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
+		for (int y = MapConstants.MAP_HEIGHT - 1; y >= 0; y--) {
+			for (int x = 0; x < MapConstants.MAP_WIDTH; x++) {
+				mazeGrids[x][y] = new JButton();
+				mazeGrids[x][y].setEnabled(false);
+				mazeGrids[x][y].setBorder(BorderFactory.createLineBorder(ROBOT_HEAD_COLOR));
 				
-				maze.add(mazeGrids[realX][realY]);
+				maze.add(mazeGrids[x][y]);
 				// Indicate Start and Goal
-				if (realX == 1 & realY == 1) {
-					mazeGrids[realX][realY].setText("S");
+				if (x == 1 & y == 1) {
+					mazeGrids[x][y].setText("S");
 				}
-				if (realX == 13 && realY == 18) {
-					mazeGrids[realX][realY].setText("G");
+				if (x == 13 && y == 18) {
+					mazeGrids[x][y].setText("G");
 				}
 				//Draw start zone
-				if ((realX <= 2 & realY <= 2)) {
-					mazeGrids[realX][realY].setEnabled(false);
-					mazeGrids[realX][realY].setBackground(GOAL_START_ZONE_COLOR);
+				if ((x <= 2 & y <= 2)) {
+					mazeGrids[x][y].setEnabled(false);
+					mazeGrids[x][y].setBackground(GOAL_START_ZONE_COLOR);
 				} else {
 					// Set unexplored colour
-					mazeGrids[realX][realY].setBackground(UNEXPLORED_CELL_COLOR);
+					mazeGrids[x][y].setBackground(UNEXPLORED_CELL_COLOR);
 				}
 			}
 		}

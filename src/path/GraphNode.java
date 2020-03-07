@@ -114,8 +114,8 @@ public class GraphNode {
         return neighbours.entrySet();
     }
 
-    public boolean isNeighbour(GraphNode graphNode){
-        return neighbours.containsKey(graphNode);
+    public boolean isNotNeighbour(GraphNode graphNode){
+        return !neighbours.containsKey(graphNode);
     }
 
     /**

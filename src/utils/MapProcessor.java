@@ -34,8 +34,7 @@ public class MapProcessor {
     }
 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints){
-        List<GraphNode> mapResult = ProcessMap(map, StartingPoints, EndingPoints, StartingPoints.get(0));
-        return mapResult;
+        return ProcessMap(map, StartingPoints, EndingPoints, StartingPoints.get(0));
     }
 
     // hit at least 1 ending point 
@@ -55,14 +54,14 @@ public class MapProcessor {
                 vertGraphNode.addNeighbour(horizGraphNode, TURNING_WEIGHT);
 
                 // Horizontal Neighbour
-                if(i > 0 && graph[i-1][j][0] != null && !horizGraphNode.isNeighbour(graph[i-1][j][0])){
+                if(i > 0 && graph[i-1][j][0] != null && horizGraphNode.isNotNeighbour(graph[i - 1][j][0])){
                     horizGraphNode.addNeighbour(graph[i-1][j][0], FORWARD_WEIGHT);
                     graph[i-1][j][0].addNeighbour(horizGraphNode, FORWARD_WEIGHT);
                 }
                 graph[i][j][0] = horizGraphNode;
 
                 // Vertical Neighbour
-                if(j > 0 && graph[i][j-1][1] != null && !vertGraphNode.isNeighbour(graph[i][j-1][1])){
+                if(j > 0 && graph[i][j-1][1] != null && vertGraphNode.isNotNeighbour(graph[i][j - 1][1])){
                     vertGraphNode.addNeighbour(graph[i][j-1][1], FORWARD_WEIGHT);
                     graph[i][j-1][1].addNeighbour(vertGraphNode, FORWARD_WEIGHT);
                 }

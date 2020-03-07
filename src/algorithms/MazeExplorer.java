@@ -76,11 +76,11 @@ public class MazeExplorer {
 					toUnexploredPoint = GetShortestPathToCandidates(map, candidates);
 					if(DoShortestPathWithSensor(toUnexploredPoint, map, unseen, weight, startTime, targetCoverage, tLimit)) {
 						for(RobotCommand command: robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination())))){
+							robot.doCommandWithSensor(command, map);
 							long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
-							if (numUnseen != unseen.size()){
+							if (numUnseen != unseen.size()) {
 								break;
 							}
-							robot.doCommandWithSensor(command, map);
 						}
 					}
 				}
@@ -130,9 +130,10 @@ public class MazeExplorer {
 		if(IsMakingWeirdTurns(toUnexploredPoint)) {
 			toUnexploredPoint.getPath().remove(1);
 		}
-		robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
+		List<RobotCommand> commands = robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation());
+		commands.addAll(toUnexploredPoint.generateInstructions());
 		// Loop over commands until discover new unseen
-		for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
+		for (RobotCommand cmd : commands) {
 			if(ExitCondition(map, weight, startTime, targetCoverage, tLimit)) throw new TimeLimitExceededException();
 			if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())){
 				return false;
@@ -143,7 +144,8 @@ public class MazeExplorer {
 			}
 			robot.doCommandWithSensor(cmd, map);
 		}
-		return true;
+		long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
+		return numUnseen == unseen.size();
 	}
 
 	private boolean ExitCondition(Map map, double weight, long startTime, int targetCoverage, long tLimit){
@@ -165,8 +167,7 @@ public class MazeExplorer {
 		List<Coordinate> end = new LinkedList<>();
 		end.add(new Coordinate(1,1));
 		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
-		ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-		return toStartingPoint;
+		return AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 	}
 
 	private boolean IsMakingWeirdTurns(ShortestPath path){
