@@ -1,5 +1,6 @@
 package threading;
 
+import connection.AlgoClient;
 import constants.RobotConstants;
 import gui.GUI;
 
@@ -10,6 +11,7 @@ public class Main {
         GUI.getInstance().refreshExploreInput();
         // Start Comm Thread
         if(RobotConstants.REAL_RUN) {
+            AlgoClient.GetInstance();
             TCPThread tcpThread = new TCPThread();
             tcpThread.start();
         }

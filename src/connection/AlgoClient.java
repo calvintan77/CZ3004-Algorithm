@@ -20,7 +20,6 @@ public class AlgoClient{
     private static final String CALIBRATION = "6";
     private static final String RPI_IP = "192.168.9.9";
     private static final int PORT = 9999;
-
     final TCPSocket sock;
     private AlgoClient(TCPSocket sock) { 
         this.sock = sock; 
@@ -97,10 +96,9 @@ public class AlgoClient{
         String message = sock.Receive();
         System.out.println("Handler: " + message);
         if(message.length() == 0) return;
-        System.out.println(message.charAt(0));
-        switch (Character.toString(message.charAt(0))) {   
+        switch (Character.toString(message.charAt(0))) {
             case EXPLORATION_START:
-                System.out.println("Detect explroation started");
+                System.out.println("Detect exploration started");
                 SyncObject.getSyncObject().SignalExplorationStart();
                 break;
             case SET_WAYPOINT:

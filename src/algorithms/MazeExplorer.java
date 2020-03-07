@@ -8,6 +8,7 @@ import utils.*;
 
 import maze.Map;
 
+import javax.naming.TimeLimitExceededException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class MazeExplorer {
 		robot.doCommandWithSensor(RobotCommand.TURN_RIGHT, map);
 		double weight = 0;
 		// Initial Right Wall Hug
-		do { 
+		do {
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			// translate orientation to actual command
@@ -49,7 +50,7 @@ public class MazeExplorer {
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
-				robot.Calibrate(map); 
+				robot.Calibrate(map);
 			}
 			try {
 				weight = getPathToStart(map).getWeight();
@@ -58,70 +59,41 @@ public class MazeExplorer {
 			}
 		}
 		while (System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit && map.getSeenPercentage() < targetCoverage && (robot.getPosition().getX() != 1 || robot.getPosition().getY() != 1));
-		
+
 		// after exiting the loop above, we are guaranteed to be at the start zone - check if map fully explored
 		// enqueue all unseen cells
 		List<MapCell> unseen = map.getAllUnseen();
-		while (map.getSeenPercentage() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit) {
-			// shortest path to unseen
-			// fuck doing fp in java
-			List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		while (!ExitCondition(map, weight, startTime, targetCoverage, tLimit)) {
 			try {
-				List<Coordinate> start = GetStartingCoords();
-				List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
-				ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-				// Orientation update
-				if(IsMakingWeirdTurns(toUnexploredPoint)){
-					toUnexploredPoint.getPath().remove(1);
-				}
-				robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
-				for(RobotCommand cmd: toUnexploredPoint.generateInstructions()){
-					if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime() - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
-					if(cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())) break;
-					long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
-					if (numUnseen != unseen.size()) break;
-					robot.doCommandWithSensor(cmd, map);
+				ShortestPath toUnexploredPoint = GetShortestPathToFrontier(map, unseen);
+				if(toUnexploredPoint != null){
+					DoShortestPathWithSensor(toUnexploredPoint, map, unseen, weight, startTime, targetCoverage, tLimit);
+				}else{
+					System.out.println("Unable to use typical route, attempting to brute force candidates :(");
+					HashMap<MapCell, Orientation> candidates = new HashMap<>();
+					unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
+					toUnexploredPoint = GetShortestPathToCandidates(map, candidates);
+					if(DoShortestPathWithSensor(toUnexploredPoint, map, unseen, weight, startTime, targetCoverage, tLimit)) {
+						for(RobotCommand command: robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination())))){
+							robot.doCommandWithSensor(command, map);
+							long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
+							if (numUnseen != unseen.size()) {
+								break;
+							}
+						}
+					}
 				}
 				weight = getPathToStart(map).getWeight();
 				unseen = unseen.stream().filter(x -> !x.isSeen()).collect(Collectors.toList());
 			} catch (Exception e) {
-				System.out.println("Unable to use typical route, attempting to brute force candidates :(");
-				HashMap<MapCell, Orientation> candidates = new HashMap<>();
-				unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
-				List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y, candidates.get(cell).isAligned(true) ? Coordinate.Facing.HORIZONTAL : Coordinate.Facing.VERTICAL)).collect(Collectors.toList());
-				try {
-					List<Coordinate> start = GetStartingCoords();
-					List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
-					ShortestPath toUnexploredPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-					// Orientation update
-					if(IsMakingWeirdTurns(toUnexploredPoint)) {
-						toUnexploredPoint.getPath().remove(1);
-					}
-					robot.prepareOrientation(robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation()),map);
-					// Loop over commands until discover new unseen
-					for (RobotCommand cmd : toUnexploredPoint.generateInstructions()) {
-						if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) break;
-						if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition()))
-							break;
-						long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
-						if (numUnseen != unseen.size()) break;
-						robot.doCommandWithSensor(cmd, map);
-					}
-					// See edge case cell
-					robot.prepareOrientation(robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination()))), map);
-					weight = getPathToStart(map).getWeight();
-					unseen = unseen.stream().filter(x -> !x.isSeen()).collect(Collectors.toList());
-				} catch (Exception e2) {
-					System.out.println("Unable to access cell, cutting losses");
-					break;
-				}
+				System.out.println("Unable to access remaining cells, cutting losses");
 			}
 		}
 		
 		// path back to start position
 		try {
 			ShortestPath toStartingPoint;
-			if(!(map.getSeenPercentage() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit)) {
+			if(ExitCondition(map, weight, startTime, targetCoverage, tLimit)) {
 				toStartingPoint = getPathToStart(map.CloneWithUnseenAsObstacles());
 			}else {
 				toStartingPoint = getPathToStart(map);
@@ -138,6 +110,47 @@ public class MazeExplorer {
 		}
 	}
 
+	private ShortestPath GetShortestPathToFrontier(Map map, List<MapCell> unseen){
+		List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		List<Coordinate> start = GetStartingCoords();
+		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
+		return AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+	}
+
+	private ShortestPath GetShortestPathToCandidates(Map map, HashMap<MapCell, Orientation> candidates){
+		List<Coordinate> destinations = candidates.keySet().stream().map(cell -> new Coordinate(cell.x, cell.y, candidates.get(cell).isAligned(true) ? Coordinate.Facing.HORIZONTAL : Coordinate.Facing.VERTICAL)).collect(Collectors.toList());
+		List<Coordinate> start = GetStartingCoords();
+		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, destinations);
+		return AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
+	}
+
+	private boolean DoShortestPathWithSensor(ShortestPath toUnexploredPoint, Map map, List<MapCell> unseen, double weight, long startTime, int targetCoverage, long tLimit) throws InterruptedException, TimeLimitExceededException {
+		// Orientation update
+		if(IsMakingWeirdTurns(toUnexploredPoint)) {
+			toUnexploredPoint.getPath().remove(1);
+		}
+		List<RobotCommand> commands = robot.prepareOrientationCmds(toUnexploredPoint.getStartingOrientation());
+		commands.addAll(toUnexploredPoint.generateInstructions());
+		// Loop over commands until discover new unseen
+		for (RobotCommand cmd : commands) {
+			if(ExitCondition(map, weight, startTime, targetCoverage, tLimit)) throw new TimeLimitExceededException();
+			if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())){
+				return false;
+			}
+			long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
+			if (numUnseen != unseen.size()){
+				return false;
+			}
+			robot.doCommandWithSensor(cmd, map);
+		}
+		long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
+		return numUnseen == unseen.size();
+	}
+
+	private boolean ExitCondition(Map map, double weight, long startTime, int targetCoverage, long tLimit){
+		return !(map.getSeenPercentage() < targetCoverage && System.nanoTime()  - startTime + weight  * (1000000000) + BUFFER < tLimit);
+	}
+
 	private List<Coordinate> GetStartingCoords(){
 		List<Coordinate> start = new LinkedList<>();
 		start.add(robot.getPosition());
@@ -148,13 +161,12 @@ public class MazeExplorer {
 		return start;
 	}
 	
-	private ShortestPath getPathToStart(Map map) throws Exception {
+	private ShortestPath getPathToStart(Map map) {
 		List<Coordinate> start = GetStartingCoords();
 		List<Coordinate> end = new LinkedList<>();
 		end.add(new Coordinate(1,1));
 		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, end);
-		ShortestPath toStartingPoint = AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
-		return toStartingPoint;
+		return AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
 	}
 
 	private boolean IsMakingWeirdTurns(ShortestPath path){

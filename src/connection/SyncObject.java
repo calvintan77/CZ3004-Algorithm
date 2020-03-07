@@ -64,9 +64,8 @@ public class SyncObject{
         hasExplorationStarted.release();
     }
 
-    public boolean IsExplorationStarted() throws InterruptedException{
+    public void IsExplorationStarted() throws InterruptedException{
         hasExplorationStarted.acquire();
-        return true;
     }
 
     //Sensors
@@ -115,9 +114,8 @@ public class SyncObject{
         startFastestPath.release();
     }
 
-    public boolean IsFastestPathStart() throws InterruptedException{
+    public void IsFastestPathStart() throws InterruptedException{
         startFastestPath.acquire();
-        return true;
     }
 
     //Reset Robot
@@ -126,13 +124,12 @@ public class SyncObject{
         resetRobot.release();
     }
 
-    public boolean CheckResetRobot(AlgoThread thread) throws InterruptedException{
+    public void CheckResetRobot(AlgoThread thread) throws InterruptedException{
         resetRobot.acquire();
         System.out.println("Resetting");
         thread.interrupt();
         while(thread.isAlive());
         ResetAll();
-        return true;
     }
 
     private void ResetAll(){

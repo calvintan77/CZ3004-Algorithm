@@ -36,13 +36,6 @@ public class FastestPathFinder {
                 }
             }while (result == null && !map.getAllUnseen().isEmpty());
 
-            //TODO: Figure out how to draw path
-//            List<GraphNode> path = result.getPath();
-//            for(GraphNode n: path){
-//                if (!( (n.getX()==0 && n.getY()==0) ||
-//                        (n.getX()== MapConstants.MAP_WIDTH-1 && n.getY()==MapConstants.MAP_HEIGHT-1) ))
-//                    gui.setMazeGridColor(n.getX(), n.getY(), GUI.FASTEST_PATH_COLOR);
-//            }
             if(result == null)  return null;
             // Prepare Instructions
             return GenerateCommands(result, robot);

@@ -11,6 +11,7 @@ import constants.SensorConstants;
 import utils.Coordinate;
 import utils.MapLoader;
 import utils.Orientation;
+import utils.Sensor;
 
 public class Map {
 
@@ -122,36 +123,21 @@ public class Map {
 	 * @param values: list of string values to update in format of Left(long),Front Left,Front Middle,Front Right,Right
 	 **/
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) {
-		switch (o) { 
-			case UP: 
-				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX(), curPos.getY() + 1), o);
-				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getClockwise(o));
-				break;
-			case DOWN:
-				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX(), curPos.getY() - 1), o);
-				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getClockwise(o));
-				break;
-			case RIGHT:
-				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY()), o);
-				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() + 1, curPos.getY() - 1), Orientation.getClockwise(o));
-				break;
-			case LEFT: 
-				updateSingleSensor(values.get(0), SensorConstants.LONG_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), Orientation.getCounterClockwise(o));
-				updateSingleSensor(values.get(1), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() - 1), o);
-				updateSingleSensor(values.get(2), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY()), o);
-				updateSingleSensor(values.get(3), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), o);
-				updateSingleSensor(values.get(4), SensorConstants.SHORT_RANGE, new Coordinate(curPos.getX() - 1, curPos.getY() + 1), Orientation.getClockwise(o));
-				break;
+		//TODO: Delete after debug
+		System.out.println("Sensors: ");
+		for(int i : values){
+			System.out.print(i + ",");
 		}
+		System.out.println("Coord: " + curPos.getX() + ", " + curPos.getY() + " Orientation: " + o.name());
+		updateSingleSensor(values.get(0), SensorConstants.LEFT_SENSOR, curPos, o);
+		updateSingleSensor(values.get(1), SensorConstants.FRONT_LEFT_SENSOR, curPos, o);
+		updateSingleSensor(values.get(2), SensorConstants.FRONT_MIDDLE_SENSOR, curPos, o);
+		updateSingleSensor(values.get(3), SensorConstants.FRONT_RIGHT_SENSOR, curPos, o);
+		updateSingleSensor(values.get(4), SensorConstants.RIGHT_SENSOR, curPos, o);
+	}
+
+	public void updateSingleSensor(int value, Sensor sensor, Coordinate robotPos, Orientation robotOrientation){
+		updateSingleSensor(value, sensor.GetRange(), sensor.GetSensorPosition(robotOrientation, robotPos), sensor.getSensorFacing(robotOrientation));
 	}
 	
 	/** 
@@ -162,38 +148,42 @@ public class Map {
 	 * @param o: sensor orientation relative to map
 	 */
 	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
-		if(value==-1) value = maxValue;
+		if(value == -1 || value > maxValue) value = maxValue;
 		switch (o) {
 			case RIGHT: 
 				// update all seen 
-				for (int i = 1; i <= value; i++) { 
+				for (int i = 1; i <= value; i++) {
+					if(this.getCell(sensorPos.getX() + i, sensorPos.getY()).isObstacle()) return;
 					this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
 				}
-				if (value != maxValue) { // obstacle in front
+				if (value < maxValue) { // obstacle in front
 					this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));	
 				}
 				break;
 			case LEFT: 
-				for (int i = 1; i <= value; i++) { 
+				for (int i = 1; i <= value; i++) {
+					if(this.getCell(sensorPos.getX() - i, sensorPos.getY()).isObstacle()) return;
 					this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
 				}
-				if (value != maxValue) { // obstacle in front
+				if (value < maxValue) { // obstacle in front
 					this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
 				}
 				break;
 			case UP:	
-				for (int i = 1; i <= value; i++) { 
-					this.markCellSeen(sensorPos.getX(), sensorPos.getY() + i);
+				for (int j = 1; j <= value; j++) {
+					if(this.getCell(sensorPos.getX(), sensorPos.getY() + j).isObstacle()) return;
+					this.markCellSeen(sensorPos.getX(), sensorPos.getY() + j);
 				}
-				if (value != maxValue) { // obstacle in front
+				if (value < maxValue) { // obstacle in front
 					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
 				}
 				break;
 			case DOWN: 
-				for (int i = 1; i <= value; i++) { 
-					this.markCellSeen(sensorPos.getX(), sensorPos.getY() - i);
+				for (int j = 1; j <= value; j++) {
+					if(this.getCell(sensorPos.getX(), sensorPos.getY() - j).isObstacle()) return;
+					this.markCellSeen(sensorPos.getX(), sensorPos.getY() - j);
 				}
-				if (value != maxValue) { // obstacle in front
+				if (value < maxValue) { // obstacle in front
 					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
 				}
 				break;

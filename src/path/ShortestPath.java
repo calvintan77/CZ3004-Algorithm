@@ -30,14 +30,7 @@ public class ShortestPath{
     public List<RobotCommand> generateInstructions(){
         List<RobotCommand> result = new LinkedList<>();
         //Set starting orientation
-        Orientation currOrientation;
-        if(isStartingOrientationHorizontal()){
-            if(path.size() < 2) currOrientation = Orientation.RIGHT;
-            else currOrientation = path.get(2).getX() > path.get(1).getX()? Orientation.RIGHT : Orientation.LEFT;
-        }else{
-            if(path.size() < 2) currOrientation = Orientation.UP;
-            else currOrientation = path.get(2).getY() > path.get(1).getY()? Orientation.UP : Orientation.DOWN;
-        }
+        Orientation currOrientation = this.getStartingOrientation();
         //Loop over the path
         for(int i = 0; i < path.size(); i++){
             GraphNode curr = path.get(i);
@@ -46,6 +39,7 @@ public class ShortestPath{
                 result.add(RobotCommand.MOVE_FORWARD);
             }else{
                 GraphNode next = path.get(i+1);
+                if(next.isVirtual()) continue;
                 switch(currOrientation){
                     case UP:
                         if (next.getX() > curr.getX()) {
@@ -91,33 +85,51 @@ public class ShortestPath{
     }
 
     public boolean isStartingOrientationHorizontal(){
-        return path.get(1).isHorizontal();
+        for(GraphNode n: path){
+            if(n.isVirtual()) continue;
+            return n.isHorizontal();
+        }
+        return false;
     }
 
     public boolean isEndingOrientationHorizontal(){
-        return path.get(path.size()-1).isHorizontal();
+        for(int i = path.size()-1; i >= 0; i--){
+            if(path.get(i).isVirtual()) continue;
+            return path.get(i).isHorizontal();
+        }
+        return false;
     }
 
     public Orientation getStartingOrientation(){
-        int compensation = path.get(0).isVirtual()?1:0;
-        // Unfortunate neutral case
-        if(path.size() == 1) return isStartingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
-        if(isStartingOrientationHorizontal()){
-            return path.get(1+compensation).getX() > path.get(compensation).getX() ? Orientation.RIGHT : Orientation.LEFT;
-        }else{
-            return path.get(1+compensation).getY() > path.get(compensation).getY() ? Orientation.UP : Orientation.DOWN;
+        for(int i = 0; i < path.size(); i++){
+            if (path.get(i).isVirtual()) continue;
+            // Unfortunate neutral case
+            if(i+1>= path.size()){
+                return path.get(i).isHorizontal() ? Orientation.RIGHT : Orientation.UP;
+            }
+            if(path.get(i).isHorizontal()){
+                return path.get(i+1).getX() > path.get(i).getX() ? Orientation.RIGHT : Orientation.LEFT;
+            }else{
+                return path.get(i+1).getY() > path.get(i).getY() ? Orientation.UP : Orientation.DOWN;
+            }
         }
+        return Orientation.UP;
     }
 
     public Orientation getEndingOrientation(){
-        // Unfortunate neutral case
-        if(path.size() == 1) return isEndingOrientationHorizontal() ? Orientation.RIGHT : Orientation.UP;
-        int compensation = path.get(path.size()-1).isVirtual()?2:1;
-        if(isEndingOrientationHorizontal()){
-            return path.get(path.size()-compensation).getX() > path.get(path.size()-compensation-1).getX() ? Orientation.RIGHT : Orientation.LEFT;
-        }else{
-            return path.get(path.size()-compensation).getY() > path.get(path.size()-compensation-1).getY() ? Orientation.UP : Orientation.DOWN;
+        for(int i = path.size() - 1; i >= 0; i--){
+            if (path.get(i).isVirtual()) continue;
+            // Unfortunate neutral case
+            if(i-1 < 0){
+                return path.get(i).isHorizontal() ? Orientation.RIGHT : Orientation.UP;
+            }
+            if(path.get(i).isHorizontal()){
+                return path.get(i).getX() > path.get(i-1).getX() ? Orientation.RIGHT : Orientation.LEFT;
+            }else{
+                return path.get(i).getY() > path.get(i-1).getY() ? Orientation.UP : Orientation.DOWN;
+            }
         }
+        return Orientation.UP;
     }
 
     public Coordinate getDestination() {

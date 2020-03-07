@@ -1,27 +1,20 @@
 package robot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import constants.MapConstants;
-import constants.SensorConstants;
 import connection.AlgoClient;
 import connection.SyncObject;
 import maze.Map;
-import maze.MapCell;
 import utils.*;
 
-public class RpiRobot implements AbstractRobot {
-	private Coordinate position = new Coordinate(1,1);
-	private Orientation o = Orientation.UP;
-
+public class RpiRobot extends AbstractRobot {
 	public RpiRobot(){
 
 	}
 	
-	@Override
-	public List<Integer> getSensorValues() {
+	private List<Integer> getSensorValues() {
 		try {
 			return SyncObject.getSyncObject().GetSensorData();
 		} catch (Exception e) {
@@ -65,173 +58,44 @@ public class RpiRobot implements AbstractRobot {
 			System.out.println(e.toString());
 		}
 	}
-
-	@Override
-	public Orientation getOrientation() {
-		return this.o;
-	}
-
-	@Override
-	public Coordinate getPosition() {
-		return this.position;
-	}
-
-	@Override
-	public void setPosition(int x, int y) {
-		this.position = new Coordinate(x, y);
-	}
-	
-	@Override
-	public void setOrientation(Orientation o) {
-		this.o = o;
-	}
-
-	@Override
-	public List<RobotCommand> prepareOrientationCmds(Orientation target) {
-		// Orientation update
-		List<RobotCommand> avaiCommands = new ArrayList<>();
-		if (this.getOrientation() != target) {
-			int rightTurns = this.getOrientation().getRightTurns(target);
-			if (rightTurns > 0) {
-				for (int i = 0; i < rightTurns; i++) {
-					avaiCommands.add(RobotCommand.TURN_RIGHT);
-				}
-			} else {
-				for (int i = 0; i < -rightTurns; i++) {
-					avaiCommands.add(RobotCommand.TURN_LEFT);
-				}
-			}
-		}
-		return avaiCommands; 
-	}
-
-	@Override
-	public HashMap<MapCell, Orientation> getSensorVisibilityCandidates(Map map, MapCell cell) {
-		HashMap<MapCell, Orientation> candidates = new HashMap<>();
-		MapCell check;
-		//4 is left sensor length
-		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
-			//POSITION IS LEFT OF ROBOT IN MAP
-			MapCell cand = map.getCell(cell.x + i, cell.y);
-			if (cand == null || cand.isObstacle()) {
-				break;
-			}
-			// LEFT SENSOR
-			check = map.getCell(cell.x + i + 1, cell.y - 1);
-			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.UP);
-			//FRONT AND RIGHT SENSORS
-			if (i <= SensorConstants.SHORT_RANGE) {
-				// RIGHT SENSOR
-				check = map.getCell(cell.x + i + 1, cell.y + 1);
-				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.DOWN);
-				// FRONT MIDDLE SENSOR
-				check = map.getCell(cell.x + i + 1, cell.y);
-				if (isViableCell(check))candidates.put(check, Orientation.LEFT);
-			}
-		}
-
-		//POSITION IS RIGHT OF ROBOT IN MAP
-		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
-			MapCell cand = map.getCell(cell.x - i, cell.y);
-			if (cand == null || cand.isObstacle()) {
-				break;
-			}
-			// LEFT SENSOR
-			check = map.getCell(cell.x - i - 1, cell.y + 1);
-			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.DOWN);
-			//FRONT AND RIGHT SENSORS
-			if (i <= SensorConstants.SHORT_RANGE) {
-				// RIGHT SENSOR
-				check = map.getCell(cell.x - i - 1, cell.y - 1);
-				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.UP);
-				// FRONT MIDDLE SENSOR
-				check = map.getCell(cell.x - i - 1, cell.y);
-				if (isViableCell(check))candidates.put(check, Orientation.RIGHT);
-			}
-		}
-
-		//POSITION IS BELOW THE ROBOT IN MAP
-		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
-			MapCell cand = map.getCell(cell.x, cell.y + i);
-			if (cand == null || cand.isObstacle()) {
-				break;
-			}
-			// LEFT SENSOR
-			check = map.getCell(cell.x + 1, cell.y + i + 1);
-			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.LEFT);
-			//FRONT AND RIGHT SENSORS
-			if (i <= SensorConstants.SHORT_RANGE) {
-				// RIGHT SENSOR
-				check = map.getCell(cell.x - 1, cell.y + i + 1);
-				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.RIGHT);
-				// FRONT MIDDLE SENSOR
-				check = map.getCell(cell.x, cell.y + i + 1);
-				if (isViableCell(check))candidates.put(check, Orientation.DOWN);
-			}
-		}
-
-		//POSITION IS ABOVE THE ROBOT IN MAP
-		for (int i = 1; i <= SensorConstants.LONG_RANGE; i++) {
-			MapCell cand = map.getCell(cell.x, cell.y - i);
-			if (cand == null || cand.isObstacle()) {
-				break;
-			}
-			// LEFT SENSOR
-			check = map.getCell(cell.x - 1, cell.y - i - 1);
-			if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.RIGHT);
-			//FRONT AND RIGHT SENSORS
-			if (i <= SensorConstants.SHORT_RANGE) {
-				// RIGHT SENSOR
-				check = map.getCell(cell.x + 1, cell.y - i - 1);
-				if (isViableCell(check) && !candidates.containsKey(check))candidates.put(check, Orientation.LEFT);
-				// FRONT MIDDLE SENSOR
-				check = map.getCell(cell.x, cell.y - i - 1);
-				if (isViableCell(check))candidates.put(check, Orientation.UP);
-			}
-		}
-		return candidates;
-	}
-	
-	private boolean isViableCell(MapCell cell) {
-		return cell != null && !cell.isObstacle() && !cell.isVirtualWall();
-	}
-
 	/**
 	 * Method to calibrate the actual robot against given corners/walls
 	 * @param m - the current seen map at this timestep
-	 * @return void but arduino will do command
 	 */
-	public boolean Calibrate(Map m) { 	
+	public void Calibrate(Map m) {
 		// get distances to nearest 4 walls
 		// check xy to see if we are at start 
 		// yes; send calibrate over 
 		// no: check 
-		// check in front/right/down/left order 
+		// check in front/right/down/left order
+		Orientation orient = this.o;
 		List<Orientation> available = getAvailableCalibrations(m);
 		if (available.size() == 0) {
-			return false; 
+			return;
 		}
 		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
-		Orientation temp = Orientation.getClockwise(o);
+		Orientation temp = Orientation.getClockwise(this.o);
 		if(available.contains(this.o)) { 
 			toSend.add(RobotCommand.CALIBRATE);
 		} else if (available.contains(Orientation.getClockwise(temp))) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getClockwise(temp)));
+			toSend.addAll(prepareAnyOrientation(orient, Orientation.getClockwise(temp)));
+			orient = Orientation.getClockwise(temp);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
 		if(available.contains(temp)) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getClockwise(temp)));
+			toSend.addAll(prepareAnyOrientation(orient, temp));
+			orient = temp;
 			toSend.add(RobotCommand.CALIBRATE);
-		} else if (available.contains(Orientation.getCounterClockwise(o))) { 
-			toSend.addAll(prepareOrientationCmds(Orientation.getCounterClockwise(o)));
+		} else if (available.contains(Orientation.getCounterClockwise(this.o))) {
+			toSend.addAll(prepareAnyOrientation(orient, Orientation.getCounterClockwise(this.o)));
+			orient = Orientation.getCounterClockwise(this.o);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
-		toSend.addAll(prepareOrientationCmds(o));
+		toSend.addAll(prepareAnyOrientation(orient, this.o));
 		AlgoClient.GetInstance().SendCalibrate(toSend);
-		return true; 
 	}
 
 	/**
