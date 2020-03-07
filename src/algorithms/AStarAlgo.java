@@ -12,7 +12,6 @@ public class AStarAlgo {
      * @param source - Source node
      * @param destination - Destination node
      * @return ShortestPath object containing path length and List of nodes as path
-     * @throws Exception - unable to find path from source to destination
      */
     public static ShortestPath AStarSearch(GraphNode source, GraphNode destination){
         PriorityQueue<AStarNode> toExplore = new PriorityQueue<>(10,

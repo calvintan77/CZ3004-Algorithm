@@ -10,7 +10,6 @@ import maze.Map;
 
 import javax.naming.TimeLimitExceededException;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class MazeExplorer {
@@ -162,7 +161,7 @@ public class MazeExplorer {
 		return start;
 	}
 	
-	private ShortestPath getPathToStart(Map map) throws Exception {
+	private ShortestPath getPathToStart(Map map) {
 		List<Coordinate> start = GetStartingCoords();
 		List<Coordinate> end = new LinkedList<>();
 		end.add(new Coordinate(1,1));

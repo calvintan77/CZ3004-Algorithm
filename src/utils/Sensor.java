@@ -1,15 +1,13 @@
 package utils;
 
-import java.time.chrono.MinguoEra;
-
 /**
  * Class representing a single sensor and its relative position and orientation
  */
 public class Sensor {
     private OrientationMutationFunction orientationMutation;
-    private int xOffset;
-    private int yOffset;
-    private int range;
+    private final int xOffset;
+    private final int yOffset;
+    private final int range;
     public Coordinate GetSensorPosition(Orientation robotOrientation, Coordinate robotPosition){
         switch(robotOrientation){
             case UP:

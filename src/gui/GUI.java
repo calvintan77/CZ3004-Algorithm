@@ -171,7 +171,7 @@ public class GUI extends JFrame implements ActionListener{
 		settingPane = new JPanel(new BorderLayout());
 		settingPane.setBorder(new EmptyBorder(50, 20, 50, 20));
 		String[] comboBoxItems = { EXPLORATION, FASTEST_PATH };
-		JComboBox<String> cbCtrlSwitch = new JComboBox<String>(comboBoxItems);
+		JComboBox<String> cbCtrlSwitch = new JComboBox<>(comboBoxItems);
 		cbCtrlSwitch.setFont(new Font("Tahoma", Font.BOLD, 16));
 		cbCtrlSwitch.setEditable(false);
 		cbCtrlSwitch.addActionListener(this);
@@ -390,7 +390,7 @@ public class GUI extends JFrame implements ActionListener{
 					mapGrids[x][y].setBackground(EMPTY_CELL_COLOR);
 				}
 			} else if (cmd.equals("SwitchCtrl")) {
-				JComboBox cb = (JComboBox) e.getSource();
+				JComboBox<String> cb = (JComboBox<String>) e.getSource();
 				JPanel cardPanel = (JPanel) settingPane.getComponent(1);
 				CardLayout cardLayout = (CardLayout) (cardPanel.getLayout());
 				cardLayout.show(cardPanel, (String) cb.getSelectedItem());

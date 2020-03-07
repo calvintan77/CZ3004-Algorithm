@@ -1,13 +1,11 @@
 package robot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import constants.SensorConstants;
 import connection.SyncObject;
 import maze.Map;
-import maze.MapCell;
 import utils.*;
 
 public class VirtualRobot extends AbstractRobot {
@@ -18,7 +16,7 @@ public class VirtualRobot extends AbstractRobot {
 	}
 
 	//return string in the structure: "left,front,front,front,right"
-	public List<Integer> getSensorValues() {
+	private List<Integer> getSensorValues() {
 		Map realMap = Map.getRealMapInstance();
 		List<Integer> sensorValues = new ArrayList<>();
 		sensorValues.add(getSingleSensor(realMap, SensorConstants.LEFT_SENSOR));
@@ -108,8 +106,7 @@ public class VirtualRobot extends AbstractRobot {
 				(int)(1000*MapProcessor.TURNING_WEIGHT));    //int timePerStep = 1000/speed (ms)
 	}
 
-	public boolean Calibrate(Map m) { 
-		return true; 
+	public void Calibrate(Map m) {
 	}
 
 	@Override

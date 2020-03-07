@@ -66,6 +66,7 @@ public class Graph {
         try {
             ShortestPath toWaypoint = AStarAlgo.AStarSearch(start, waypoint);
             ShortestPath fromWaypoint =AStarAlgo.AStarSearch(waypoint, end);
+            if(toWaypoint == null || fromWaypoint == null) return null;
             List<GraphNode> path1 = toWaypoint.getPath();
             List<GraphNode> path2 = fromWaypoint.getPath();
             if(path1.size() >= 2 && path2.size() >= 2 && path1.get(path1.size()-2).equals(path2.get(1))) {

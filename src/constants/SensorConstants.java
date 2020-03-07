@@ -1,6 +1,5 @@
 package constants;
 
-import utils.Coordinate;
 import utils.Orientation;
 import utils.Sensor;
 

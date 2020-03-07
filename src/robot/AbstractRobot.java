@@ -10,7 +10,6 @@ import java.util.*;
 public abstract class AbstractRobot {
 	protected Coordinate position = new Coordinate(1,1);
 	protected Orientation o = Orientation.UP;
-	protected abstract List<Integer> getSensorValues();
 	public abstract void doCommandWithSensor(RobotCommand cmd, Map map) throws InterruptedException;
 	public abstract void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException;
 	public Orientation getOrientation(){
@@ -123,7 +122,7 @@ public abstract class AbstractRobot {
 		return cell != null && !cell.isObstacle() && !cell.isVirtualWall();
 	}
 
-	public abstract boolean Calibrate(Map m);
+	public abstract void Calibrate(Map m);
 	public abstract void setFastestPath(List<RobotCommand> cmds);
 	public abstract void doFastestPath(boolean toGoalZone) throws InterruptedException;
 	public abstract boolean canCalibrate(Orientation o, Map m);

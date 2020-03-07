@@ -2,8 +2,6 @@ package connection;
 
 import java.net.*;
 import java.io.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class TCPSocket { 
     private Socket conn; 

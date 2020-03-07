@@ -89,21 +89,19 @@ public class GraphNode {
      * Adds a neighbour to the list with associated weight, with input validation
      * @param graphNode - Node to add
      * @param weight - Weight of edge
-     * @return True if successful
      */
-    public boolean addNeighbour(GraphNode graphNode, Float weight){
+    public void addNeighbour(GraphNode graphNode, Float weight){
         if(!this.isVirtual && !graphNode.isVirtual) {
             if (graphNode.x == this.x && graphNode.y == this.y) {
                 if (graphNode.isHorizontal == this.isHorizontal) {
-                    return false;
+                    return;
                 }
             }
             else if (getEuclideanDistanceTo(graphNode) != 1) {
-                return false;
+                return;
             }
         }
         neighbours.put(graphNode, weight);
-        return true;
     }
 
     /**

@@ -1,15 +1,12 @@
 package robot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import constants.MapConstants;
-import constants.SensorConstants;
 import connection.AlgoClient;
 import connection.SyncObject;
 import maze.Map;
-import maze.MapCell;
 import utils.*;
 
 public class RpiRobot extends AbstractRobot {
@@ -17,8 +14,7 @@ public class RpiRobot extends AbstractRobot {
 
 	}
 	
-	@Override
-	public List<Integer> getSensorValues() {
+	private List<Integer> getSensorValues() {
 		try {
 			return SyncObject.getSyncObject().GetSensorData();
 		} catch (Exception e) {
@@ -65,9 +61,8 @@ public class RpiRobot extends AbstractRobot {
 	/**
 	 * Method to calibrate the actual robot against given corners/walls
 	 * @param m - the current seen map at this timestep
-	 * @return void but arduino will do command
 	 */
-	public boolean Calibrate(Map m) { 	
+	public void Calibrate(Map m) {
 		// get distances to nearest 4 walls
 		// check xy to see if we are at start 
 		// yes; send calibrate over 
@@ -76,7 +71,7 @@ public class RpiRobot extends AbstractRobot {
 		Orientation orient = this.o;
 		List<Orientation> available = getAvailableCalibrations(m);
 		if (available.size() == 0) {
-			return false; 
+			return;
 		}
 		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
@@ -101,7 +96,6 @@ public class RpiRobot extends AbstractRobot {
 
 		toSend.addAll(prepareAnyOrientation(orient, this.o));
 		AlgoClient.GetInstance().SendCalibrate(toSend);
-		return true; 
 	}
 
 	/**

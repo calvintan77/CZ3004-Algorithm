@@ -2,7 +2,6 @@ package threading;
 
 import algorithms.FastestPathFinder;
 import algorithms.MazeExplorer;
-import connection.AlgoClient;
 import constants.RobotConstants;
 import maze.Map;
 import robot.AbstractRobot;
