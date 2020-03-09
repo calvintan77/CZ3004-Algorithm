@@ -18,7 +18,7 @@ public class RpiRobot extends AbstractRobot {
 		try {
 			return SyncObject.getSyncObject().GetSensorData();
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			System.out.println("RPIRobot Get Sensor: " + e.toString());
 		}
 		return null;
 	}
@@ -52,10 +52,14 @@ public class RpiRobot extends AbstractRobot {
 				default:
 					break;
 			}
-			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
+			List<Integer> SensorData = this.getSensorValues();
+			if(SensorData != null && map != null) {
+				map.updateFromSensor(SensorData, this.position, this.o);
+			}
 			SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			System.out.println("Do Command With Sensor: " + e.toString());
+			e.printStackTrace();
 		}
 	}
 	/**

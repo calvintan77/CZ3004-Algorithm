@@ -86,7 +86,6 @@ public class SyncObject{
     private Queue<GUIUpdate> GUIUpdates = new ConcurrentLinkedQueue<>();
 
     public void SetGUIUpdate(Map mapToClone, Coordinate c, Orientation o){
-        lockGUIUpdate.lock();
         GUIUpdate update;
         if(mapToClone == null){
             update = new GUIUpdate(prevMap, c, o);
@@ -96,15 +95,12 @@ public class SyncObject{
             update = new GUIUpdate(map, c, o);
         }
         GUIUpdates.add(update);
-        lockGUIUpdate.unlock();
         hasGUIUpdate.release();
     }
 
     public GUIUpdate GetGUIUpdate() throws InterruptedException{
         hasGUIUpdate.acquire();
-        lockGUIUpdate.lock();
         GUIUpdate update = GUIUpdates.poll();
-        lockGUIUpdate.unlock();
         return update;
     }
 

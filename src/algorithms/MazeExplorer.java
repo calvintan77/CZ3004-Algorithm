@@ -73,9 +73,15 @@ public class MazeExplorer {
 					HashMap<MapCell, Orientation> candidates = new HashMap<>();
 					unseen.stream().map(cell -> robot.getSensorVisibilityCandidates(map, cell)).flatMap(maps -> maps.entrySet().stream()).forEach(x -> candidates.put(x.getKey(), x.getValue()));
 					toUnexploredPoint = GetShortestPathToCandidates(map, candidates);
+					if(toUnexploredPoint == null){
+						break;
+					}
 					if(DoShortestPathWithSensor(toUnexploredPoint, map, unseen, weight, startTime, targetCoverage, tLimit)) {
 						for(RobotCommand command: robot.prepareOrientationCmds(candidates.get(map.getCell(toUnexploredPoint.getDestination())))){
 							robot.doCommandWithSensor(command, map);
+							if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
+								robot.Calibrate(map);
+							}
 							long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 							if (numUnseen != unseen.size()) {
 								break;
@@ -142,6 +148,9 @@ public class MazeExplorer {
 				return false;
 			}
 			robot.doCommandWithSensor(cmd, map);
+			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
+				robot.Calibrate(map);
+			}
 		}
 		long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 		return numUnseen == unseen.size();
@@ -180,6 +189,7 @@ public class MazeExplorer {
 	private boolean checkObstruction(Map map, Orientation o, Coordinate c) {
 		int x = c.getX();
 		int y = c.getY();
+		if(map.getCell(x, y) == null) return true;
 		switch (o){
 			case UP:
 				return (map.getCell(x, y+1).isVirtualWall()||map.getCell(x, y+1).isObstacle());
