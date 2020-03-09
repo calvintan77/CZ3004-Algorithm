@@ -153,7 +153,7 @@ public class Map {
 			case RIGHT: 
 				// update all seen 
 				for (int i = 1; i <= value; i++) {
-					if(this.getCell(sensorPos.getX() + i, sensorPos.getY()).isObstacle()) return;
+					if(this.isCellObstacle(sensorPos.getX() + i, sensorPos.getY())) return;
 					this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
 				}
 				if (value < maxValue) { // obstacle in front
@@ -162,7 +162,7 @@ public class Map {
 				break;
 			case LEFT: 
 				for (int i = 1; i <= value; i++) {
-					if(this.getCell(sensorPos.getX() - i, sensorPos.getY()).isObstacle()) return;
+					if(this.isCellObstacle(sensorPos.getX() - i, sensorPos.getY())) return;
 					this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
 				}
 				if (value < maxValue) { // obstacle in front
@@ -171,7 +171,7 @@ public class Map {
 				break;
 			case UP:	
 				for (int j = 1; j <= value; j++) {
-					if(this.getCell(sensorPos.getX(), sensorPos.getY() + j).isObstacle()) return;
+					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() + j)) return;
 					this.markCellSeen(sensorPos.getX(), sensorPos.getY() + j);
 				}
 				if (value < maxValue) { // obstacle in front
@@ -180,7 +180,7 @@ public class Map {
 				break;
 			case DOWN: 
 				for (int j = 1; j <= value; j++) {
-					if(this.getCell(sensorPos.getX(), sensorPos.getY() - j).isObstacle()) return;
+					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() - j)) return;
 					this.markCellSeen(sensorPos.getX(), sensorPos.getY() - j);
 				}
 				if (value < maxValue) { // obstacle in front
@@ -188,6 +188,11 @@ public class Map {
 				}
 				break;
 		}
+	}
+
+	public boolean isCellObstacle(int x, int y){
+		MapCell cell = this.getCell(x, y);
+		return cell == null || cell.isObstacle();
 	}
 	
 	/**

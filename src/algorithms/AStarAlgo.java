@@ -1,5 +1,6 @@
 package algorithms;
 
+import connection.SyncObject;
 import path.GraphNode;
 import utils.MapProcessor;
 import path.ShortestPath;
@@ -77,9 +78,9 @@ public class AStarAlgo {
             this.weight = weight;
         }
         public double getEstimatedWeight(GraphNode destination){
-        	if(!destination.isVirtual()) return weight + graphNode.getEuclideanDistanceTo(destination) * MapProcessor.FORWARD_WEIGHT;
+        	if(!destination.isVirtual()) return weight + graphNode.getEuclideanDistanceTo(destination) * SyncObject.getSyncObject().settings.getForwardWeight();
         	Optional<Double> heuristic = destination.getNeighbours().stream().map(x -> graphNode.getEuclideanDistanceTo(x.getKey())).min(Double::compare);
-            return heuristic.map(aDouble -> weight + aDouble * MapProcessor.FORWARD_WEIGHT).orElseGet(() -> weight);
+            return heuristic.map(aDouble -> weight + aDouble * SyncObject.getSyncObject().settings.getForwardWeight()).orElseGet(() -> weight);
         }
         public double getWeight(){
             return weight;

@@ -1,11 +1,14 @@
 package threading;
 
 import connection.AlgoClient;
+import connection.SyncObject;
 import constants.RobotConstants;
 import gui.GUI;
 
 public class Main {
     public static void main(String[] args) {
+        // Start Sync Manager
+        SyncObject.getSyncObject();
         // Start UI Thread
         GUI.getInstance().setVisible(true);
         GUI.getInstance().refreshExploreInput();

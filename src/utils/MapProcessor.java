@@ -1,5 +1,6 @@
 package utils;
 
+import connection.SyncObject;
 import constants.MapConstants;
 import maze.Map;
 import maze.MapCell;
@@ -10,9 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MapProcessor {
-    public static float FORWARD_WEIGHT = 0.1f;
-    public static float TURNING_WEIGHT = 0.2f;
-
     /**
      * Processes a map of the arena into a node representation. Multiple ending points and both starting orientations
      * are represented via a starting node and final node that are arbitrary and connect to the viable locations via 0 weight edges.
@@ -39,6 +37,8 @@ public class MapProcessor {
 
     // hit at least 1 ending point 
     public static List<GraphNode> ProcessMap(Map map, List<Coordinate> StartingPoints, List<Coordinate> EndingPoints, Coordinate waypoint){
+        float TURNING_WEIGHT = SyncObject.getSyncObject().settings.getTurningWeight();
+        float FORWARD_WEIGHT = SyncObject.getSyncObject().settings.getForwardWeight();
         GraphNode[][][] graph = new GraphNode[MapConstants.MAP_WIDTH][MapConstants.MAP_HEIGHT][2];
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){

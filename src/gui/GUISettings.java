@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class GUISettings {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private int RobotSpeed = 10;
+    private float RobotSpeed = 2.5f;
     private int coveragePercent = 100;
     private int timeLimit = 360;
 
@@ -15,23 +15,35 @@ public class GUISettings {
     }
 
 
-    public int getRobotSpeed() {
+    public float getRobotSpeed() {
         lock.readLock().lock();
-        int temp = RobotSpeed;
+        float temp = RobotSpeed;
         lock.readLock().unlock();
         return temp;
     }
 
     //TODO: Calibrate the weights accordingly
-    public void setRobotSpeed(int robotSpeed) {
+    public void setRobotSpeed(float robotSpeed) {
         lock.writeLock().lock();
         try {
             this.RobotSpeed = robotSpeed;
-            MapProcessor.FORWARD_WEIGHT = 1f / RobotSpeed;
-            MapProcessor.TURNING_WEIGHT = 2f / RobotSpeed;
         }finally {
             lock.writeLock().unlock();
         }
+    }
+
+    public float getForwardWeight(){
+        lock.readLock().lock();
+        float temp = 1f / RobotSpeed;
+        lock.readLock().unlock();
+        return temp;
+    }
+
+    public float getTurningWeight(){
+        lock.readLock().lock();
+        float temp = 2f / RobotSpeed;
+        lock.readLock().unlock();
+        return temp;
     }
 
     public int getCoveragePercent() {

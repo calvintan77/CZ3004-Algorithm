@@ -212,19 +212,19 @@ public class GUI extends JFrame implements ActionListener{
 			exploreTextFields[0].getDocument().putProperty("name", "Robot Initial Position");
 			
 			exploreCtrlLabels[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[1].setText("10");
+			exploreTextFields[1].setText(Float.toString(SyncObject.getSyncObject().settings.getRobotSpeed()));
 			exploreTextFields[1].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[1].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[1].getDocument().putProperty("name", "Robot Explore Speed");
 			
 			exploreCtrlLabels[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[2].setText("100");
+			exploreTextFields[2].setText(Integer.toString(RobotConstants.REAL_EXPLORE_COVERAGE));
 			exploreTextFields[2].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[2].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[2].getDocument().putProperty("name", "Target Coverage");
 			
 			exploreCtrlLabels[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
-			exploreTextFields[3].setText("360");
+			exploreTextFields[3].setText(Integer.toString(RobotConstants.REAL_EXPLORE_TIME_LIMIT));
 			exploreTextFields[3].setFont(new Font("Tahoma", Font.PLAIN, 14));
 			exploreTextFields[3].getDocument().addDocumentListener(new InitialRobotAttibuteListener());
 			exploreTextFields[3].getDocument().putProperty("name", "Exploration time limit");
@@ -569,8 +569,8 @@ public class GUI extends JFrame implements ActionListener{
 			assert input != null;
 			switch (name) {
 				case "Robot Explore Speed":
-					if (input.matches("[0-9]+")) {
-						int speed = Integer.parseInt(input);
+					if (input.matches("[0-9.]+")) {
+						float speed = Float.parseFloat(input);
 						SyncObject.getSyncObject().settings.setRobotSpeed(speed);
 						ffpTextFields[0].setText(input);
 					}
@@ -740,7 +740,7 @@ public class GUI extends JFrame implements ActionListener{
 			}
 		}
 		
-		if (!exploreInput[1].matches("[0-9]+")) {
+		if (!exploreInput[1].matches("[0-9.]+")) {
 			return false;
 		}
 		
