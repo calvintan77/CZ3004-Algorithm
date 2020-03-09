@@ -27,8 +27,6 @@ public class GUISettings {
         lock.writeLock().lock();
         try {
             this.RobotSpeed = robotSpeed;
-            MapProcessor.FORWARD_WEIGHT = 1f / RobotSpeed;
-            MapProcessor.TURNING_WEIGHT = 2f / RobotSpeed;
         }finally {
             lock.writeLock().unlock();
         }
@@ -37,7 +35,6 @@ public class GUISettings {
     public float getForwardWeight(){
         lock.readLock().lock();
         float temp = 1f / RobotSpeed;
-        System.out.println("Forward" + temp);
         lock.readLock().unlock();
         return temp;
     }
@@ -45,7 +42,6 @@ public class GUISettings {
     public float getTurningWeight(){
         lock.readLock().lock();
         float temp = 2f / RobotSpeed;
-        System.out.println("Turn " + temp);
         lock.readLock().unlock();
         return temp;
     }

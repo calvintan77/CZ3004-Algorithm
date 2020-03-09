@@ -102,8 +102,8 @@ public class VirtualRobot extends AbstractRobot {
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
 		}
 		SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
-		Thread.sleep(cmd == RobotCommand.MOVE_FORWARD? (int)(1000*MapProcessor.FORWARD_WEIGHT) :
-				(int)(1000*MapProcessor.TURNING_WEIGHT));    //int timePerStep = 1000/speed (ms)
+		Thread.sleep(cmd == RobotCommand.MOVE_FORWARD? (int)(1000*SyncObject.getSyncObject().settings.getForwardWeight()) :
+				(int)(1000*SyncObject.getSyncObject().settings.getTurningWeight()));    //int timePerStep = 1000/speed (ms)
 	}
 
 	public void Calibrate(Map m) {
