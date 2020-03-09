@@ -5,7 +5,7 @@ import java.util.List;
 
 import constants.SensorConstants;
 import connection.SyncObject;
-import maze.Map;
+import map.Map;
 import utils.*;
 
 public class VirtualRobot extends AbstractRobot {
@@ -106,14 +106,16 @@ public class VirtualRobot extends AbstractRobot {
 				(int)(1000*SyncObject.getSyncObject().settings.getTurningWeight()));    //int timePerStep = 1000/speed (ms)
 	}
 
-	public void Calibrate(Map m) {
+	@Override
+	public void Calibrate(Map m, Orientation finalOrientation) {
+		try {
+			prepareOrientation(prepareOrientationCmds(finalOrientation), m);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
-	@Override
-	public void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException {
-		for(RobotCommand cmd: cmds){
-			doCommandWithSensor(cmd, map);
-		}
+	public void Calibrate(Map m) {
 	}
 
 	@Override

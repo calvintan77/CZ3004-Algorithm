@@ -2,8 +2,8 @@ package utils;
 
 import connection.SyncObject;
 import constants.MapConstants;
-import maze.Map;
-import maze.MapCell;
+import map.Map;
+import map.MapCell;
 import path.GraphNode;
 
 import java.util.Arrays;

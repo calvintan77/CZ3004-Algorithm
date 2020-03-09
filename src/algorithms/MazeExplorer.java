@@ -1,12 +1,12 @@
 package algorithms;
 
-import maze.MapCell;
+import map.MapCell;
 import path.GraphNode;
 import path.ShortestPath;
 import robot.AbstractRobot;
 import utils.*;
 
-import maze.Map;
+import map.Map;
 
 import javax.naming.TimeLimitExceededException;
 import java.util.*;
@@ -44,6 +44,16 @@ public class MazeExplorer {
 		do {
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
+			if(nextOrientation.getRightTurns(robot.getOrientation()) == 1){
+				Orientation original = robot.getOrientation();
+				Orientation other = Orientation.getClockwise(Orientation.getClockwise(nextOrientation));
+				if(ShouldSee(other, robot.getPosition(), map)){
+					robot.prepareOrientation(robot.prepareOrientationCmds(other),map);
+					if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
+						robot.Calibrate(map, original);
+					}
+				}
+			}
 			// translate orientation to actual command
 			// update robot's internal state
 			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation),map);
@@ -114,6 +124,44 @@ public class MazeExplorer {
 		} catch (Exception e) {
 			System.out.println("MazeExplorer: " + e.toString());
 		}
+	}
+
+	/**
+	 * Helper method to see if robot should face orientation o to see unseen blocks.
+	 * @param o - orientation to face
+	 * @param pos - robot position
+	 * @param map - map to reference
+	 * @return true if robot can see more facing that direction
+	 */
+	private boolean ShouldSee(Orientation o, Coordinate pos, Map map){
+		switch(o){
+			case UP:
+				for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++){
+					MapCell cell = map.getCell(x, pos.getY() + 2);
+					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
+					if(cell != null && !cell.isSeen()) return true;
+				}
+				break;
+			case LEFT:
+				for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++){
+					MapCell cell = map.getCell(pos.getX() - 2, y);
+					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
+					if(cell != null && !cell.isSeen()) return true;				}
+				break;
+			case DOWN:
+				for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++){
+					MapCell cell = map.getCell(x, pos.getY() - 2);
+					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
+					if(cell != null && !cell.isSeen()) return true;				}
+				break;
+			case RIGHT:
+				for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++){
+					MapCell cell = map.getCell(pos.getX() + 2, y);
+					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
+					if(cell != null && !cell.isSeen()) return true;				}
+				break;
+		}
+		return false;
 	}
 
 	private ShortestPath GetShortestPathToFrontier(Map map, List<MapCell> unseen){

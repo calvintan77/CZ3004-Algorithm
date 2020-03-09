@@ -6,7 +6,7 @@ import java.util.List;
 import constants.MapConstants;
 import connection.AlgoClient;
 import connection.SyncObject;
-import maze.Map;
+import map.Map;
 import utils.*;
 
 public class RpiRobot extends AbstractRobot {
@@ -63,14 +63,23 @@ public class RpiRobot extends AbstractRobot {
 		}
 	}
 	/**
-	 * Method to calibrate the actual robot against given corners/walls
+	 * Method to calibrate the actual robot against given corners/walls and return to initial facing
 	 * @param m - the current seen map at this timestep
 	 */
 	public void Calibrate(Map m) {
+		Calibrate(m, this.o);
+	}
+
+	/**
+	 * Method to calibrate the actual robot against given corners/walls
+	 * @param m - the current seen map at this timestep
+	 * @param finalOrientation  - final orientation after calibration
+	 */
+	public void Calibrate(Map m, Orientation finalOrientation) {
 		// get distances to nearest 4 walls
-		// check xy to see if we are at start 
-		// yes; send calibrate over 
-		// no: check 
+		// check xy to see if we are at start
+		// yes; send calibrate over
+		// no: check
 		// check in front/right/down/left order
 		Orientation orient = this.o;
 		List<Orientation> available = getAvailableCalibrations(m);
@@ -80,15 +89,15 @@ public class RpiRobot extends AbstractRobot {
 		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
 		Orientation temp = Orientation.getClockwise(this.o);
-		if(available.contains(this.o)) { 
+		if(available.contains(this.o)) {
 			toSend.add(RobotCommand.CALIBRATE);
-		} else if (available.contains(Orientation.getClockwise(temp))) { 
+		} else if (available.contains(Orientation.getClockwise(temp))) {
 			toSend.addAll(prepareAnyOrientation(orient, Orientation.getClockwise(temp)));
 			orient = Orientation.getClockwise(temp);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
-		if(available.contains(temp)) { 
+		if(available.contains(temp)) {
 			toSend.addAll(prepareAnyOrientation(orient, temp));
 			orient = temp;
 			toSend.add(RobotCommand.CALIBRATE);
@@ -98,7 +107,7 @@ public class RpiRobot extends AbstractRobot {
 			toSend.add(RobotCommand.CALIBRATE);
 		}
 
-		toSend.addAll(prepareAnyOrientation(orient, this.o));
+		toSend.addAll(prepareAnyOrientation(orient, finalOrientation));
 		AlgoClient.GetInstance().SendCalibrate(toSend);
 	}
 
@@ -139,13 +148,6 @@ public class RpiRobot extends AbstractRobot {
 				(m.getCell(this.position.getX()-2, this.position.getY()-1).isObstacle() && m.getCell(this.position.getX()-2, this.position.getY()+1).isObstacle());
 			default: 
 				return false; 
-		}
-	}
-
-	@Override
-	public void prepareOrientation(List<RobotCommand> cmds, Map map) {
-		for(RobotCommand cmd: cmds){
-			doCommandWithSensor(cmd, map);
 		}
 	}
 

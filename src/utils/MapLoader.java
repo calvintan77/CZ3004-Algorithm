@@ -2,8 +2,8 @@ package utils;
 
 import constants.MapConstants;
 import gui.GUI;
-import maze.Map;
-import maze.MapTuple;
+import map.Map;
+import map.MapTuple;
 
 import javax.swing.*;
 import java.io.*;

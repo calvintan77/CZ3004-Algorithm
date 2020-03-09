@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import utils.Coordinate;
-import maze.MapTuple;
+import map.MapTuple;
 import utils.Orientation;
 import utils.RobotCommand;
 

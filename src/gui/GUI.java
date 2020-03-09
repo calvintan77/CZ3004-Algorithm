@@ -21,7 +21,7 @@ import javax.swing.text.Document;
 import constants.MapConstants;
 import constants.RobotConstants;
 import connection.SyncObject;
-import maze.Map;
+import map.Map;
 import utils.*;
 
 
@@ -761,7 +761,7 @@ public class GUI extends JFrame implements ActionListener{
 		String[] ffpInput = new String[4];
 		for (int i = 0; i < 2; i++) {
 			ffpInput[i] = ffpTextFields[i].getText();
-			if (!ffpInput[i].matches("[0-9]+"))
+			if (!ffpInput[i].matches("[0-9.]+"))
 				return false;
 		}
 		

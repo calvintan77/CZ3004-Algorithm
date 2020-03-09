@@ -1,4 +1,4 @@
-package maze;
+package map;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -316,10 +316,10 @@ public class Map {
 	 */
 	public List<MapCell> getAdjacent(MapCell m) {
 		List<MapCell> cells = new ArrayList<>();
-		for(int i = m.x-1; i <= m.x+1; i++) {
-			for(int j = m.y-1; j <= m.y+1; j++) {
-				if(i == m.x && j == m.y) continue;
-				if(this.getCell(i, j) != null) {
+		for (int i = m.x - 1; i <= m.x + 1; i++) {
+			for (int j = m.y - 1; j <= m.y + 1; j++) {
+				if (i == m.x && j == m.y) continue;
+				if (this.getCell(i, j) != null) {
 					cells.add(this.getCell(i, j));
 				}
 			}

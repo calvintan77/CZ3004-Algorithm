@@ -3,7 +3,7 @@ package threading;
 import algorithms.FastestPathFinder;
 import algorithms.MazeExplorer;
 import constants.RobotConstants;
-import maze.Map;
+import map.Map;
 import robot.AbstractRobot;
 import robot.RpiRobot;
 import robot.VirtualRobot;
