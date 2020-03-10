@@ -23,7 +23,6 @@ public class MapCell {
 	}
 	
 	public void setObstacleStatus(boolean status) {
-		System.out.println("setting " + x + ", " + y + "to " + (isObstacle?"Obstacle":"Empty"));
 		isObstacle = status;
 	}
 	
@@ -33,10 +32,6 @@ public class MapCell {
 	
 	public void setSeen(boolean status) {
 		this.isSeen = status; 
-	}
-	
-	public boolean isValidSeen() {
-		return this.isSeen && !this.hasConflict;
 	}
 
 	public boolean isSeen() { return this.isSeen; }

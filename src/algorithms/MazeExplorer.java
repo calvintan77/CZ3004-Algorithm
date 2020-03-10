@@ -51,12 +51,17 @@ public class MazeExplorer {
 					robot.prepareOrientation(robot.prepareOrientationCmds(other),map);
 					if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
 						robot.Calibrate(map, original);
+					}else{
+						robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 					}
+				}else{
+					robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 				}
+			}else {
+				// translate orientation to actual command
+				// update robot's internal state
+				robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 			}
-			// translate orientation to actual command
-			// update robot's internal state
-			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation),map);
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
@@ -92,7 +97,7 @@ public class MazeExplorer {
 							if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
 								robot.Calibrate(map);
 							}
-							long numUnseen = unseen.stream().filter(x -> !x.isValidSeen()).count();
+							long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 							if (numUnseen != unseen.size()) {
 								break;
 							}
@@ -100,7 +105,7 @@ public class MazeExplorer {
 					}
 				}
 				weight = getPathToStart(map).getWeight();
-				unseen = unseen.stream().filter(x -> !x.isValidSeen()).collect(Collectors.toList());
+				unseen = unseen.stream().filter(x -> !x.isSeen()).collect(Collectors.toList());
 			} catch (Exception e) {
 				System.out.println("Unable to access remaining cells, cutting losses");
 			}
@@ -141,33 +146,33 @@ public class MazeExplorer {
 				for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++){
 					MapCell cell = map.getCell(x, pos.getY() + 2);
 					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
-					if(cell != null && !cell.isValidSeen()) return true;
+					if(cell != null && !cell.isSeen()) return true;
 				}
 				break;
 			case LEFT:
 				for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++){
 					MapCell cell = map.getCell(pos.getX() - 2, y);
 					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
-					if(cell != null && !cell.isValidSeen()) return true;				}
+					if(cell != null && !cell.isSeen()) return true;				}
 				break;
 			case DOWN:
 				for(int x = pos.getX() - 1; x <= pos.getX() + 1; x++){
 					MapCell cell = map.getCell(x, pos.getY() - 2);
 					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
-					if(cell != null && !cell.isValidSeen()) return true;				}
+					if(cell != null && !cell.isSeen()) return true;				}
 				break;
 			case RIGHT:
 				for(int y = pos.getY() - 1; y <= pos.getY() + 1; y++){
 					MapCell cell = map.getCell(pos.getX() + 2, y);
 					//if(cell == null || (cell.isSeen() && !cell.isObstacle())) return false;
-					if(cell != null && !cell.isValidSeen()) return true;				}
+					if(cell != null && !cell.isSeen()) return true;				}
 				break;
 		}
 		return false;
 	}
 
 	private ShortestPath GetShortestPathToFrontier(Map map, List<MapCell> unseen){
-		List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isValidSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		List<Coordinate> seenNeighbours = unseen.stream().map(map::getNeighbours).map(HashMap::values).flatMap(Collection::stream).filter(MapCell::isSeen).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 		List<Coordinate> start = GetStartingCoords();
 		List<GraphNode> nodes = MapProcessor.ProcessMap(map, start, seenNeighbours);
 		return AStarAlgo.AStarSearch(nodes.get(0), nodes.get(1));
@@ -193,7 +198,7 @@ public class MazeExplorer {
 			if (cmd == RobotCommand.MOVE_FORWARD && checkObstruction(map, robot.getOrientation(), robot.getPosition())){
 				return false;
 			}
-			long numUnseen = unseen.stream().filter(x -> !x.isValidSeen()).count();
+			long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 			if (numUnseen != unseen.size()){
 				return false;
 			}
@@ -202,7 +207,7 @@ public class MazeExplorer {
 				robot.Calibrate(map);
 			}
 		}
-		long numUnseen = unseen.stream().filter(x -> !x.isValidSeen()).count();
+		long numUnseen = unseen.stream().filter(x -> !x.isSeen()).count();
 		return numUnseen == unseen.size();
 	}
 

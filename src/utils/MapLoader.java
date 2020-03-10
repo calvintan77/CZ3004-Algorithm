@@ -37,7 +37,7 @@ public class MapLoader {
             for (int i=0; i < MapConstants.MAP_WIDTH; i++) {
                 // Increment hex counter for exploration
                 digit1++;
-                if (map.getCell(i, j).isValidSeen()) {
+                if (map.getCell(i, j).isSeen()) {
                     // Increment hex counter for seen cell
                     digit2++;
                     counter1 = (counter1 << 1) + 1;
