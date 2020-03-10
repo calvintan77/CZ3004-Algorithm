@@ -13,4 +13,5 @@ public class SensorConstants {
 	public static final Sensor FRONT_MIDDLE_SENSOR = new Sensor(Orientation.UP, 0, 1, SHORT_RANGE);
 	public static final Sensor FRONT_RIGHT_SENSOR = new Sensor(Orientation.UP, 1, 1, SHORT_RANGE);
 	public static final Sensor RIGHT_SENSOR = new Sensor(Orientation.RIGHT, 1, 0, SHORT_RANGE);
+    public static final boolean DEBUG_SENSORS = false;
 }

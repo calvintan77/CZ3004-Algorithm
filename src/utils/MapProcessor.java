@@ -43,7 +43,7 @@ public class MapProcessor {
         for(int i = 0; i < MapConstants.MAP_WIDTH; i++){
             for(int j = 0; j < MapConstants.MAP_HEIGHT; j++){
                 MapCell cell = map.getCell(i,j);
-                if(cell.isObstacle() || cell.isVirtualWall() || !cell.isSeen()){
+                if(cell.isObstacle() || cell.isVirtualWall() || !cell.isValidSeen()){
                     continue;
                 }
 

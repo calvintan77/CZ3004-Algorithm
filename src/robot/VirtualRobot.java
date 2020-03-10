@@ -22,7 +22,7 @@ public class VirtualRobot extends AbstractRobot {
 		sensorValues.add(getSingleSensor(realMap, SensorConstants.LEFT_SENSOR));
 		sensorValues.add(getSingleSensor(realMap, SensorConstants.FRONT_LEFT_SENSOR));
 		sensorValues.add(getSingleSensor(realMap, SensorConstants.FRONT_MIDDLE_SENSOR));
-		sensorValues.add(getSingleSensor(realMap, SensorConstants.FRONT_RIGHT_SENSOR));
+		sensorValues.add(getSingleSensor(realMap, SensorConstants.FRONT_RIGHT_SENSOR)==SensorConstants.FRONT_RIGHT_SENSOR.GetRange()?SensorConstants.FRONT_RIGHT_SENSOR.GetRange():getSingleSensor(realMap, SensorConstants.FRONT_RIGHT_SENSOR)-1);
 		sensorValues.add(getSingleSensor(realMap, SensorConstants.RIGHT_SENSOR));
 		return sensorValues;
 	}

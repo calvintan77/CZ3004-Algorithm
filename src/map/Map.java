@@ -50,7 +50,7 @@ public class Map {
 		this.numSquaresSeen = 0;
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if(this.getCell(i, j).isSeen()){
+				if(this.getCell(i, j).isValidSeen()){
 					this.numSquaresSeen += 1;
 				}
 			}
@@ -58,7 +58,7 @@ public class Map {
 	}
 	
 	public void markCellSeen(int x, int y) { // should we return a success code - based on whether exploredPercent >= 300 
-		if (this.getCell(x,y) == null || this.getCell(x, y).isSeen()) { // defensive check
+		if (this.getCell(x,y) == null || this.getCell(x, y).isValidSeen()) { // defensive check
 			return;
 		}
 		this.getCell(x, y).setSeen(true);
@@ -94,7 +94,7 @@ public class Map {
 		List<MapCell> arr = new ArrayList<>();
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).isSeen()) {
+				if (!this.getCell(i, j).isValidSeen()) {
 					arr.add(this.getCell(i, j));
 				}
 			}
@@ -110,7 +110,7 @@ public class Map {
 		List<MapCell> arr = new ArrayList<>();
 		for (int i = 0; i < MapConstants.MAP_WIDTH; i++) {
 			for (int j = 0; j < MapConstants.MAP_HEIGHT; j++) {
-				if (this.getCell(i, j).isSeen()) {
+				if (this.getCell(i, j).isValidSeen()) {
 					arr.add(this.getCell(i, j));
 				}
 			}
@@ -123,12 +123,13 @@ public class Map {
 	 * @param values: list of string values to update in format of Left(long),Front Left,Front Middle,Front Right,Right
 	 **/
 	public void updateFromSensor(List<Integer> values, Coordinate curPos, Orientation o) {
-		//TODO: Delete after debug
-		System.out.println("Sensors: ");
-		for(int i : values){
-			System.out.print(i + ",");
+		if(SensorConstants.DEBUG_SENSORS) {
+			System.out.println("Sensors: ");
+			for (int i : values) {
+				System.out.print(i + ",");
+			}
+			System.out.println("Coord: " + curPos.getX() + ", " + curPos.getY() + " Orientation: " + o.name());
 		}
-		System.out.println("Coord: " + curPos.getX() + ", " + curPos.getY() + " Orientation: " + o.name());
 		updateSingleSensor(values.get(0), SensorConstants.LEFT_SENSOR, curPos, o);
 		updateSingleSensor(values.get(1), SensorConstants.FRONT_LEFT_SENSOR, curPos, o);
 		updateSingleSensor(values.get(2), SensorConstants.FRONT_MIDDLE_SENSOR, curPos, o);
@@ -153,46 +154,111 @@ public class Map {
 			case RIGHT: 
 				// update all seen 
 				for (int i = 1; i <= value; i++) {
-					if(this.isCellObstacle(sensorPos.getX() + i, sensorPos.getY())) return;
+//					if(this.isCellObstacle(sensorPos.getX() + i, sensorPos.getY())){
+//						this.markCellConflict(sensorPos.getX() + i, sensorPos.getY());
+//						return;
+//					}
 					this.markCellSeen(sensorPos.getX() + i, sensorPos.getY());
+					if(isStateConflicting(sensorPos.getX() + i, sensorPos.getY(), false)){
+						this.markCellConflict(sensorPos.getX() + i, sensorPos.getY());
+					}
 				}
 				if (value < maxValue) { // obstacle in front
-					this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));	
+					if(this.isStateConflicting(sensorPos.getX() + value + 1, sensorPos.getY(), true)){
+						//this.markCellConflict(sensorPos.getX() + value + 1, sensorPos.getY());
+					}else {
+						this.setObstacle(new Coordinate(sensorPos.getX() + value + 1, sensorPos.getY()));
+					}
 				}
 				break;
 			case LEFT: 
 				for (int i = 1; i <= value; i++) {
-					if(this.isCellObstacle(sensorPos.getX() - i, sensorPos.getY())) return;
+//					if(this.isCellObstacle(sensorPos.getX() - i, sensorPos.getY())){
+//						this.markCellConflict(sensorPos.getX() - i, sensorPos.getY());
+//						return;
+//					}
 					this.markCellSeen(sensorPos.getX() - i, sensorPos.getY());
+					if(this.isStateConflicting(sensorPos.getX() - i, sensorPos.getY(), false)){
+						this.markCellConflict(sensorPos.getX() - i, sensorPos.getY());
+					}
 				}
 				if (value < maxValue) { // obstacle in front
-					this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));		
+					if(isStateConflicting(sensorPos.getX() - value - 1, sensorPos.getY(), true)){
+						//this.markCellConflict(sensorPos.getX() - value - 1, sensorPos.getY());
+					}else {
+						this.setObstacle(new Coordinate(sensorPos.getX() - value - 1, sensorPos.getY()));
+					}
 				}
 				break;
 			case UP:	
 				for (int j = 1; j <= value; j++) {
-					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() + j)) return;
+//					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() + j)){
+//						this.markCellConflict(sensorPos.getX(), sensorPos.getY() + j);
+//						return;
+//					}
 					this.markCellSeen(sensorPos.getX(), sensorPos.getY() + j);
+					if(this.isStateConflicting(sensorPos.getX(), sensorPos.getY() + j, false)){
+						this.markCellConflict(sensorPos.getX(), sensorPos.getY() + j);
+					}
 				}
 				if (value < maxValue) { // obstacle in front
-					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));		
+					if(this.isStateConflicting(sensorPos.getX(), sensorPos.getY() + value + 1, true)){
+						//this.markCellConflict(sensorPos.getX(), sensorPos.getY() + value + 1);
+					}else {
+						this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() + value + 1));
+					}
 				}
 				break;
 			case DOWN: 
 				for (int j = 1; j <= value; j++) {
-					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() - j)) return;
+//					if(this.isCellObstacle(sensorPos.getX(), sensorPos.getY() - j)){
+//						this.markCellConflict(sensorPos.getX(), sensorPos.getY() + j);
+//						return;
+//					}
 					this.markCellSeen(sensorPos.getX(), sensorPos.getY() - j);
+					if(this.isStateConflicting(sensorPos.getX(), sensorPos.getY() - j, false)){
+						this.markCellConflict(sensorPos.getX(), sensorPos.getY() - j);
+					}
 				}
 				if (value < maxValue) { // obstacle in front
-					this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));		
+					if(this.isStateConflicting(sensorPos.getX(), sensorPos.getY() - value - 1, true)){
+						//this.markCellConflict(sensorPos.getX(), sensorPos.getY() - value - 1);
+					}else{
+						this.setObstacle(new Coordinate(sensorPos.getX(), sensorPos.getY() - value - 1));
+					}
 				}
 				break;
 		}
 	}
 
+	public boolean isStateConflicting(int x, int y, boolean shouldBeObstacle){
+		MapCell cell = this.getCell(x, y);
+		return cell != null && cell.isSeen() && cell.isObstacle() != shouldBeObstacle;
+	}
+
+	public void markCellConflict(int x, int y){
+		MapCell cell = this.getCell(x, y);
+		if(cell == null) return;
+		this.markCellSeen(x, y);
+		if(cell.isObstacle()){
+			this.unsetObstacle(new Coordinate(x, y));
+		}
+		else{
+			this.setObstacle(new Coordinate(x, y));
+		}
+		cell.setConflict(!cell.isHasConflict());
+		System.out.println(x + ", " + y + " : conflict!");
+		System.out.println(cell.isHasConflict());
+	}
+
 	public boolean isCellObstacle(int x, int y){
 		MapCell cell = this.getCell(x, y);
 		return cell == null || cell.isObstacle();
+	}
+
+	public boolean isCellSeen(int x, int y){
+		MapCell cell = this.getCell(x, y);
+		return cell == null || cell.isValidSeen();
 	}
 	
 	/**
@@ -335,7 +401,7 @@ public class Map {
 		Map cloneMap = new Map();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).isSeen()) {
+				if (!this.getCell(i, j).isValidSeen()) {
 					cloneMap.setObstacle(new Coordinate(i,j), false);
 				} else cloneMap.getCell(i, j).setSeen(true);
 				if(this.getCell(i, j).isObstacle()) {
@@ -361,6 +427,9 @@ public class Map {
 				if(this.getCell(i, j).isObstacle()) {
 					cloneMap.setObstacle(new Coordinate(i, j));
 				}
+				if(this.getCell(i, j).isHasConflict()){
+					cloneMap.getCell(i, j).setConflict(true);
+				}
 				if(i == 0 || i == MapConstants.MAP_WIDTH-1 || j == 0 || j == MapConstants.MAP_HEIGHT-1){
 					cloneMap.getCell(i,j).setVirtualWall(true);
 				}
@@ -373,7 +442,7 @@ public class Map {
 	 * Get the frontier of unseen nodes and set them to seen (assumes that there are no obstacles)
 	 */
 	public void expandSearchSpace() {
-		List<Coordinate> seenNeighbours = getAllSeen().stream().map(this::getAdjacent).flatMap(Collection::stream).filter(x -> !x.isSeen()).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
+		List<Coordinate> seenNeighbours = getAllSeen().stream().map(this::getAdjacent).flatMap(Collection::stream).filter(x -> !x.isValidSeen()).map(cell -> new Coordinate(cell.x, cell.y)).collect(Collectors.toList());
 		for(Coordinate c:seenNeighbours) {
 			this.getCell(c).setSeen(true);
 			unsetObstacle(c);
