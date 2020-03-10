@@ -32,7 +32,6 @@ public class MazeExplorer {
 	public void exploreMaze(Map map, long timeLimit, int targetCoverage) throws InterruptedException{
 		long startTime = System.nanoTime();
 		long tLimit = timeLimit * (1000000000);
-
 		// initial calibration
 		if (robot.getPosition() == null)
 			robot.setPosition(1, 1);
@@ -51,17 +50,10 @@ public class MazeExplorer {
 					robot.prepareOrientation(robot.prepareOrientationCmds(other),map);
 					if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
 						robot.Calibrate(map, original);
-					}else{
-						robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 					}
-				}else{
-					robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 				}
-			}else {
-				// translate orientation to actual command
-				// update robot's internal state
-				robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 			}
+			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {

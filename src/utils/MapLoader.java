@@ -93,10 +93,10 @@ public class MapLoader {
             int squares = MapConstants.MAP_HEIGHT * MapConstants.MAP_WIDTH;
             for(int i = squares-1; i >= 0; i--){
                 if(h1MapDescriptor.testBit(0)){
-                    resultMap.markCellSeen(getX(i), getY(i));
                     if(h2MapDescriptor.testBit(0)){
                         resultMap.setObstacle(new Coordinate(getX(i), getY(i)));
                     }
+                    resultMap.markCellSeen(getX(i), getY(i));
                     h2MapDescriptor = h2MapDescriptor.shiftRight(1);
                 }
                 h1MapDescriptor = h1MapDescriptor.shiftRight(1);

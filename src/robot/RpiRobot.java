@@ -10,6 +10,8 @@ import map.Map;
 import utils.*;
 
 public class RpiRobot extends AbstractRobot {
+	private int calibrationCount = 1;
+	private final int THRESHOLD = 6;
 	public RpiRobot(){
 
 	}
@@ -57,6 +59,10 @@ public class RpiRobot extends AbstractRobot {
 				map.updateFromSensor(SensorData, this.position, this.o);
 			}
 			SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
+			calibrationCount++;
+			if(calibrationCount >= THRESHOLD && (getAvailableCalibrations(map).size()) > 0){
+				Calibrate(map);
+			}
 		} catch (Exception e) {
 			System.out.println("Do Command With Sensor: " + e.toString());
 			e.printStackTrace();
@@ -81,6 +87,7 @@ public class RpiRobot extends AbstractRobot {
 		// yes; send calibrate over
 		// no: check
 		// check in front/right/down/left order
+		if(calibrationCount == 0) return;
 		Orientation orient = this.o;
 		List<Orientation> available = getAvailableCalibrations(m);
 		if (available.size() == 0) {
@@ -109,6 +116,8 @@ public class RpiRobot extends AbstractRobot {
 
 		toSend.addAll(prepareAnyOrientation(orient, finalOrientation));
 		AlgoClient.GetInstance().SendCalibrate(toSend);
+		this.setOrientation(finalOrientation);
+		this.calibrationCount = 0;
 	}
 
 	/**

@@ -210,7 +210,7 @@ public class Map {
 	 * @param markSeen - whether to mark cell as seen
 	 */
 	public void setObstacle(Coordinate c, boolean markSeen) {
-		if(this.getCell(c) == null) return;
+		if(this.getCell(c) == null || (this.getCell(c).isSeen() && !this.getCell(c).isObstacle())) return;
 		this.getCell(c).setObstacleStatus(true);
 		if(markSeen) this.markCellSeen(c.getX(), c.getY());
 		for (int i = c.getX() - 1; i <= c.getX() + 1; i++) {
@@ -336,12 +336,12 @@ public class Map {
 		Map cloneMap = new Map();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if (!this.getCell(i, j).isSeen()) {
-					cloneMap.setObstacle(new Coordinate(i,j), false);
-				} else cloneMap.getCell(i, j).setSeen(true);
 				if(this.getCell(i, j).isObstacle()) {
 					cloneMap.setObstacle(new Coordinate(i, j), false);
 				}
+				if (!this.getCell(i, j).isSeen()) {
+					cloneMap.setObstacle(new Coordinate(i,j), false);
+				} else cloneMap.getCell(i, j).setSeen(true);
 			}
 		}
 		return cloneMap;
@@ -356,11 +356,11 @@ public class Map {
 		Map cloneMap = new Map();
 		for (int i=0; i<MapConstants.MAP_WIDTH; i++) {
 			for (int j=0; j<MapConstants.MAP_HEIGHT; j++) {
-				if (this.getCell(i, j).isSeen()) {
-					cloneMap.getCell(i, j).setSeen(true);
-				}
 				if(this.getCell(i, j).isObstacle()) {
 					cloneMap.setObstacle(new Coordinate(i, j));
+				}
+				if (this.getCell(i, j).isSeen()) {
+					cloneMap.getCell(i, j).setSeen(true);
 				}
 				if(i == 0 || i == MapConstants.MAP_WIDTH-1 || j == 0 || j == MapConstants.MAP_HEIGHT-1){
 					cloneMap.getCell(i,j).setVirtualWall(true);
