@@ -93,6 +93,9 @@ public class RpiRobot extends AbstractRobot {
 		if (available.size() == 0) {
 			return;
 		}
+		if (available.size() == 1 && available.get(0) == Orientation.getClockwise(Orientation.getClockwise(this.o))){
+			return;
+		}
 		List<RobotCommand> toSend = new ArrayList<>();
 		// toSend.add(6);
 		Orientation temp = Orientation.getClockwise(this.o);
@@ -113,8 +116,8 @@ public class RpiRobot extends AbstractRobot {
 			orient = Orientation.getCounterClockwise(this.o);
 			toSend.add(RobotCommand.CALIBRATE);
 		}
-
-		toSend.addAll(prepareAnyOrientation(orient, finalOrientation));
+		List<RobotCommand> finalCmds = prepareAnyOrientation(orient, finalOrientation);
+		toSend.addAll(finalCmds);
 		AlgoClient.GetInstance().SendCalibrate(toSend);
 		this.setOrientation(finalOrientation);
 		this.calibrationCount = 0;

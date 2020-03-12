@@ -43,13 +43,17 @@ public class MazeExplorer {
 		do {
 			// choose direction after updating values
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
-			if(nextOrientation.getRightTurns(robot.getOrientation()) == 1){
+			if(robot.getOrientation().getRightTurns(nextOrientation) != 1 && robot.getOrientation().getRightTurns(nextOrientation) != 0){
 				Orientation original = robot.getOrientation();
-				Orientation other = Orientation.getClockwise(Orientation.getClockwise(nextOrientation));
+				Orientation other = Orientation.getClockwise(robot.getOrientation());
 				if(ShouldSee(other, robot.getPosition(), map)){
 					robot.prepareOrientation(robot.prepareOrientationCmds(other),map);
 					if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
-						robot.Calibrate(map, original);
+						if(robot.getOrientation().getRightTurns(nextOrientation) == -1){
+							robot.Calibrate(map, original);
+						}else{
+							robot.Calibrate(map);
+						}
 					}
 				}
 			}
@@ -102,6 +106,7 @@ public class MazeExplorer {
 				System.out.println("Unable to access remaining cells, cutting losses");
 			}
 		}
+		robot.doCommandWithSensor(RobotCommand.NO_OP, map);
 		System.out.println("RETURNING TO START");
 
 		// path back to start position

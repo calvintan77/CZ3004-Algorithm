@@ -2,7 +2,6 @@ package algorithms;
 
 import connection.SyncObject;
 import path.GraphNode;
-import utils.MapProcessor;
 import path.ShortestPath;
 
 import java.util.*;
