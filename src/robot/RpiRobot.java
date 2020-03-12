@@ -12,6 +12,7 @@ import utils.*;
 public class RpiRobot extends AbstractRobot {
 	private int calibrationCount = 1;
 	private final int THRESHOLD = 6;
+	private final int HARD_THRESHOLD = 9;
 	public RpiRobot(){
 
 	}
@@ -51,6 +52,11 @@ public class RpiRobot extends AbstractRobot {
 							this.setPosition(this.getPosition().getX() + 1, this.getPosition().getY());
 							break;
 					}
+					break;
+				case REVERSE:
+					Coordinate newCoord = this.o.behindCurrent(this.position);
+					this.setPosition(newCoord.getX(), newCoord.getY());
+					break;
 				default:
 					break;
 			}
@@ -62,6 +68,12 @@ public class RpiRobot extends AbstractRobot {
 			calibrationCount++;
 			if(calibrationCount >= THRESHOLD && (getAvailableCalibrations(map).size()) > 0){
 				Calibrate(map);
+			}else {
+				Coordinate behind = this.o.behindCurrent(this.position);
+				if(calibrationCount >= HARD_THRESHOLD && map.getCell(behind) != null && !map.getCell(behind).isObstacle() && !map.getCell(behind).isVirtualWall() && getAvailableCalibrations(map, behind).size()>0){
+					doCommandWithSensor(RobotCommand.REVERSE, map);
+					doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+				}
 			}
 		} catch (Exception e) {
 			System.out.println("Do Command With Sensor: " + e.toString());
@@ -93,7 +105,7 @@ public class RpiRobot extends AbstractRobot {
 		if (available.size() == 0) {
 			return;
 		}
-		if (available.size() == 1 && available.get(0) == Orientation.getClockwise(Orientation.getClockwise(this.o))){
+		if (calibrationCount < HARD_THRESHOLD && available.size() == 1 && available.get(0) == Orientation.getClockwise(Orientation.getClockwise(this.o))){
 			return;
 		}
 		List<RobotCommand> toSend = new ArrayList<>();
@@ -121,6 +133,11 @@ public class RpiRobot extends AbstractRobot {
 		AlgoClient.GetInstance().SendCalibrate(toSend);
 		this.setOrientation(finalOrientation);
 		this.calibrationCount = 0;
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -129,35 +146,42 @@ public class RpiRobot extends AbstractRobot {
 	 * @return list of available orientations to take
 	 */
 	public List<Orientation> getAvailableCalibrations(Map m) { 
+		return getAvailableCalibrations(m, this.position);
+	 }
+
+	public List<Orientation> getAvailableCalibrations(Map m, Coordinate position) {
 		List<Orientation> available = new ArrayList<>();
-		// check all configs from robot's own internal xy 
-		for (Orientation o : Orientation.values()) { 
-			if (canCalibrate(o, m)) { 
+		// check all configs from robot's own internal xy
+		for (Orientation o : Orientation.values()) {
+			if (canCalibrate(o, m, position)) {
 				available.add(o);
 			}
 		}
 		return available;
-	 }
-	
-	 /**
-	  * method checks if there is something to calibrate in front
-	  * @param o: Orientation to check at the given moment 
-	  * @return true if obstacle/wall in front to calibrate
-	  */
-	public boolean canCalibrate(Orientation o, Map m) { 
+	}
+
+	public boolean canCalibrate(Orientation o, Map m) {
+		return canCalibrate(o, m, this.position);
+	}
+		/**
+         * method checks if there is something to calibrate in front
+         * @param o: Orientation to check at the given moment
+         * @return true if obstacle/wall in front to calibrate
+         */
+	public boolean canCalibrate(Orientation o, Map m, Coordinate position) {
 		switch (o) { 
 			case UP:
-				return (this.position.getY() + 2 > MapConstants.MAP_HEIGHT-1) || 
-				(m.getCell(this.position.getX()+1, this.position.getY()+2).isObstacle() && m.getCell(this.position.getX()-1, this.position.getY()+2).isObstacle());
+				return (position.getY() + 2 > MapConstants.MAP_HEIGHT-1) ||
+				(m.getCell(position.getX()+1, position.getY()+2).isObstacle() && m.getCell(position.getX()-1, position.getY()+2).isObstacle());
 			case DOWN:
-				return (this.position.getY() - 2 < 0) || 
-				(m.getCell(this.position.getX()+1, this.position.getY()-2).isObstacle() && m.getCell(this.position.getX()-1, this.position.getY()-2).isObstacle());
+				return (position.getY() - 2 < 0) ||
+				(m.getCell(position.getX()+1, position.getY()-2).isObstacle() && m.getCell(position.getX()-1, position.getY()-2).isObstacle());
 			case RIGHT:
-				return (this.position.getX() + 2 > MapConstants.MAP_WIDTH-1) || 
-				(m.getCell(this.position.getX()+2, this.position.getY()+1).isObstacle() && m.getCell(this.position.getX()+2, this.position.getY()-1).isObstacle());
+				return (position.getX() + 2 > MapConstants.MAP_WIDTH-1) ||
+				(m.getCell(position.getX()+2, position.getY()+1).isObstacle() && m.getCell(position.getX()+2, position.getY()-1).isObstacle());
 			case LEFT: 
-				return (this.position.getX() - 2 < 0) || 
-				(m.getCell(this.position.getX()-2, this.position.getY()-1).isObstacle() && m.getCell(this.position.getX()-2, this.position.getY()+1).isObstacle());
+				return (position.getX() - 2 < 0) ||
+				(m.getCell(position.getX()-2, position.getY()-1).isObstacle() && m.getCell(position.getX()-2, position.getY()+1).isObstacle());
 			default: 
 				return false; 
 		}

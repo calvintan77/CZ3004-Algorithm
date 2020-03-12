@@ -42,22 +42,28 @@ public class MazeExplorer {
 		// Initial Right Wall Hug
 		do {
 			// choose direction after updating values
+			Orientation original = robot.getOrientation();
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
-			if(robot.getOrientation().getRightTurns(nextOrientation) != 1 && robot.getOrientation().getRightTurns(nextOrientation) != 0){
-				Orientation original = robot.getOrientation();
-				Orientation other = Orientation.getClockwise(robot.getOrientation());
-				if(ShouldSee(other, robot.getPosition(), map)){
-					robot.prepareOrientation(robot.prepareOrientationCmds(other),map);
-					if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
-						if(robot.getOrientation().getRightTurns(nextOrientation) == -1){
-							robot.Calibrate(map, original);
-						}else{
-							robot.Calibrate(map);
+			if(robot.getOrientation().getRightTurns(nextOrientation) != 0) {
+				if (robot.getOrientation().getRightTurns(nextOrientation) != 1) {
+					Orientation other = Orientation.getClockwise(robot.getOrientation());
+					if (ShouldSee(other, robot.getPosition(), map)) {
+						robot.prepareOrientation(robot.prepareOrientationCmds(other), map);
+						if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
+							if (robot.getOrientation().getRightTurns(nextOrientation) == -1) {
+								robot.Calibrate(map, original);
+							} else {
+								robot.Calibrate(map);
+							}
 						}
 					}
 				}
+				robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
+				if(checkObstruction(map, robot.getOrientation(), robot.getPosition())){
+					robot.prepareOrientation(robot.prepareOrientationCmds(original), map);
+					continue;
+				}
 			}
-			robot.prepareOrientation(robot.prepareOrientationCmds(nextOrientation), map);
 			// Position update
 			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
@@ -126,6 +132,7 @@ public class MazeExplorer {
 			robot.getPosition().setFacing(Coordinate.Facing.NONE);
 		} catch (Exception e) {
 			System.out.println("MazeExplorer: " + e.toString());
+			e.printStackTrace();
 		}
 		System.out.println("END OF EXPLORATION");
 	}

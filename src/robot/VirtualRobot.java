@@ -3,6 +3,7 @@ package robot;
 import java.util.ArrayList;
 import java.util.List;
 
+import constants.MapConstants;
 import constants.SensorConstants;
 import connection.SyncObject;
 import map.Map;
@@ -10,6 +11,10 @@ import utils.*;
 
 public class VirtualRobot extends AbstractRobot {
 	private List<RobotCommand> fastestPathInstructions;
+	private final int THRESHOLD = 6;
+	private final int HARD_THRESHOLD = 9;
+	private int calibrationCount = 1;
+
 
 	public VirtualRobot() {
 
@@ -98,6 +103,13 @@ public class VirtualRobot extends AbstractRobot {
 						this.setPosition(this.position.getX() + 1, this.position.getY());
 						break;
 				}
+				break;
+			case REVERSE:
+				Coordinate newCoord = this.o.behindCurrent(this.position);
+				this.setPosition(newCoord.getX(), newCoord.getY());
+				break;
+			default:
+				break;
 		}
 		if(map != null){
 			map.updateFromSensor(this.getSensorValues(), this.position, this.o);
@@ -105,18 +117,40 @@ public class VirtualRobot extends AbstractRobot {
 		SyncObject.getSyncObject().SetGUIUpdate(map, this.position, this.o);
 		Thread.sleep(cmd == RobotCommand.MOVE_FORWARD? (int)(1000*SyncObject.getSyncObject().settings.getForwardWeight()) :
 				(int)(1000*SyncObject.getSyncObject().settings.getTurningWeight()));    //int timePerStep = 1000/speed (ms)
+		calibrationCount++;
+		if(calibrationCount >= THRESHOLD && (getAvailableCalibrations(map).size()) > 0){
+			Calibrate(map);
+		}else {
+			Coordinate behind = this.o.behindCurrent(this.position);
+			if(calibrationCount >= HARD_THRESHOLD && map.getCell(behind) != null && !map.getCell(behind).isObstacle() && !map.getCell(behind).isVirtualWall() && getAvailableCalibrations(map, behind).size()>0){
+				doCommandWithSensor(RobotCommand.REVERSE, map);
+				doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+			}
+		}
 	}
 
 	@Override
 	public void Calibrate(Map m, Orientation finalOrientation) {
+		if(calibrationCount == 0) return;
+		Orientation orient = this.o;
+		List<Orientation> available = getAvailableCalibrations(m);
+		if (available.size() == 0) {
+			return;
+		}
+		if (available.size() == 1 && available.get(0) == Orientation.getClockwise(Orientation.getClockwise(this.o))){
+			return;
+		}
 		try {
 			prepareOrientation(prepareOrientationCmds(finalOrientation), m);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		this.calibrationCount = 0;
 	}
 
 	public void Calibrate(Map m) {
+		System.out.println("Calibrating : " + this.position.getX() + ", " + this.position.getY() + " " + this.o.name());
+		Calibrate(m, this.o);
 	}
 
 	@Override
@@ -132,9 +166,51 @@ public class VirtualRobot extends AbstractRobot {
 			doCommandWithSensor(cmd, null);
 		}
 	}
+	/**
+	 * method to return available calibrations
+	 * @param m: current map state
+	 * @return list of available orientations to take
+	 */
+	public List<Orientation> getAvailableCalibrations(Map m) {
+		return getAvailableCalibrations(m, this.position);
+	}
 
-	@Override
+	public List<Orientation> getAvailableCalibrations(Map m, Coordinate position) {
+		List<Orientation> available = new ArrayList<>();
+		// check all configs from robot's own internal xy
+		for (Orientation o : Orientation.values()) {
+			if (canCalibrate(o, m, position)) {
+				available.add(o);
+			}
+		}
+		return available;
+	}
+
 	public boolean canCalibrate(Orientation o, Map m) {
-		return true;
+		return canCalibrate(o, m, this.position);
+	}
+	/**
+	 * method checks if there is something to calibrate in front
+	 * @param o: Orientation to check at the given moment
+	 * @return true if obstacle/wall in front to calibrate
+	 */
+	public boolean canCalibrate(Orientation o, Map m, Coordinate position) {
+		if(m == null) return false;
+		switch (o) {
+			case UP:
+				return (position.getY() + 2 > MapConstants.MAP_HEIGHT-1) ||
+						(m.getCell(position.getX()+1, position.getY()+2).isObstacle() && m.getCell(position.getX()-1, position.getY()+2).isObstacle());
+			case DOWN:
+				return (position.getY() - 2 < 0) ||
+						(m.getCell(position.getX()+1, position.getY()-2).isObstacle() && m.getCell(position.getX()-1, position.getY()-2).isObstacle());
+			case RIGHT:
+				return (position.getX() + 2 > MapConstants.MAP_WIDTH-1) ||
+						(m.getCell(position.getX()+2, position.getY()+1).isObstacle() && m.getCell(position.getX()+2, position.getY()-1).isObstacle());
+			case LEFT:
+				return (position.getX() - 2 < 0) ||
+						(m.getCell(position.getX()-2, position.getY()-1).isObstacle() && m.getCell(position.getX()-2, position.getY()+1).isObstacle());
+			default:
+				return false;
+		}
 	}
 }

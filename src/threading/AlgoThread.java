@@ -2,14 +2,17 @@ package threading;
 
 import algorithms.FastestPathFinder;
 import algorithms.MazeExplorer;
+import connection.AlgoClient;
 import constants.RobotConstants;
 import map.Map;
+import map.MapTuple;
 import robot.AbstractRobot;
 import robot.RpiRobot;
 import robot.VirtualRobot;
 import connection.SyncObject;
 import utils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlgoThread implements  Runnable {
