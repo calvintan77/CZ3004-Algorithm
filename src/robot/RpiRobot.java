@@ -191,6 +191,38 @@ public class RpiRobot extends AbstractRobot {
 	@Override
 	public void setFastestPath(List<RobotCommand> cmds) {
 		AlgoClient.GetInstance().sendFastestPath(cmds);
+		for(RobotCommand cmd: cmds){
+			switch (cmd) {
+				case TURN_LEFT:
+					this.setOrientation(Orientation.getCounterClockwise(this.o));
+					break;
+				case TURN_RIGHT:
+					this.setOrientation(Orientation.getClockwise(this.o));
+					break;
+				case MOVE_FORWARD:
+					switch (this.o) {
+						case UP:
+							this.setPosition(this.getPosition().getX(), this.getPosition().getY() + 1);
+							break;
+						case LEFT:
+							this.setPosition(this.getPosition().getX() - 1, this.getPosition().getY());
+							break;
+						case DOWN:
+							this.setPosition(this.getPosition().getX(), this.getPosition().getY() - 1);
+							break;
+						case RIGHT:
+							this.setPosition(this.getPosition().getX() + 1, this.getPosition().getY());
+							break;
+					}
+					break;
+				case REVERSE:
+					Coordinate newCoord = this.o.behindCurrent(this.position);
+					this.setPosition(newCoord.getX(), newCoord.getY());
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	@Override

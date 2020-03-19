@@ -129,9 +129,7 @@ public class MazeExplorer {
 			robot.setFastestPath(prepOrientation);
 			robot.doFastestPath(false);
 			// Prepare for FP to goalzone
-			robot.setPosition(toStartingPoint.getDestination().getX(), toStartingPoint.getDestination().getY());
 			robot.getPosition().setFacing(Coordinate.Facing.NONE);
-			robot.setOrientation(toStartingPoint.getEndingOrientation());
 		} catch (Exception e) {
 			System.out.println("MazeExplorer: " + e.toString());
 			e.printStackTrace();
