@@ -11,8 +11,8 @@ import utils.*;
 
 public class RpiRobot extends AbstractRobot {
 	private int calibrationCount = 1;
-	private final int THRESHOLD = 6;
-	private final int HARD_THRESHOLD = 9;
+	private final int THRESHOLD = 4;
+	private final int HARD_THRESHOLD = 6;
 	public RpiRobot(){
 
 	}
@@ -198,5 +198,9 @@ public class RpiRobot extends AbstractRobot {
 		if(!toGoalZone){
 			AlgoClient.GetInstance().StartFastestPath();
 		}
+	}
+
+	public void EnableCalibrate(){
+		calibrationCount = 1;
 	}
 }
