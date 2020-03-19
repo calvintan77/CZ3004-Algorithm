@@ -46,7 +46,6 @@ public class MazeExplorer {
 			// choose direction after updating values
 			Orientation original = robot.getOrientation();
 			//TODO: Staircase avoidance in a while loop
-			while (StaircaseAvoid(this.robot, map));
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			if(robot.getOrientation().getRightTurns(nextOrientation) != 0) {
 				if (robot.getOrientation().getRightTurns(nextOrientation) != 1) {
@@ -68,8 +67,13 @@ public class MazeExplorer {
 					continue;
 				}
 			}
+			if(!StaircaseAvoid(this.robot, map)){
 			// Position update
-			robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+			
+				robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+			}else{
+				robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.getCounterClockwise(robot.getOrientation())), map);
+			}
 			if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
 				robot.Calibrate(map);
 			}
@@ -150,7 +154,7 @@ public class MazeExplorer {
 		switch(robot.getOrientation()){
 			case UP:
 				System.out.println("in staircase avoidance loop");
-				stairSource = map.getCell(pos.getX()+4, pos.getY());
+				stairSource = map.getCell(pos.getX()+3, pos.getY());
 				next = map.getCell(pos.getX(), pos.getY()+1);
 				if(stairSource == null || !stairSource.isSeen() || !stairSource.isObstacle()) return false;
 				while(stairSource != null && stairSource.isSeen() && stairSource.isObstacle() && next != null && !next.isVirtualWall()){
@@ -161,21 +165,20 @@ public class MazeExplorer {
 					next = map.getCell(next.x, next.y + 1);
 				}
 				// exit while loop - right unseen must turn and move 
+				if (next != null && !next.isVirtualWall()) { 
+					robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+				} else counter--; 
 				robot.doCommandWithSensor(RobotCommand.TURN_RIGHT, map);
-				// consider changing to while 
-				next = map.getCell(next.x + 1, next.y);
-				for (int i = 0; i <= counter; i++) {
-					if (next != null && !next.isVirtualWall()) { // next cellto move isn't null and not virtual wall 
+				// consider changing to while
+				next = map.getCell(robot.getPosition().getX() + 1, robot.getPosition().getY());
+				for (int i = 0; i < counter; i++) {
+					if (next != null && !next.isVirtualWall()) { // next cell to move isn't null and not virtual wall 
 						robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
-						next = map.getCell(next.x, next.y + 1); 
-					}
+						next = map.getCell(robot.getPosition().getX() + 1, robot.getPosition().getY()); 
+					} else return true; 
 				}
 				// robot facing forward 
-				robot.doCommandWithSensor(RobotCommand.TURN_LEFT, map);
-				// update stairsource 
-				stairSource = map.getCell(stairSource.x, stairSource.y);
-				if (stairSource == null) return false;
-				return stairSource.isObstacle() && next != null && !next.isVirtualWall(); 
+				return next == null || next.isVirtualWall(); 
 			// TODO: impl for other cases 
 			case DOWN:
 				stairSource = map.getCell(pos.getX()-2, pos.getY() + 1);
