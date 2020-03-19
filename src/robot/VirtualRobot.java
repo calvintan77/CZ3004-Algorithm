@@ -122,6 +122,7 @@ public class VirtualRobot extends AbstractRobot {
 			Calibrate(map);
 		}else {
 			Coordinate behind = this.o.behindCurrent(this.position);
+			if(map == null) return;
 			if(calibrationCount >= HARD_THRESHOLD && map.getCell(behind) != null && !map.getCell(behind).isObstacle() && !map.getCell(behind).isVirtualWall() && getAvailableCalibrations(map, behind).size()>0){
 				doCommandWithSensor(RobotCommand.REVERSE, map);
 				doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);

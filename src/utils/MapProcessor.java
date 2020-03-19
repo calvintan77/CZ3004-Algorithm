@@ -23,7 +23,7 @@ public class MapProcessor {
         List<Coordinate> Starting = new LinkedList<>();
         Starting.add(new Coordinate(1, 1));
         List<Coordinate> Ending = new LinkedList<>();
-        Ending.add(new Coordinate(12, 17));
+        //Ending.add(new Coordinate(12, 17));
         Ending.add(new Coordinate(13, 17));
         Ending.add(new Coordinate(12, 18));
         Ending.add(new Coordinate(13, 18));
