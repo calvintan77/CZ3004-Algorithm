@@ -9,7 +9,9 @@ import utils.*;
 import map.Map;
 
 import javax.naming.TimeLimitExceededException;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MazeExplorer {
@@ -43,6 +45,7 @@ public class MazeExplorer {
 		do {
 			// choose direction after updating values
 			Orientation original = robot.getOrientation();
+			//TODO: Staircase avoidance in a while loop
 			Orientation nextOrientation = this.chooseDirection(map, map.getCell(robot.getPosition()), robot.getOrientation());
 			if(robot.getOrientation().getRightTurns(nextOrientation) != 0) {
 				if (robot.getOrientation().getRightTurns(nextOrientation) != 1) {
@@ -135,6 +138,42 @@ public class MazeExplorer {
 			e.printStackTrace();
 		}
 		System.out.println("END OF EXPLORATION");
+	}
+
+	private boolean StaircaseAvoid(AbstractRobot robot, Map map) throws InterruptedException {
+		Coordinate pos = robot.getPosition();
+		MapCell next;
+		MapCell stairSource;
+		int counter = 0;
+		switch(robot.getOrientation()){
+			case UP:
+				stairSource = map.getCell(pos.getX()+3, pos.getY());
+				next = map.getCell(pos.getX(), pos.getY()+1);
+				if(stairSource == null) return false;
+				while(stairSource != null && stairSource.isSeen() && stairSource.isObstacle() && next != null && !next.isVirtualWall()){
+					robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+					counter++;
+					stairSource = map.getCell(stairSource.x + 1, stairSource.y + 1);
+					next = map.getCell(next.x, next.y + 1);
+				}
+				// TODO: turn right move forward then right by counter - 1
+				//TODO: Remember to check in front for obstacles
+				//TODO: After moving forward, turn left.
+				//TODO: Then return true
+			case DOWN:
+				stairSource = map.getCell(pos.getX()-2, pos.getY() + 1);
+				if(stairSource == null) return;
+
+			case LEFT:
+				stairSource = map.getCell(pos.getX() + 1, pos.getY() + 2);
+				if(stairSource == null) return;
+
+			case RIGHT:
+				stairSource = map.getCell(pos.getX() - 1, pos.getY() + 2);
+				if(stairSource == null) return;
+
+
+		}
 	}
 
 	/**
