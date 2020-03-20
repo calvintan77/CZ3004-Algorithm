@@ -69,7 +69,10 @@ public class MazeExplorer {
 			}
 			if(!StaircaseAvoid(this.robot, map)){
 			// Position update
-				robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+				MapCell cell = map.getCell(Orientation.getClockwise(Orientation.getClockwise(robot.getOrientation())).behindCurrent(robot.getPosition()));
+				if(cell != null && !cell.isVirtualWall()){ robot.doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);}
+				else robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.getCounterClockwise(robot.getOrientation())), map);
+
 			}else{
 				robot.prepareOrientation(robot.prepareOrientationCmds(Orientation.getCounterClockwise(robot.getOrientation())), map);
 			}
