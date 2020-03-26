@@ -126,6 +126,7 @@ public class VirtualRobot extends AbstractRobot {
 			if(calibrationCount >= HARD_THRESHOLD && map.getCell(behind) != null && !map.getCell(behind).isObstacle() && !map.getCell(behind).isVirtualWall() && getAvailableCalibrations(map, behind).size()>0){
 				doCommandWithSensor(RobotCommand.REVERSE, map);
 				doCommandWithSensor(RobotCommand.MOVE_FORWARD, map);
+				calibrationCount = 0;
 			}
 		}
 	}

@@ -448,7 +448,7 @@ public class GUI extends JFrame implements ActionListener{
 
 	public void pollInBackground() {
 		if(pollingWorker == null) {
-			pollingWorker = new SwingWorker<>() {
+			pollingWorker = new SwingWorker<Void, Void>() {
 				@Override
 				protected Void doInBackground() {
 					while (true) {

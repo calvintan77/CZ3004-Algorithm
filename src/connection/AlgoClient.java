@@ -67,7 +67,7 @@ public class AlgoClient{
                 builder.append('F');
                 i -= 16;
             }
-            builder.append(Integer.toHexString(i)); 
+            builder.append(Integer.toHexString(i).toUpperCase()); 
         }
         sock.Send(builder.toString());
     }
@@ -119,7 +119,7 @@ public class AlgoClient{
                 break;
             case SENSOR:
                 List<Integer> sensorData = message.substring(1).chars()
-                .mapToObj(dat -> (dat == SensorConstants.SENSOR_NULL) ? SensorConstants.NULL_VALUE : (dat == SensorConstants.SENSOR_ERROR) ? SensorConstants.ERROR_VALUE : Integer.parseInt(Character.toString(dat)))
+                .mapToObj(dat -> (dat == SensorConstants.SENSOR_NULL) ? SensorConstants.NULL_VALUE : (dat == SensorConstants.SENSOR_ERROR) ? SensorConstants.ERROR_VALUE : Integer.parseInt(Character.toString((char) dat)))
                 .collect(Collectors.toList());
                 SyncObject.getSyncObject().SetSensorData(sensorData);
                 break;

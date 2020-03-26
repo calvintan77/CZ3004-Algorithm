@@ -86,7 +86,7 @@ public class AlgoThread implements  Runnable {
         // Get waypoint
         Coordinate waypoint = getWaypoint();
         // Calibrate for Fastest Path
-        //robot.Calibrate(explorationMap);
+        robot.Calibrate(explorationMap);
         //Prepare algo for fastest path
         List<RobotCommand> fastestPathInstructions = new FastestPathFinder(explorationMap).GetFastestPath(robot, waypoint);
         robot.setFastestPath(fastestPathInstructions);
