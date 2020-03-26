@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import constants.SensorConstants;
 import utils.Coordinate;
 import map.MapTuple;
 import utils.Orientation;
@@ -118,7 +119,7 @@ public class AlgoClient{
                 break;
             case SENSOR:
                 List<Integer> sensorData = message.substring(1).chars()
-                .mapToObj(dat -> (dat == 'x') ? -1 : Integer.parseInt(Character.toString(dat)))
+                .mapToObj(dat -> (dat == SensorConstants.SENSOR_NULL) ? SensorConstants.NULL_VALUE : (dat == SensorConstants.SENSOR_ERROR) ? SensorConstants.ERROR_VALUE : Integer.parseInt(Character.toString(dat)))
                 .collect(Collectors.toList());
                 SyncObject.getSyncObject().SetSensorData(sensorData);
                 break;

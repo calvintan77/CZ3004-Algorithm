@@ -149,7 +149,8 @@ public class Map {
 	 * @param o: sensor orientation relative to map
 	 */
 	public void updateSingleSensor(int value, int maxValue, Coordinate sensorPos, Orientation o) {
-		if(value == -1 || value > maxValue) value = maxValue;
+		if(value == SensorConstants.ERROR_VALUE) return;
+		if(value == SensorConstants.NULL_VALUE || value > maxValue) value = maxValue;
 		switch (o) {
 			case RIGHT:
 				// update all seen
