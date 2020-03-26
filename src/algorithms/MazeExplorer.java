@@ -146,6 +146,9 @@ public class MazeExplorer {
 			System.out.println("MazeExplorer: " + e.toString());
 			e.printStackTrace();
 		}
+		if (robot.canCalibrate(robot.getOrientation(), map) || robot.getPosition().equals(new Coordinate(14, 19))) {
+			robot.Calibrate(map);
+		}
 		System.out.println("END OF EXPLORATION");
 	}
 

@@ -45,6 +45,14 @@ public class Map {
 			}
 		}
 	}
+	
+	public boolean hasUnseenNeighbour(int x, int y) {
+		for (int i=x-1; i<=x+1; i++)
+			for (int j=y-1; j<=y+1; j++)
+				if (this.getCell(i, j) != null && !this.getCell(i,j).isSeen())
+					return true;
+		return false;
+	}
 
 	public void initSeenSquares(){
 		this.numSquaresSeen = 0;

@@ -169,6 +169,7 @@ public class RpiRobot extends AbstractRobot {
          * @return true if obstacle/wall in front to calibrate
          */
 	public boolean canCalibrate(Orientation o, Map m, Coordinate position) {
+		if (m.hasUnseenNeighbour(position.getX(), position.getY())) return false;
 		switch (o) { 
 			case UP:
 				return (position.getY() + 2 > MapConstants.MAP_HEIGHT-1) ||
