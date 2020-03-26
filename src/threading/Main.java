@@ -18,6 +18,11 @@ public class Main {
             TCPThread tcpThread = new TCPThread();
             tcpThread.start();
         }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //Start Algo Thread
         AlgoThread algoThread = new AlgoThread();
         algoThread.start();

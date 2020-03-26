@@ -1,7 +1,7 @@
 package gui;
 
 import utils.Coordinate;
-import maze.Map;
+import map.Map;
 import utils.Orientation;
 
 public class GUIUpdate {

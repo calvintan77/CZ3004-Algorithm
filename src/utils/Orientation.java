@@ -26,4 +26,18 @@ public enum Orientation {
         }
 	    return diff;
     }
+
+    public Coordinate behindCurrent(Coordinate curr){
+	    switch(this){
+            case UP:
+                return new Coordinate(curr.getX(), curr.getY() - 1);
+            case LEFT:
+                return new Coordinate(curr.getX() + 1, curr.getY());
+            case DOWN:
+                return new Coordinate(curr.getX(), curr.getY() + 1);
+            case RIGHT:
+                return new Coordinate(curr.getX() - 1, curr.getY());
+        }
+        return curr;
+    }
 }

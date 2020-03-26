@@ -18,7 +18,7 @@ public class Graph {
      * @param waypointX - X coord of waypoint
      * @param waypointY - Y coord of waypoint
      */
-    public Graph(maze.Map map, int waypointX, int waypointY){
+    public Graph(map.Map map, int waypointX, int waypointY){
         this(MapProcessor.ProcessMapForFastestPath(map, waypointX, waypointY));
     }
 

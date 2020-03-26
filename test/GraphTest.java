@@ -1,5 +1,5 @@
-import maze.Map;
-import maze.MapCell;
+import map.Map;
+import map.MapCell;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

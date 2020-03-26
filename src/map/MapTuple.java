@@ -1,4 +1,4 @@
-package maze;
+package map;
 
 public class MapTuple { 
     private final String p1;

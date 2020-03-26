@@ -1,8 +1,8 @@
 package robot;
 
 import constants.SensorConstants;
-import maze.Map;
-import maze.MapCell;
+import map.Map;
+import map.MapCell;
 import utils.*;
 
 import java.util.*;
@@ -11,7 +11,6 @@ public abstract class AbstractRobot {
 	protected Coordinate position = new Coordinate(1,1);
 	protected Orientation o = Orientation.UP;
 	public abstract void doCommandWithSensor(RobotCommand cmd, Map map) throws InterruptedException;
-	public abstract void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException;
 	public Orientation getOrientation(){
 		return this.o;
 	}
@@ -26,6 +25,12 @@ public abstract class AbstractRobot {
 	}
 	public List<RobotCommand> prepareOrientationCmds(Orientation target){
 		return prepareAnyOrientation(this.o, target);
+	}
+
+	public void prepareOrientation(List<RobotCommand> cmds, Map map) throws InterruptedException {
+		for(RobotCommand cmd: cmds){
+			doCommandWithSensor(cmd, map);
+		}
 	}
 
 	protected List<RobotCommand> prepareAnyOrientation(Orientation from, Orientation target){
@@ -122,6 +127,7 @@ public abstract class AbstractRobot {
 		return cell != null && !cell.isObstacle() && !cell.isVirtualWall();
 	}
 
+	public abstract void Calibrate(Map m, Orientation finalOrientation);
 	public abstract void Calibrate(Map m);
 	public abstract void setFastestPath(List<RobotCommand> cmds);
 	public abstract void doFastestPath(boolean toGoalZone) throws InterruptedException;

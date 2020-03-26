@@ -1,6 +1,6 @@
 package algorithms;
 
-import maze.Map;
+import map.Map;
 import path.Graph;
 import path.ShortestPath;
 import robot.AbstractRobot;

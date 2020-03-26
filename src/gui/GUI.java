@@ -21,7 +21,7 @@ import javax.swing.text.Document;
 import constants.MapConstants;
 import constants.RobotConstants;
 import connection.SyncObject;
-import maze.Map;
+import map.Map;
 import utils.*;
 
 
@@ -39,6 +39,7 @@ public class GUI extends JFrame implements ActionListener{
 	public static final Color UNEXPLORED_CELL_COLOR = Color.BLACK;
 	public static final Color FASTEST_PATH_COLOR = Color.YELLOW;
 	public static final Color WAYPOINT_COLOR = Color.BLUE;
+	public static final Color CONFLICT_COLOR = Color.MAGENTA;
 	
 	private final JPanel displayedPane;
 	private JPanel settingPane;
@@ -499,7 +500,9 @@ public class GUI extends JFrame implements ActionListener{
 			grid[i][j].setBackground(UNEXPLORED_CELL_COLOR);
 		} else if(i >= 12 && j >=17){
 			grid[i][j].setBackground(GOAL_START_ZONE_COLOR);
-		} else if (map.getCell(i, j).isObstacle()) {
+		} else if (map.getCell(i, j).isHasConflict()){
+			grid[i][j].setBackground(CONFLICT_COLOR);
+		}else if (map.getCell(i, j).isObstacle()) {
 			grid[i][j].setBackground(OBSTACLE_CELL_COLOR);
 		} else {
 			grid[i][j].setBackground(EMPTY_CELL_COLOR);
@@ -761,7 +764,7 @@ public class GUI extends JFrame implements ActionListener{
 		String[] ffpInput = new String[4];
 		for (int i = 0; i < 2; i++) {
 			ffpInput[i] = ffpTextFields[i].getText();
-			if (!ffpInput[i].matches("[0-9]+"))
+			if (!ffpInput[i].matches("[0-9.]+"))
 				return false;
 		}
 		

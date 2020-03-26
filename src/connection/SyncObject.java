@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import gui.GUISettings;
 import gui.GUIUpdate;
-import maze.Map;
+import map.Map;
 import threading.AlgoThread;
 import utils.*;
 

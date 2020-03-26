@@ -2,14 +2,17 @@ package threading;
 
 import algorithms.FastestPathFinder;
 import algorithms.MazeExplorer;
+import connection.AlgoClient;
 import constants.RobotConstants;
-import maze.Map;
+import map.Map;
+import map.MapTuple;
 import robot.AbstractRobot;
 import robot.RpiRobot;
 import robot.VirtualRobot;
 import connection.SyncObject;
 import utils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AlgoThread implements  Runnable {
@@ -56,7 +59,7 @@ public class AlgoThread implements  Runnable {
     }
 
     private void RealRun(){
-        AbstractRobot robot = new RpiRobot();
+        RpiRobot robot = new RpiRobot();
         Map explorationMap = new Map();
         MazeExplorer explorer = new MazeExplorer(robot);
         // Real exploration, wait for signal from android
@@ -79,10 +82,11 @@ public class AlgoThread implements  Runnable {
         // Notify UI that exploration completed
         SyncObject.getSyncObject().SignalExplorationFinished();
         MapLoader.saveMap(explorationMap, "mds.txt");
-        // Calibrate for Fastest Path
-        robot.Calibrate(explorationMap);
+        robot.EnableCalibrate();
         // Get waypoint
         Coordinate waypoint = getWaypoint();
+        // Calibrate for Fastest Path
+        //robot.Calibrate(explorationMap);
         //Prepare algo for fastest path
         List<RobotCommand> fastestPathInstructions = new FastestPathFinder(explorationMap).GetFastestPath(robot, waypoint);
         robot.setFastestPath(fastestPathInstructions);

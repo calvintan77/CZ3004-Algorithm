@@ -1,10 +1,11 @@
-package maze;
+package map;
 
 public class MapCell {
 
 	private boolean isObstacle;
 	private boolean isVirtualWall;
-	private boolean isSeen; 
+	private boolean isSeen;
+	private boolean hasConflict;
 	public final int x; // changed to public for convenience
 	public final int y;
 	
@@ -32,13 +33,18 @@ public class MapCell {
 	public void setSeen(boolean status) {
 		this.isSeen = status; 
 	}
-	
-	public boolean isSeen() {
-		return this.isSeen;
-	}
+
+	public boolean isSeen() { return this.isSeen; }
 	
 	public String toString() {
 		return x+","+y;
 	}
-	
+
+	public boolean isHasConflict() {
+		return hasConflict;
+	}
+
+	public void setConflict(boolean conflict){
+		hasConflict = conflict;
+	}
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import utils.Coordinate;
-import maze.MapTuple;
+import map.MapTuple;
 import utils.Orientation;
 import utils.RobotCommand;
 
@@ -35,8 +35,18 @@ public class AlgoClient{
     public void sendFastestPath(List<RobotCommand> ls) { 
         StringBuilder builder = new StringBuilder();
         builder.append(FASTEST_PATH);
-        int i = 0; 
-        for (RobotCommand command : ls) { 
+        for(int i = 0; i < ls.size()-1; i++){
+            if((ls.get(i) == RobotCommand.TURN_RIGHT && ls.get(i+1) == RobotCommand.TURN_LEFT) ||
+                (ls.get(i) == RobotCommand.TURN_LEFT && ls.get(i+1) == RobotCommand.TURN_RIGHT))
+            {
+                ls.remove(i+1);
+                ls.remove(i);
+                i--;
+            }
+        }
+
+        int i = 0;
+        for (RobotCommand command : ls) {
             if (command == RobotCommand.MOVE_FORWARD) { 
                 i++;
             } else {
@@ -45,7 +55,7 @@ public class AlgoClient{
                         builder.append('F');
                         i -= 16;
                     }
-                    builder.append(Integer.toHexString(i)); 
+                    builder.append(Integer.toHexString(i).toUpperCase());
                     i = 0; 
                 } 
                 builder.append(command.getLetter());
